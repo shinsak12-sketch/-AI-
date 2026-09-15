@@ -43,11 +43,30 @@ async function ensure() {
         created_at timestamptz not null default now()
       )`;
       await s`create index if not exists posts_board_idx on posts (board, created_at desc)`;
+      await s`create table if not exists works (
+        id serial primary key,
+        title text not null,
+        link text not null default '',
+        html text not null default '',
+        author text not null,
+        crew_id integer,
+        created_at timestamptz not null default now()
+      )`;
+      await s`create table if not exists messages (
+        id serial primary key,
+        kind text not null default 'chat',
+        author text not null,
+        crew_id integer,
+        text text not null default '',
+        work_id integer,
+        created_at timestamptz not null default now()
+      )`;
+      await s`create index if not exists messages_id_idx on messages (id)`;
       await s`create table if not exists settings (key text primary key, value jsonb not null)`;
       await s`insert into settings (key, value) values ('main', '{"closed": false}') on conflict (key) do nothing`;
-      await s`insert into posts (board, title, body, author)
-        select 'notice', '1기 첫 모임 안내', '일정과 장소는 명부 마감 후 이 게시판에 올린다. 준비물: 노트북, AI 계정(무료 가능), 없애고 싶은 반복 업무 하나.', '담당자'
-        where not exists (select 1 from posts)`;
+      await s`insert into messages (kind, author, text)
+        select 'notice', '담당자', '환영한다. 여기는 모이지 않는 학습회다. 만든 것은 위 화면에 올리고, 할 말은 여기서 한다.'
+        where not exists (select 1 from messages)`;
     })();
   }
   return _ready;
@@ -69,17 +88,25 @@ const neonRepo = {
   async findByName(name) { await ensure(); const rows = await sql()`select * from crew where lower(name) = ${String(name).trim().toLowerCase()}`; return rows.length === 1 ? rows[0] : null; },
   async listCrew() { await ensure(); const rows = await sql()`select id, seq, nick, waitlist, created_at from crew order by seq`; return rows.map(pubCrew); },
   async listCrewAdmin() { await ensure(); return await sql()`select id, seq, name, nick, waitlist, created_at from crew order by seq`; },
-  async listPosts(board) { await ensure(); return await sql()`select id, board, title, body, prompt, link, author, created_at from posts where board = ${board} order by created_at desc limit 200`; },
-  async createPost(p) {
+  async listWorks() { await ensure(); return await sql()`select id, title, link, (html <> '') as has_html, author, crew_id, created_at from works order by id desc limit 200`; },
+  async getWork(id) { await ensure(); const [r] = await sql()`select * from works where id = ${Number(id)}`; return r || null; },
+  async createWork(w) {
     await ensure();
-    const [r] = await sql()`insert into posts (board, title, body, prompt, link, author, crew_id)
-      values (${p.board}, ${p.title}, ${p.body || ''}, ${p.prompt || ''}, ${p.link || ''}, ${p.author}, ${p.crew_id ?? null}) returning id, board, title, body, prompt, link, author, created_at`;
+    const [r] = await sql()`insert into works (title, link, html, author, crew_id) values (${w.title}, ${w.link || ''}, ${w.html || ''}, ${w.author}, ${w.crew_id ?? null}) returning id, title, link, (html <> '') as has_html, author, crew_id, created_at`;
+    await sql()`insert into messages (kind, author, crew_id, text, work_id) values ('work', ${w.author}, ${w.crew_id ?? null}, ${w.title}, ${r.id})`;
     return r;
   },
+  async listMessages(after) {
+    await ensure();
+    if (after > 0) return await sql()`select * from messages where id > ${after} order by id asc limit 200`;
+    const rows = await sql()`select * from messages order by id desc limit 80`; return rows.reverse();
+  },
+  async createMessage(m) { await ensure(); const [r] = await sql()`insert into messages (kind, author, crew_id, text) values (${m.kind || 'chat'}, ${m.author}, ${m.crew_id ?? null}, ${m.text}) returning *`; return r; },
 };
 
 /* ---------- 메모리 구현 (로컬 개발용) ---------- */
-const mem = { crew: [], posts: [{ id: 1, board: 'notice', title: '1기 첫 모임 안내', body: '일정과 장소는 명부 마감 후 이 게시판에 올린다. 준비물: 노트북, AI 계정(무료 가능), 없애고 싶은 반복 업무 하나.', prompt: '', link: '', author: '담당자', created_at: new Date().toISOString() }], settings: { closed: false }, seq: 1 };
+const mem = { crew: [], works: [], messages: [{ id: 1, kind: 'notice', author: '담당자', crew_id: null, text: '환영한다. 여기는 모이지 않는 학습회다. 만든 것은 위 화면에 올리고, 할 말은 여기서 한다.', work_id: null, created_at: new Date().toISOString() }], settings: { closed: false }, mid: 1, wid: 0 };
+const pubWork = ({ html, ...w }) => ({ ...w, has_html: !!html });
 const memRepo = {
   async settings() { return { ...mem.settings }; },
   async setClosed(closed) { mem.settings.closed = !!closed; return { ...mem.settings }; },
@@ -89,8 +116,11 @@ const memRepo = {
   async findByName(name) { const rows = mem.crew.filter(c => c.name.toLowerCase() === String(name).trim().toLowerCase()); return rows.length === 1 ? rows[0] : null; },
   async listCrew() { return mem.crew.map(pubCrew); },
   async listCrewAdmin() { return mem.crew.map(({ token, nick_key, pass_hash, ...r }) => r); },
-  async listPosts(board) { return mem.posts.filter(p => p.board === board).sort((a, b) => b.created_at.localeCompare(a.created_at)); },
-  async createPost(p) { const r = { id: ++mem.seq, board: p.board, title: p.title, body: p.body || '', prompt: p.prompt || '', link: p.link || '', author: p.author, crew_id: p.crew_id ?? null, created_at: new Date().toISOString() }; mem.posts.push(r); return r; },
+  async listWorks() { return mem.works.slice().reverse().map(pubWork); },
+  async getWork(id) { return mem.works.find(w => w.id === Number(id)) || null; },
+  async createWork(w) { const r = { id: ++mem.wid, title: w.title, link: w.link || '', html: w.html || '', author: w.author, crew_id: w.crew_id ?? null, created_at: new Date().toISOString() }; mem.works.push(r); mem.messages.push({ id: ++mem.mid, kind: 'work', author: w.author, crew_id: w.crew_id ?? null, text: w.title, work_id: r.id, created_at: r.created_at }); return pubWork(r); },
+  async listMessages(after) { return after > 0 ? mem.messages.filter(m => m.id > after).slice(0, 200) : mem.messages.slice(-80); },
+  async createMessage(m) { const r = { id: ++mem.mid, kind: m.kind || 'chat', author: m.author, crew_id: m.crew_id ?? null, text: m.text, work_id: null, created_at: new Date().toISOString() }; mem.messages.push(r); return r; },
 };
 
 export const repo = process.env.DEV_MEM ? memRepo : neonRepo;

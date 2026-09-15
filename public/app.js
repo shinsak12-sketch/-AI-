@@ -199,73 +199,107 @@
     return new Promise(res => c.toBlob(res, 'image/png'));
   }
 
-  /* ---------- 허브 ---------- */
-  const BOARDS = {
-    notice: { title: '공지', desc: '담당자가 올리는 일정과 안내', write: () => !!adminPass, fields: ['title', 'body'] },
-    free: { title: '자유', desc: '아무 얘기나. 질문, 잡담, 막힌 것', write: () => !!me, fields: ['title', 'body'] },
-    works: { title: '작품', desc: '만든 것을 올린다. 링크 하나면 된다', write: () => !!me, fields: ['title', 'body', 'link'] },
-    prompts: { title: '프롬프트', desc: '잘 먹힌 프롬프트를 나눈다', write: () => !!me, fields: ['title', 'prompt', 'body'] },
-  };
-  function enterHub() {
-    ['gate', 'reg', 'cardscr', 'admin', 'login'].forEach(id => show(id, false)); show('hub'); scrollTo(0, 0);
-    $('hub-me').innerHTML = me ? `<b>${esc(me.nick)}</b><br>CREW #${pad3(me.seq)}` : (adminPass ? '<b>담당자</b>' : '');
-    switchTab('home');
-  }
-  function switchTab(k) {
-    [...$('tabs').children].forEach(b => b.classList.toggle('on', b.dataset.tab === k));
-    document.querySelectorAll('.tab').forEach(t => { t.hidden = t.id !== 'tab-' + k; });
-    if (k === 'home') renderHome(); else if (k === 'crew') renderCrew(); else renderBoard(k);
-  }
-  $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) switchTab(b.dataset.tab); });
+  /* ---------- 방: 출력 화면 + 채팅 ---------- */
+  const chatEl = $('chat'), chatin = $('chatin');
+  let works = [], stageIdx = -1, lastId = 0, pollTimer = null, htmlCache = {};
+  const timeOf = iso => { const d = new Date(iso); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 
-  async function renderHome() {
-    $('tiles').innerHTML = '<div class="empty">불러오는 중 ...</div>';
+  function enterHub() {
+    ['gate', 'reg', 'cardscr', 'admin', 'login'].forEach(id => show(id, false)); show('hub'); document.body.classList.add('room'); scrollTo(0, 0);
+    $('hub-me').innerHTML = me ? `1기 · <i>@${esc(me.nick)}</i> · #${pad3(me.seq)}` : (adminPass ? '1기 · <i>담당자</i>' : '1기 · 내부망');
+    chatin.placeholder = adminPass && !me ? '공지로 올라간다' : '할 말';
+    if (!me && !adminPass) { $('b-plus').disabled = true; }
+    loadWorks(true); poll(); startPoll(); refreshCrewCount();
+  }
+  async function refreshCrewCount() { try { $('n-crew').textContent = (await api.get('/api/crew')).crew.length; } catch {} }
+
+  /* 출력 화면 */
+  async function loadWorks(showLatest) {
+    try { works = (await api.get('/api/works')).works; } catch { return; }
+    $('n-works').textContent = works.length;
+    if (works.length && (showLatest || stageIdx < 0)) showWork(0);
+    if (!works.length) { stageIdx = -1; $('stageview').innerHTML = '<div class="stage-empty mono">아직 올라온 작품이 없다.<br>첫 작품을 올려라. 아래 <b>+</b></div>'; $('s-title').textContent = 'OUTPUT · 대기 중'; show('s-open', false); }
+  }
+  async function showWork(i) {
+    if (!works.length) return; stageIdx = (i + works.length) % works.length;
+    const w = works[stageIdx], view = $('stageview');
+    $('s-title').innerHTML = `<b>#${works.length - stageIdx}</b> ${esc(w.title)} <i>@${esc(w.author)}</i>`;
+    if (w.link) { $('s-open').href = w.link; show('s-open'); } else show('s-open', false);
+    if (w.has_html) {
+      view.innerHTML = '<div class="stage-empty mono">불러오는 중 ...</div>';
+      try {
+        if (!htmlCache[w.id]) htmlCache[w.id] = (await api.get('/api/works?id=' + w.id)).work.html;
+        if (works[stageIdx] !== w) return;
+        const f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts allow-modals allow-forms allow-popups'); f.title = w.title; f.srcdoc = htmlCache[w.id]; view.innerHTML = ''; view.appendChild(f);
+      } catch { view.innerHTML = '<div class="stage-empty mono">불러오기 실패</div>'; }
+    } else {
+      view.innerHTML = `<div class="stage-link"><div class="lt">${esc(w.title)}</div><div class="mono">@${esc(w.author)} · 링크 작품</div><a class="act" href="${esc(w.link)}" target="_blank" rel="noopener">열기 ↗</a></div>`;
+    }
+  }
+  $('s-prev').addEventListener('click', () => showWork(stageIdx - 1));
+  $('s-next').addEventListener('click', () => showWork(stageIdx + 1));
+  $('s-full').addEventListener('click', () => { const on = $('stagebox').classList.toggle('full'); $('s-full').textContent = on ? '✕' : '⤢'; });
+
+  /* 채팅 */
+  function addMsg(m, scroll) {
+    const el = document.createElement('div');
+    const mine = me && m.crew_id === me.id && m.kind === 'chat';
+    if (m.kind === 'notice') { el.className = 'msg notice'; el.innerHTML = `<div class="meta"><b>담당자</b> ${timeOf(m.created_at)}</div><div class="bub">${esc(m.text)}</div>`; }
+    else if (m.kind === 'work') { el.className = 'msg work'; el.innerHTML = `<div class="meta"><b>@${esc(m.author)}</b> 작품을 올렸다 · ${timeOf(m.created_at)}</div><div class="bub"><div class="wt"><small>WORK</small>${esc(m.text)}</div><button type="button" class="act small" data-work="${m.work_id}">화면에 띄우기</button></div>`; }
+    else if (m.kind === 'sys') { el.className = 'msg sys'; el.innerHTML = `<div class="bub">${esc(m.text)}</div>`; }
+    else { el.className = 'msg' + (mine ? ' me' : ''); el.innerHTML = `<div class="meta"><b>@${esc(m.author)}</b> ${timeOf(m.created_at)}</div><div class="bub">${esc(m.text)}</div>`; }
+    chatEl.appendChild(el);
+    const wb = el.querySelector('[data-work]'); if (wb) wb.addEventListener('click', () => { const i = works.findIndex(w => w.id === Number(wb.dataset.work)); if (i >= 0) { showWork(i); $('stagebox').scrollIntoView({ block: 'start' }); } else loadWorks(true); });
+    if (scroll) chatEl.scrollTop = chatEl.scrollHeight;
+  }
+  async function poll() {
+    if ($('hub').hidden) return;
     try {
-      const [n, w, p, c] = await Promise.all(['notice', 'works', 'prompts'].map(k => api.get('/api/posts?board=' + k).then(r => r.posts[0])).concat(api.get('/api/crew').then(r => r.crew)));
-      const tile = (k, head, post) => `<button type="button" class="tile" data-go="${k}"><div class="th"><span>${head}</span><span>${post ? fmt(post.created_at) : ''}</span></div><div class="tt">${post ? esc(post.title) : '아직 글이 없다.'}</div><div class="tm">${post ? '@' + esc(post.author) : ''}</div></button>`;
-      $('tiles').innerHTML = tile('notice', 'NOTICE', n) + tile('works', 'WORKS', w) + tile('prompts', 'PROMPTS', p) +
-        `<button type="button" class="tile cta" data-go="crew"><div class="th"><span>CREW</span><span>${c.length}명</span></div><div class="tt">${me ? '명부에 있다. 닉네임: ' + esc(me.nick) : '담당자 모드'}</div><div class="tm">크루 목록 보기</div></button>`;
-      $('tiles').querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.go)));
-    } catch (e) { $('tiles').innerHTML = `<div class="empty">불러오기 실패 · ${esc(e.code)}</div>`; }
+      const r = await api.get('/api/chat?after=' + lastId);
+      const nearBottom = chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight < 80;
+      let newWork = false;
+      for (const m of r.messages) { if (m.id > lastId) { lastId = m.id; addMsg(m, false); if (m.kind === 'work') newWork = true; } }
+      if (r.messages.length && nearBottom) chatEl.scrollTop = chatEl.scrollHeight;
+      if (newWork) loadWorks(true);
+      if (!chatEl.children.length) chatEl.innerHTML = '<div class="empty">아직 조용하다. 첫 마디를 던져라.</div>';
+    } catch {}
   }
-  async function renderBoard(k) {
-    const B = BOARDS[k], box = document.querySelector(`.board[data-board="${k}"]`);
-    box.innerHTML = '<div class="empty">불러오는 중 ...</div>';
-    let posts = []; try { posts = (await api.get('/api/posts?board=' + k)).posts; } catch (e) { box.innerHTML = `<div class="empty">불러오기 실패 · ${esc(e.code)}</div>`; return; }
-    box.innerHTML = `<div class="board-head"><h2>${B.title}<small>${B.desc}</small></h2>${B.write() ? '<button type="button" class="act small" data-w>글쓰기</button>' : '<span class="only">담당자만 작성</span>'}</div><div class="wslot"></div>` +
-      (posts.length ? `<div class="posts">${posts.map((p, i) => `<article class="post"><button type="button" class="post-h"><span class="pn">${String(posts.length - i).padStart(2, '0')}</span><span class="pt">${esc(p.title)}</span><span class="pa"><b>@${esc(p.author)}</b> · ${fmt(p.created_at)}</span></button><div class="post-b">${esc(p.body || '')}${p.prompt ? `<pre>${esc(p.prompt)}</pre><div class="pl"><button type="button" class="act small" data-copy>프롬프트 복사</button></div>` : ''}${p.link ? `<div class="pl"><a class="act small" href="${esc(p.link)}" target="_blank" rel="noopener">열기 ↗</a></div>` : ''}</div></article>`).join('')}</div>` : '<div class="empty">아직 아무 글도 없다. 첫 글을 남겨라.</div>');
-    box.querySelectorAll('.post-h').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
-    box.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => { const t = b.closest('.post-b').querySelector('pre').textContent; try { await navigator.clipboard.writeText(t); b.textContent = '복사됨'; } catch { b.textContent = '드래그해서 복사'; } }));
-    const wb = box.querySelector('[data-w]'); if (wb) wb.addEventListener('click', () => writeForm(k, box.querySelector('.wslot')));
-  }
-  function writeForm(k, slot) {
-    if (slot.firstChild) { slot.innerHTML = ''; return; }
-    const B = BOARDS[k];
-    slot.innerHTML = `<div class="wform"><div class="qin">
-      <label class="flabel mono">제목</label><input type="text" data-f="title" maxlength="60" placeholder="제목">
-      ${B.fields.includes('prompt') ? '<label class="flabel mono">프롬프트</label><textarea data-f="prompt" maxlength="4000" placeholder="AI에게 보낸 문장을 그대로"></textarea><label class="flabel mono">설명 (선택)</label><input type="text" data-f="body" maxlength="300" placeholder="어디에 썼고 결과가 어땠는지">' : '<label class="flabel mono">내용</label><textarea data-f="body" maxlength="2000" placeholder="내용"></textarea>'}
-      ${B.fields.includes('link') ? '<label class="flabel mono">링크</label><input type="url" data-f="link" maxlength="500" placeholder="https:// (아티팩트, 파일 링크 등)">' : ''}
-      </div><p class="qerr mono"></p><div class="wnav"><span class="who">@${esc(k === 'notice' ? '담당자' : me.nick)} 으로 올라간다</span><button type="button" class="act" data-post>올리기</button></div></div>`;
-    slot.querySelector('[data-post]').addEventListener('click', async () => {
-      const g = f => { const el = slot.querySelector(`[data-f="${f}"]`); return el ? el.value.trim() : ''; };
-      const post = { board: k, title: g('title'), body: g('body'), prompt: g('prompt'), link: g('link') };
-      const err = slot.querySelector('.qerr'), btn = slot.querySelector('[data-post]');
-      if (!post.title) { err.textContent = '제목이 비어 있다.'; return; }
-      if (k === 'prompts' && !post.prompt) { err.textContent = '프롬프트가 비어 있다.'; return; }
-      if ((k === 'free' || k === 'notice') && !post.body) { err.textContent = '내용이 비어 있다.'; return; }
-      if (post.link && !/^https?:\/\//i.test(post.link)) { err.textContent = '링크는 http(s):// 로 시작해야 한다.'; return; }
-      btn.disabled = true;
-      try { await api.post('/api/posts', post, { ...authH(), ...adminH() }); renderBoard(k); }
-      catch (e) { btn.disabled = false; err.textContent = e.code === 'not_crew' ? '명부에 없는 계정이다. 첫 화면에서 다시 입장하라.' : e.code === 'admin_only' ? '담당자만 올릴 수 있다.' : '올리기 실패 · ' + e.code; }
-    });
-    slot.querySelector('input').focus();
-  }
-  async function renderCrew() {
-    $('crewlist').innerHTML = '<div class="empty">불러오는 중 ...</div>';
-    let crew = []; try { crew = (await api.get('/api/crew')).crew; } catch (e) { $('crewlist').innerHTML = `<div class="empty">불러오기 실패 · ${esc(e.code)}</div>`; return; }
-    $('crewlist').innerHTML = `<div class="board-head"><h2>크루<small>${crew.length}명 · 닉네임만 공개</small></h2></div>` +
-      (crew.length ? `<div class="crewgrid">${crew.map(c => `<div class="crewtile ${me && c.id === me.id ? 'me' : ''}"><div class="cn">CREW #${pad3(c.seq)}${c.waitlist ? ' · WAIT' : ''}</div><div class="ck">${esc(c.nick)}</div><div class="cd">${fmt(c.created_at)} 합류</div></div>`).join('')}</div>` : '<div class="empty">아직 아무도 없다.</div>');
-  }
+  function startPoll() { clearInterval(pollTimer); pollTimer = setInterval(() => { if (document.visibilityState === 'visible') poll(); }, 3000); }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('hub').hidden) poll(); });
+  $('chatform').addEventListener('submit', async e => {
+    e.preventDefault(); const text = chatin.value.trim(); if (!text) return;
+    chatin.value = ''; $('chatgo').disabled = true;
+    try { const r = await api.post('/api/chat', { text }, { ...authH(), ...adminH() }); if (r.message.id > lastId) { lastId = r.message.id; chatEl.querySelector('.empty')?.remove(); addMsg(r.message, true); } }
+    catch (err) { chatin.value = text; addMsg({ kind: 'sys', text: err.code === 'not_crew' ? '명부에 없는 계정. 첫 화면에서 다시 입장하라.' : '전송 실패 · ' + err.code, created_at: new Date().toISOString() }, true); }
+    $('chatgo').disabled = false; chatin.focus();
+  });
+
+  /* 시트 */
+  const openSheet = id => { document.querySelectorAll('.sheet').forEach(x => x.hidden = true); show(id); };
+  document.querySelectorAll('.sheet [data-close]').forEach(b => b.addEventListener('click', () => b.closest('.sheet').hidden = true));
+  $('b-plus').addEventListener('click', () => { openSheet('sheet-work'); setTimeout(() => $('w-title').focus(), 60); });
+  $('b-works').addEventListener('click', async () => {
+    openSheet('sheet-works'); await loadWorks(false);
+    $('works-list').innerHTML = works.length ? `<div class="wlist">${works.map((w, i) => `<button type="button" class="witem" data-i="${i}"><div class="wt"><b>${esc(w.title)}</b><small>@${esc(w.author)} · ${fmt(w.created_at)}</small></div><span class="tag">${w.has_html ? 'RUN' : 'LINK'}</span></button>`).join('')}</div>` : '<div class="empty">아직 없다.</div>';
+    $('works-list').querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { showWork(Number(b.dataset.i)); $('sheet-works').hidden = true; }));
+  });
+  $('b-crew').addEventListener('click', async () => {
+    openSheet('sheet-crew'); $('crewlist').innerHTML = '<div class="empty">불러오는 중 ...</div>';
+    try { const crew = (await api.get('/api/crew')).crew; $('n-crew').textContent = crew.length;
+      $('crewlist').innerHTML = crew.length ? `<div class="crewgrid">${crew.map(c => `<div class="crewtile ${me && c.id === me.id ? 'me' : ''}"><div class="cn">CREW #${pad3(c.seq)}${c.waitlist ? ' · WAIT' : ''}</div><div class="ck">${esc(c.nick)}</div><div class="cd">${fmt(c.created_at)} 합류</div></div>`).join('')}</div>` : '<div class="empty">아직 아무도 없다.</div>';
+    } catch (e) { $('crewlist').innerHTML = `<div class="empty">불러오기 실패 · ${esc(e.code)}</div>`; }
+  });
+  $('w-go').addEventListener('click', async () => {
+    const title = $('w-title').value.trim(), html = $('w-html').value.trim(), link = $('w-link').value.trim(), err = $('w-err');
+    if (!title) { err.textContent = '제목이 비어 있다.'; return; }
+    if (!html && !link) { err.textContent = 'HTML 코드나 링크 중 하나는 있어야 한다.'; return; }
+    if (link && !/^https?:\/\//i.test(link)) { err.textContent = '링크는 http(s):// 로 시작해야 한다.'; return; }
+    if (html.length > 300000) { err.textContent = '코드가 너무 크다 (300KB 이하).'; return; }
+    $('w-go').disabled = true; err.textContent = '';
+    try { await api.post('/api/works', { title, html, link }, authH()); $('w-title').value = ''; $('w-html').value = ''; $('w-link').value = ''; $('sheet-work').hidden = true; await poll(); await loadWorks(true); $('stagebox').scrollIntoView({ block: 'start' }); }
+    catch (e) { err.textContent = e.code === 'not_crew' ? '명부에 없는 계정. 첫 화면에서 다시 입장하라.' : '올리기 실패 · ' + e.code; }
+    $('w-go').disabled = false;
+  });
 
   /* ---------- 재입장 ---------- */
   function goLogin() {

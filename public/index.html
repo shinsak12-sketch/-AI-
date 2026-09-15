@@ -173,39 +173,68 @@ Delivery, very important:
     </div>
     <div class="card-actions" id="card-actions" hidden>
       <button type="button" class="act ghost" id="c-save">카드 저장</button>
-      <button type="button" class="act" id="c-enter">게시판 입장 →</button>
+      <button type="button" class="act" id="c-enter">입장 →</button>
     </div>
     <p class="note mono" id="c-note"></p>
   </section>
 
-  <!-- 4. 게시판 허브 -->
+  <!-- 4. 방: 출력 화면 + 실시간 채팅 -->
   <section id="hub" hidden>
-    <header class="hub-head">
+    <header class="room-head">
       <div class="hub-brand">
         <svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="60" fill="none" stroke="#E5323C" stroke-width="4" stroke-dasharray="2 14"/><path d="M40 66 Q66 44 92 66 Q66 88 40 66 Z" fill="#E9E7E1"/><circle cx="66" cy="66" r="7" fill="#050507"/><circle cx="66" cy="66" r="3" fill="#E5323C"/></svg>
-        <div><b>본점 AI 학습회</b><small class="mono">1기 · 내부망</small></div>
+        <div><b>본점 AI 학습회</b><small class="mono" id="hub-me">1기 · 내부망</small></div>
       </div>
-      <div class="hub-me mono" id="hub-me"></div>
+      <div class="room-tools mono">
+        <button type="button" class="tool" id="b-works">작품 <b id="n-works">0</b></button>
+        <button type="button" class="tool" id="b-crew">크루 <b id="n-crew">0</b></button>
+      </div>
     </header>
-    <nav class="tabs mono" id="tabs" aria-label="게시판">
-      <button type="button" data-tab="home" class="on">HOME</button>
-      <button type="button" data-tab="notice">공지</button>
-      <button type="button" data-tab="free">자유</button>
-      <button type="button" data-tab="works">작품</button>
-      <button type="button" data-tab="prompts">프롬프트</button>
-      <button type="button" data-tab="crew">크루</button>
-    </nav>
 
-    <div class="tab" id="tab-home">
-      <p class="term mono open home-term"><span class="l ok">&gt; 입장 확인. 환영한다.</span></p>
-      <div class="tiles" id="tiles"></div>
-      <div class="mission mono"><span>MISSION</span><p>주 1회 · 총 5회 · 매회 반복 업무 하나를 AI에게 시켜 도구로 만든다 · 마지막 회는 본부장 앞 시연 · 일정과 장소는 공지에 뜬다</p></div>
+    <div class="stage-box" id="stagebox">
+      <div class="stage-view" id="stageview">
+        <div class="stage-empty mono">아직 올라온 작품이 없다.<br>첫 작품을 올려라. 아래 <b>+</b></div>
+      </div>
+      <div class="stage-bar mono">
+        <button type="button" class="sbtn" id="s-prev" aria-label="이전 작품">◀</button>
+        <div class="stage-title" id="s-title">OUTPUT · 대기 중</div>
+        <a class="sbtn" id="s-open" target="_blank" rel="noopener" aria-label="새 창에서 열기" hidden>↗</a>
+        <button type="button" class="sbtn" id="s-full" aria-label="크게 보기">⤢</button>
+        <button type="button" class="sbtn" id="s-next" aria-label="다음 작품">▶</button>
+      </div>
     </div>
-    <div class="tab" id="tab-notice" hidden><div class="board" data-board="notice"></div></div>
-    <div class="tab" id="tab-free" hidden><div class="board" data-board="free"></div></div>
-    <div class="tab" id="tab-works" hidden><div class="board" data-board="works"></div></div>
-    <div class="tab" id="tab-prompts" hidden><div class="board" data-board="prompts"></div></div>
-    <div class="tab" id="tab-crew" hidden><div id="crewlist"></div></div>
+
+    <div class="chat" id="chat" aria-live="polite"></div>
+
+    <form class="chatbar" id="chatform" autocomplete="off">
+      <button type="button" class="plus" id="b-plus" aria-label="작품 올리기">+</button>
+      <input id="chatin" type="text" maxlength="500" placeholder="할 말" enterkeyhint="send" aria-label="채팅 입력">
+      <button type="submit" class="act small" id="chatgo">전송</button>
+    </form>
+
+    <div class="sheet" id="sheet-work" hidden>
+      <div class="sheet-head mono"><span>작품 올리기</span><button type="button" class="linkbtn" data-close>닫기</button></div>
+      <div class="qin">
+        <label class="flabel mono" for="w-title">제목</label>
+        <input id="w-title" type="text" maxlength="60" placeholder="예: 본점 점심 룰렛">
+        <label class="flabel mono" for="w-html">HTML 코드 붙여넣기 <span class="opt">(위 출력 화면에서 바로 실행됨)</span></label>
+        <textarea id="w-html" placeholder="AI가 만들어준 test.html 내용을 통째로 붙여넣는다. 코드 상자의 '복사'를 누르면 된다."></textarea>
+        <label class="flabel mono" for="w-link">또는 링크 <span class="opt">(아티팩트, 캔버스 공유 링크)</span></label>
+        <input id="w-link" type="url" maxlength="500" placeholder="https://">
+      </div>
+      <p class="qerr mono" id="w-err"></p>
+      <button type="button" class="act wide" id="w-go">화면에 올리기</button>
+    </div>
+
+    <div class="sheet" id="sheet-works" hidden>
+      <div class="sheet-head mono"><span>작품 전체</span><button type="button" class="linkbtn" data-close>닫기</button></div>
+      <div id="works-list"></div>
+    </div>
+
+    <div class="sheet" id="sheet-crew" hidden>
+      <div class="sheet-head mono"><span>크루</span><button type="button" class="linkbtn" data-close>닫기</button></div>
+      <div id="crewlist"></div>
+    </div>
   </section>
 
   <!-- 5. 담당자 -->
@@ -218,7 +247,7 @@ Delivery, very important:
         <button type="button" class="act small" id="a-csv">CSV 저장</button>
         <button type="button" class="act small ghost" id="a-close">명부 마감</button>
         <button type="button" class="act small ghost" id="a-reload">새로고침</button>
-        <button type="button" class="act small ghost" id="a-hub">게시판(공지 작성)</button>
+        <button type="button" class="act small ghost" id="a-hub">방 입장 (공지는 채팅으로)</button>
       </div>
       <div class="atable-wrap"><table class="atable mono" id="atable"></table></div>
       <p class="note mono" id="a-note"></p>
