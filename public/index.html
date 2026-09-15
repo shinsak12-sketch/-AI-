@@ -24,10 +24,29 @@
   <header class="strip mono">
     <span class="tag">REC</span>
     <span class="right">
-      <button type="button" class="linkbtn" id="quick" hidden>이미 크루 · 입장</button>
+      <button type="button" class="linkbtn" id="quick">이미 크루 · 입장</button>
       <span id="clock">--:--:--</span>
     </span>
   </header>
+
+  <!-- 0. 재입장 -->
+  <section class="screen" id="login" hidden>
+    <span class="classified mono">RE-ENTRY · 본점 · 1기</span>
+    <div class="qbox">
+      <p class="q mono">신원을 밝혀라.</p>
+      <p class="qsub mono">등록할 때 쓴 닉네임(또는 이름)과 비밀번호.</p>
+      <button type="button" class="act wide" id="l-quick" hidden></button>
+      <div class="qin">
+        <label class="flabel mono" for="l-id">닉네임 또는 이름</label>
+        <input id="l-id" type="text" autocomplete="username" maxlength="20" placeholder="북극성">
+        <label class="flabel mono" for="l-pw">비밀번호</label>
+        <input id="l-pw" type="password" autocomplete="current-password" maxlength="64" enterkeyhint="go" placeholder="••••">
+      </div>
+      <p class="qerr mono" id="lerr" aria-live="polite"></p>
+      <button type="button" class="act wide" id="l-go">입장</button>
+      <button type="button" class="linkbtn mono" id="l-back">← 처음으로</button>
+    </div>
+  </section>
 
   <!-- 1. 관문 -->
   <section class="gate" id="gate">
@@ -119,12 +138,14 @@ Delivery, very important:
     <span class="classified mono">REGISTER · 본점 · 1기</span>
     <div class="qbox">
       <p class="q mono">명부에 이름을 올려라.</p>
-      <p class="qsub mono">이름은 담당자만 본다. 이 안에서의 모든 활동은 닉네임으로만 남는다.</p>
+      <p class="qsub mono">이름은 담당자만 본다. 이 안에서의 모든 활동은 닉네임으로만 남는다. 비밀번호는 다음에 들어올 때 쓴다.</p>
       <div class="qin">
         <label class="flabel mono" for="f-name">이름</label>
         <input id="f-name" type="text" placeholder="홍길동" autocomplete="off" maxlength="20">
         <label class="flabel mono" for="f-nick">닉네임</label>
-        <input id="f-nick" type="text" placeholder="예: 안개, 북극성, 회색늑대" autocomplete="off" enterkeyhint="go" maxlength="12">
+        <input id="f-nick" type="text" placeholder="예: 안개, 북극성, 회색늑대" autocomplete="off" maxlength="12">
+        <label class="flabel mono" for="f-pw">비밀번호</label>
+        <input id="f-pw" type="password" placeholder="4자 이상 · 다시 들어올 때 쓴다" autocomplete="new-password" enterkeyhint="go" maxlength="64">
       </div>
       <p class="qerr mono" id="qerr" aria-live="polite"></p>
       <button type="button" class="act wide" id="qnext">등록하고 입장</button>

@@ -10,7 +10,7 @@ const shots = process.env.SHOTS || '';
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined, args: ['--no-sandbox'] });
 const ctx = await b.newContext({ viewport: { width: 400, height: 820 }, reducedMotion: 'reduce', isMobile: true, hasTouch: true });
 const pg = await ctx.newPage();
-const errs = []; pg.on('pageerror', e => errs.push('PAGEERR ' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !/ERR_CERT|fonts|409/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
+const errs = []; pg.on('pageerror', e => errs.push('PAGEERR ' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !/ERR_CERT|fonts|409|401/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
 const shot = n => shots ? pg.screenshot({ path: `${shots}/${n}.png`, fullPage: false }) : null;
 const url = `http://localhost:${PORT}/`;
 try {
@@ -20,7 +20,7 @@ try {
   if (!(await pg.$('#k-enter'))) throw new Error('enter key missing');
   await shot('m3-pass');
   await pg.click('#k-enter'); await pg.waitForTimeout(300); await shot('m4-reg');
-  await pg.fill('#f-name', '홍길동'); await pg.fill('#f-nick', '북극성'); await pg.click('#qnext'); await pg.waitForTimeout(1800);
+  await pg.fill('#f-name', '홍길동'); await pg.fill('#f-nick', '북극성'); await pg.fill('#f-pw', 'pass1234'); await pg.click('#qnext'); await pg.waitForTimeout(1800);
   console.log('card:', await pg.textContent('#c-no'), await pg.textContent('#c-name')); await shot('m5-card');
   await pg.click('#c-enter'); await pg.waitForTimeout(600); await shot('m6-hub');
   await pg.click('#tabs [data-tab="free"]'); await pg.waitForTimeout(400);
@@ -30,11 +30,15 @@ try {
   await pg.click('#tabs [data-tab="notice"]'); await pg.waitForTimeout(400); console.log('notice write hidden for crew:', !(await pg.$('.board[data-board="notice"] [data-w]')));
   await pg.click('#tabs [data-tab="crew"]'); await pg.waitForTimeout(400); await shot('m8-crew');
   // 재입장 + 닉네임 충돌
-  await pg.goto(url); await pg.waitForTimeout(300); console.log('quick visible:', await pg.isVisible('#quick'));
-  const dup = await pg.evaluate(() => fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '김철수', nick: '북극성' }) }).then(r => r.status));
+  await pg.goto(url); await pg.waitForTimeout(300);
+  const dup = await pg.evaluate(() => fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '김철수', nick: '북극성', password: 'abcd' }) }).then(r => r.status));
   console.log('dup nick status (expect 409):', dup);
-  const relogin = await pg.evaluate(() => fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '홍길동', nick: '북극성' }) }).then(r => r.json()));
-  console.log('relogin existing (expect true):', relogin.existing);
+  const bad = await pg.evaluate(() => fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: '북극성', password: 'wrong' }) }).then(r => r.status));
+  console.log('bad login status (expect 401):', bad);
+  await pg.evaluate(() => localStorage.clear()); await pg.reload(); await pg.waitForTimeout(300);
+  await pg.click('#quick'); await pg.waitForTimeout(200); await shot('m10-login');
+  await pg.fill('#l-id', '홍길동'); await pg.fill('#l-pw', 'pass1234'); await pg.click('#l-go'); await pg.waitForTimeout(600);
+  console.log('login by name → hub visible:', await pg.isVisible('#hub'), '| me:', await pg.textContent('#hub-me'));
   // 관리자
   await pg.goto(url + '#admin'); await pg.waitForTimeout(900); await pg.fill('#apass', '7919'); await pg.press('#apass', 'Enter'); await pg.waitForTimeout(500);
   console.log('admin rows:', (await pg.$$('#atable tr')).length - 1); await shot('m9-admin');

@@ -1,9 +1,11 @@
 // 데이터 계층. DEV_MEM=1 이면 메모리 저장소(로컬 개발), 아니면 Neon Postgres.
 import { neon } from '@neondatabase/serverless';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 const newToken = () => randomBytes(24).toString('hex');
 const nickKey = s => String(s).trim().toLowerCase();
+export function hashPass(pw) { const salt = randomBytes(16).toString('hex'); return salt + ':' + scryptSync(String(pw), salt, 32).toString('hex'); }
+export function checkPass(pw, stored) { if (!stored) return false; const [salt, h] = String(stored).split(':'); if (!salt || !h) return false; const a = scryptSync(String(pw), salt, 32), b = Buffer.from(h, 'hex'); return a.length === b.length && timingSafeEqual(a, b); }
 
 /* ---------- Neon 구현 ---------- */
 let _sql = null, _ready = null;
@@ -28,6 +30,7 @@ async function ensure() {
         waitlist boolean not null default false,
         created_at timestamptz not null default now()
       )`;
+      await s`alter table crew add column if not exists pass_hash text not null default ''`;
       await s`create table if not exists posts (
         id serial primary key,
         board text not null,
@@ -56,13 +59,14 @@ const neonRepo = {
   async setClosed(closed) { await ensure(); await sql()`insert into settings (key, value) values ('main', ${JSON.stringify({ closed: !!closed })}::jsonb) on conflict (key) do update set value = excluded.value`; return { closed: !!closed }; },
   async findByNick(nick) { await ensure(); const [r] = await sql()`select * from crew where nick_key = ${nickKey(nick)}`; return r || null; },
   async findByToken(t) { if (!t) return null; await ensure(); const [r] = await sql()`select * from crew where token = ${t}`; return r || null; },
-  async createCrew({ name, nick, waitlist }) {
+  async createCrew({ name, nick, password, waitlist }) {
     await ensure();
     const tok = newToken();
-    const [r] = await sql()`insert into crew (seq, name, nick, nick_key, token, waitlist)
-      values ((select coalesce(max(seq), 0) + 1 from crew), ${name}, ${nick}, ${nickKey(nick)}, ${tok}, ${!!waitlist}) returning *`;
+    const [r] = await sql()`insert into crew (seq, name, nick, nick_key, token, waitlist, pass_hash)
+      values ((select coalesce(max(seq), 0) + 1 from crew), ${name}, ${nick}, ${nickKey(nick)}, ${tok}, ${!!waitlist}, ${hashPass(password)}) returning *`;
     return r;
   },
+  async findByName(name) { await ensure(); const rows = await sql()`select * from crew where lower(name) = ${String(name).trim().toLowerCase()}`; return rows.length === 1 ? rows[0] : null; },
   async listCrew() { await ensure(); const rows = await sql()`select id, seq, nick, waitlist, created_at from crew order by seq`; return rows.map(pubCrew); },
   async listCrewAdmin() { await ensure(); return await sql()`select id, seq, name, nick, waitlist, created_at from crew order by seq`; },
   async listPosts(board) { await ensure(); return await sql()`select id, board, title, body, prompt, link, author, created_at from posts where board = ${board} order by created_at desc limit 200`; },
@@ -81,9 +85,10 @@ const memRepo = {
   async setClosed(closed) { mem.settings.closed = !!closed; return { ...mem.settings }; },
   async findByNick(nick) { return mem.crew.find(c => c.nick_key === nickKey(nick)) || null; },
   async findByToken(t) { return mem.crew.find(c => c.token === t) || null; },
-  async createCrew({ name, nick, waitlist }) { const r = { id: mem.crew.length + 1, seq: mem.crew.length + 1, name, nick, nick_key: nickKey(nick), token: newToken(), waitlist: !!waitlist, created_at: new Date().toISOString() }; mem.crew.push(r); return r; },
+  async createCrew({ name, nick, password, waitlist }) { const r = { id: mem.crew.length + 1, seq: mem.crew.length + 1, name, nick, nick_key: nickKey(nick), token: newToken(), waitlist: !!waitlist, pass_hash: hashPass(password), created_at: new Date().toISOString() }; mem.crew.push(r); return r; },
+  async findByName(name) { const rows = mem.crew.filter(c => c.name.toLowerCase() === String(name).trim().toLowerCase()); return rows.length === 1 ? rows[0] : null; },
   async listCrew() { return mem.crew.map(pubCrew); },
-  async listCrewAdmin() { return mem.crew.map(({ token, nick_key, ...r }) => r); },
+  async listCrewAdmin() { return mem.crew.map(({ token, nick_key, pass_hash, ...r }) => r); },
   async listPosts(board) { return mem.posts.filter(p => p.board === board).sort((a, b) => b.created_at.localeCompare(a.created_at)); },
   async createPost(p) { const r = { id: ++mem.seq, board: p.board, title: p.title, body: p.body || '', prompt: p.prompt || '', link: p.link || '', author: p.author, crew_id: p.crew_id ?? null, created_at: new Date().toISOString() }; mem.posts.push(r); return r; },
 };

@@ -10,7 +10,8 @@ api/             Vercel 서버리스 함수 (Node 22, ESM)
   _lib/repo.js   데이터 계층. Neon Postgres 구현 + 메모리 구현(DEV_MEM=1)
   _lib/http.js   JSON 응답, 권한 체크 유틸
   settings.js    GET  /api/settings          모집 상태 {closed}
-  register.js    POST /api/register          {name, nick} → {crew, token}
+  register.js    POST /api/register          {name, nick, password} → {crew, token}
+  login.js       POST /api/login             {id(닉네임 또는 이름), password} → {crew, token}
   crew.js        GET  /api/crew              크루 목록 (닉네임만)
   posts.js       GET  /api/posts?board=free  게시글 / POST 글쓰기 (x-crew-token)
   admin/crew.js  GET  /api/admin/crew        실명 포함 명부 (x-admin-pass)
@@ -37,7 +38,8 @@ npm run dev          # http://localhost:3000  (DB 없이 메모리 저장)
 ## 화면 흐름
 
 1. 관문: 편지 → "시험에 응하겠습니다" → 프롬프트 카드 → 열쇠 입력 → 입장하기
-2. 등록: 이름 + 닉네임. 이름은 담당자만 봄. 닉네임 중복 불가. 같은 이름·닉네임이면 재입장.
+2. 등록: 이름 + 닉네임 + 비밀번호. 이름은 담당자만 봄. 닉네임 중복 불가.
+   이미 등록한 사람은 첫 화면 우측 상단 "이미 크루 · 입장"에서 닉네임(또는 이름) + 비밀번호로 시험 없이 바로 게시판 입장.
 3. 크루 카드: CREW #번호 + 닉네임. PNG 저장 가능.
 4. 게시판: HOME / 공지(담당자만) / 자유 / 작품(링크) / 프롬프트(복사 버튼) / 크루
 5. 담당자: `/#admin` → 암호 → 명부, CSV, 모집 마감, 공지 작성

@@ -144,22 +144,23 @@
   /* ---------- 등록 ---------- */
   function goRegister() { show('gate', false); show('reg'); scrollTo(0, 0); setTimeout(() => $('f-name').focus(), 80); }
   async function register() {
-    const name = $('f-name').value.trim(), nick = $('f-nick').value.trim(), err = $('qerr');
+    const name = $('f-name').value.trim(), nick = $('f-nick').value.trim(), pw = $('f-pw').value, err = $('qerr');
     if (!name) { err.textContent = '이름이 비어 있다.'; $('f-name').focus(); return; }
     if (!nick) { err.textContent = '닉네임이 비어 있다.'; $('f-nick').focus(); return; }
+    if (pw.length < 4) { err.textContent = '비밀번호는 4자 이상.'; $('f-pw').focus(); return; }
     $('qnext').disabled = true; err.textContent = '';
     let res;
-    try { res = await api.post('/api/register', { name, nick }); }
+    try { res = await api.post('/api/register', { name, nick, password: pw }); }
     catch (e) {
       $('qnext').disabled = false;
-      err.textContent = e.code === 'nick_taken' ? '이미 쓰는 닉네임이다. 다른 걸로.' : '등록 실패. 잠시 후 다시. (' + e.code + ')';
+      err.textContent = e.code === 'nick_taken' ? '이미 쓰는 닉네임이다. 본인 것이면 첫 화면의 "이미 크루 · 입장"으로.' : e.code === 'password_short' ? '비밀번호는 4자 이상.' : '등록 실패. 잠시 후 다시. (' + e.code + ')';
       return;
     }
     me = { ...res.crew, token: res.token }; local.write('hq-me', me);
     show('reg', false); show('cardscr'); scrollTo(0, 0);
     const C = typer($('cterm'));
     await C('> 명부에 기록 중 ...');
-    await C(res.existing ? '> 이미 명부에 있다. 기존 기록을 불러온다.' : '> 기록 완료.', res.existing ? 'warn' : 'ok');
+    await C('> 기록 완료.', 'ok');
     if (me.waitlist) await C('> 명부가 마감되어 대기 명단에 올렸다.', 'warn');
     await C('> 크루 카드를 발급한다.', 'hi');
     await wait(300); renderCard(); show('card'); await wait(700); show('card-actions');
@@ -169,7 +170,8 @@
   }
   $('qnext').addEventListener('click', register);
   $('f-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('f-nick').focus(); } });
-  $('f-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); register(); } });
+  $('f-nick').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('f-pw').focus(); } });
+  $('f-pw').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); register(); } });
   $('c-enter').addEventListener('click', enterHub);
   $('c-save').addEventListener('click', async () => {
     const note = (t, c = '') => { $('c-note').textContent = t; $('c-note').className = 'note mono ' + c; };
@@ -205,7 +207,7 @@
     prompts: { title: '프롬프트', desc: '잘 먹힌 프롬프트를 나눈다', write: () => !!me, fields: ['title', 'prompt', 'body'] },
   };
   function enterHub() {
-    ['gate', 'reg', 'cardscr', 'admin'].forEach(id => show(id, false)); show('hub'); scrollTo(0, 0);
+    ['gate', 'reg', 'cardscr', 'admin', 'login'].forEach(id => show(id, false)); show('hub'); scrollTo(0, 0);
     $('hub-me').innerHTML = me ? `<b>${esc(me.nick)}</b><br>CREW #${pad3(me.seq)}` : (adminPass ? '<b>담당자</b>' : '');
     switchTab('home');
   }
@@ -254,7 +256,7 @@
       if (post.link && !/^https?:\/\//i.test(post.link)) { err.textContent = '링크는 http(s):// 로 시작해야 한다.'; return; }
       btn.disabled = true;
       try { await api.post('/api/posts', post, { ...authH(), ...adminH() }); renderBoard(k); }
-      catch (e) { btn.disabled = false; err.textContent = e.code === 'not_crew' ? '명부에 없는 계정이다. 다시 등록하라.' : e.code === 'admin_only' ? '담당자만 올릴 수 있다.' : '올리기 실패 · ' + e.code; }
+      catch (e) { btn.disabled = false; err.textContent = e.code === 'not_crew' ? '명부에 없는 계정이다. 첫 화면에서 다시 입장하라.' : e.code === 'admin_only' ? '담당자만 올릴 수 있다.' : '올리기 실패 · ' + e.code; }
     });
     slot.querySelector('input').focus();
   }
@@ -266,7 +268,26 @@
   }
 
   /* ---------- 재입장 ---------- */
-  if (me && me.token) { show('quick'); $('quick').addEventListener('click', enterHub); }
+  function goLogin() {
+    ['gate', 'reg', 'cardscr', 'hub', 'admin'].forEach(id => show(id, false)); show('login'); scrollTo(0, 0);
+    if (me && me.token) { $('l-quick').textContent = me.nick + ' 으로 바로 입장'; show('l-quick'); } else show('l-quick', false);
+    setTimeout(() => (me ? $('l-quick') : $('l-id')).focus(), 80);
+  }
+  async function login() {
+    const id = $('l-id').value.trim(), pw = $('l-pw').value, err = $('lerr');
+    if (!id) { err.textContent = '닉네임이나 이름을 넣어라.'; return; }
+    if (!pw) { err.textContent = '비밀번호가 비어 있다.'; return; }
+    $('l-go').disabled = true; err.textContent = '';
+    try { const r = await api.post('/api/login', { id, password: pw }); me = { ...r.crew, token: r.token }; local.write('hq-me', me); enterHub(); }
+    catch (e) { err.textContent = e.code === 'bad_login' ? '명부에 없거나 비밀번호가 다르다.' : '입장 실패 · ' + e.code; }
+    $('l-go').disabled = false;
+  }
+  $('quick').addEventListener('click', goLogin);
+  $('l-go').addEventListener('click', login);
+  $('l-pw').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); login(); } });
+  $('l-id').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('l-pw').focus(); } });
+  $('l-quick').addEventListener('click', enterHub);
+  $('l-back').addEventListener('click', () => { show('login', false); show('gate'); scrollTo(0, 0); });
 
   addEventListener('hashchange', () => location.reload());
 
