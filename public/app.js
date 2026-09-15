@@ -15,7 +15,7 @@
     async req(path, opts = {}) {
       const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
       let data = {}; try { data = await r.json(); } catch {}
-      if (!r.ok) throw Object.assign(new Error(data.error || r.statusText), { code: data.error || 'http_' + r.status, status: r.status });
+      if (!r.ok) throw Object.assign(new Error(data.error || r.statusText), { code: (data.error || 'http_' + r.status) + (data.message ? ': ' + String(data.message).slice(0, 120) : ''), status: r.status });
       return data;
     },
     get(p, h) { return this.req(p, { headers: h }); },

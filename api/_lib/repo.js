@@ -16,10 +16,21 @@ function sql() {
   }
   return _sql;
 }
+// 스키마 준비. 여러 함수가 동시에 첫 호출되면 CREATE TABLE IF NOT EXISTS 가 서로 충돌할 수 있어 재시도하고, 실패 시 캐시를 비워 다음 호출에서 다시 시도함.
 async function ensure() {
   if (!_ready) {
     _ready = (async () => {
-      const s = sql();
+      for (let i = 0; ; i++) {
+        try { await migrate(); return; }
+        catch (e) { if (i >= 3) throw e; await new Promise(r => setTimeout(r, 300 + Math.random() * 700)); }
+      }
+    })().catch(e => { _ready = null; throw e; });
+  }
+  return _ready;
+}
+async function migrate() {
+  const s = sql();
+  {
       await s`create table if not exists crew (
         id serial primary key,
         seq integer not null,
@@ -67,9 +78,7 @@ async function ensure() {
       await s`insert into messages (kind, author, text)
         select 'notice', '담당자', '환영한다. 여기는 모이지 않는 학습회다. 만든 것은 위 화면에 올리고, 할 말은 여기서 한다.'
         where not exists (select 1 from messages)`;
-    })();
   }
-  return _ready;
 }
 const pubCrew = r => ({ id: r.id, seq: r.seq, nick: r.nick, waitlist: r.waitlist, created_at: r.created_at });
 
