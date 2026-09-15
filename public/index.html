@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050507">
+<meta name="robots" content="noindex">
+<title>본점 AI 학습회</title>
+<meta name="description" content="본점 AI 학습회 1기 크루 모집. 시험을 통과하라.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500&family=Share+Tech+Mono&display=swap">
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 132 132'%3E%3Ccircle cx='66' cy='66' r='60' fill='%23050507'/%3E%3Cpath d='M40 66 Q66 44 92 66 Q66 88 40 66 Z' fill='%23E9E7E1'/%3E%3Ccircle cx='66' cy='66' r='7' fill='%23050507'/%3E%3Ccircle cx='66' cy='66' r='3' fill='%23E5323C'/%3E%3C/svg%3E">
+</head>
+<body>
+<!-- 소스를 열어본 당신. 지름길은 없다. 프롬프트를 AI에게 던져라. -->
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="spot" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
+
+<div class="stage">
+  <header class="strip mono">
+    <span class="tag">REC</span>
+    <span class="right">
+      <button type="button" class="linkbtn" id="quick" hidden>이미 크루 · 입장</button>
+      <span id="clock">--:--:--</span>
+    </span>
+  </header>
+
+  <!-- 1. 관문 -->
+  <section class="gate" id="gate">
+    <div class="emblem">
+      <div class="glow"></div>
+      <svg viewBox="0 0 132 132" aria-hidden="true">
+        <circle class="ring a" cx="66" cy="66" r="62"/>
+        <circle class="ring b" cx="66" cy="66" r="50"/>
+        <circle class="ring c" cx="66" cy="66" r="38"/>
+        <g class="eye-wrap"><path class="eye" d="M40 66 Q66 44 92 66 Q66 88 40 66 Z"/><circle cx="66" cy="66" r="7" fill="#050507"/><circle cx="66" cy="66" r="3" fill="#E5323C"/></g>
+      </svg>
+    </div>
+
+    <span class="classified mono">TEST · 본점 · 1기</span>
+
+    <h1 class="display" id="h1">
+      <span class="line"><span class="glitch" data-t="시험은" id="l1">시험은</span></span>
+      <span class="line red"><span class="glitch" data-t="이미 시작되었다." id="l2">이미 시작되었다.</span></span>
+    </h1>
+
+    <div class="letter mono" id="letter">
+      <p>안녕하십니까, 본점 여러분.</p>
+      <p>우리는 AI 시대에 적합한 인재를 원합니다.</p>
+      <p>본점 AI 학습회에 가입하시려면</p>
+      <p>하나의 시험을 통과해야 합니다.</p>
+      <p class="q">시험에 응하시겠습니까?</p>
+    </div>
+
+    <button class="key" id="key" type="button">
+      <span class="cap"><span class="led"></span><span class="mono" id="keytxt">시험에 응하겠습니다</span><span class="enter mono">ENTER</span></span>
+    </button>
+    <div class="hint mono" id="hint"><button type="button" class="linkbtn" id="decline">응하지 않겠습니다</button></div>
+
+    <section class="cipher" id="cipher" hidden aria-label="시험">
+      <div class="cipher-head mono"><span>TEST 01 · 첫 번째 임무</span><span>1 / 1</span></div>
+      <div class="cipher-body">
+        <ol class="steps mono">
+          <li><b>1</b><span>아래 영어 문장을 통째로 복사한다. 뜻은 몰라도 된다.</span></li>
+          <li><b>2</b><span>AI에게 붙여넣고 보낸다. ChatGPT, Claude, Gemini, 무엇이든.</span></li>
+          <li><b>3</b><span>AI가 만든 <em>test.html</em> 파일을 연다. 미리보기가 뜨면 그대로 보면 되고, 다운로드 버튼이 있으면 받아서 연다.</span></li>
+          <li><b>4</b><span>화면에 나타난 열쇠를 아래 터미널에 입력한다.</span></li>
+        </ol>
+        <div class="prompt-wrap">
+          <div class="prompt-bar mono"><span>PROMPT · EN</span><button type="button" class="act small" id="copyprompt">프롬프트 복사</button></div>
+          <pre class="prompt mono" id="promptq">You are helping me pass an entry test. Build ONE self-contained HTML file (inline CSS and JavaScript only, no external libraries, no images) that works when opened directly from my computer or phone.
+
+Look and feel: pitch-black background, monospace font, a faint scanline overlay, and a small eye emblem at the top drawn with inline SVG (white eye, red pupil, thin dashed ring around it). It should feel like a classified terminal.
+
+Behavior, in this exact order:
+1. On load, type these lines out one character at a time, like a terminal:
+   > CONNECTION ESTABLISHED
+   > IDENTITY: HQ STAFF
+   > DECRYPTING KEY...
+2. Then compute the key from this array of character codes: [86, 73, 66, 69]. Convert each number with String.fromCharCode and join them.
+3. Reveal the computed word in very large red letters with a flicker/glitch animation, then type the line:
+   > ENTER THIS KEY AT THE GATE.
+4. Add a small "COPY KEY" button under the word that copies it to the clipboard.
+
+Delivery, very important:
+- Create it as an actual FILE named test.html, using your file / artifact / canvas feature, so I can preview it and download it. Do NOT paste the code inline in the chat as a code block.
+- Do NOT write the decoded word anywhere as plain text, not in your reply and not in the HTML source. It must only exist at runtime, computed from the array.
+- After the file, reply with ONE short sentence telling me how to open it.</pre>
+        </div>
+        <details class="howto mono">
+          <summary>AI가 파일 대신 코드만 보여줄 때</summary>
+          <ol>
+            <li>"파일로 만들어줘" 라고 한 번 더 말한다. 대부분 여기서 해결된다.</li>
+            <li>그래도 안 되면 코드 상자의 "복사"를 누르고 메모장에 붙여넣는다.</li>
+            <li>다른 이름으로 저장. 파일 형식 "모든 파일", 이름 <em>test.html</em>.</li>
+            <li>저장한 파일을 열면 브라우저에서 실행된다.</li>
+          </ol>
+        </details>
+        <p class="note mono" id="cnote">방금 한 일이 우리가 매주 하는 일이다. 말로 시키고, 결과를 연다.</p>
+      </div>
+    </section>
+
+    <div class="term mono" id="term" hidden aria-live="polite">
+      <div class="lines" id="lines"></div>
+      <form class="in" id="form" autocomplete="off">
+        <label for="cmd">&gt;</label>
+        <input id="cmd" type="text" spellcheck="false" autocapitalize="off" enterkeyhint="go" placeholder="열쇠 입력" aria-label="열쇠 입력">
+        <button type="submit" class="act small" id="cmdgo">입력 ↵</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 2. 등록 -->
+  <section class="screen" id="reg" hidden>
+    <span class="classified mono">REGISTER · 본점 · 1기</span>
+    <div class="qbox">
+      <p class="q mono">명부에 이름을 올려라.</p>
+      <p class="qsub mono">이름은 담당자만 본다. 이 안에서의 모든 활동은 닉네임으로만 남는다.</p>
+      <div class="qin">
+        <label class="flabel mono" for="f-name">이름</label>
+        <input id="f-name" type="text" placeholder="홍길동" autocomplete="off" maxlength="20">
+        <label class="flabel mono" for="f-nick">닉네임</label>
+        <input id="f-nick" type="text" placeholder="예: 안개, 북극성, 회색늑대" autocomplete="off" enterkeyhint="go" maxlength="12">
+      </div>
+      <p class="qerr mono" id="qerr" aria-live="polite"></p>
+      <button type="button" class="act wide" id="qnext">등록하고 입장</button>
+    </div>
+  </section>
+
+  <!-- 3. 크루 카드 -->
+  <section class="screen" id="cardscr" hidden>
+    <div class="term mono open" id="cterm"><div class="lines" id="clines"></div></div>
+    <div class="card" id="card" hidden>
+      <div class="card-top mono"><span>본점 AI 학습회 · 1기</span><span id="c-status">CREW</span></div>
+      <div class="card-mid">
+        <svg viewBox="0 0 132 132" aria-hidden="true" class="card-eye">
+          <circle cx="66" cy="66" r="62" fill="none" stroke="#E9E7E1" stroke-opacity=".35" stroke-dasharray="3 6"/>
+          <circle cx="66" cy="66" r="38" fill="none" stroke="#E5323C" stroke-width="2" stroke-dasharray="2 14"/>
+          <path d="M40 66 Q66 44 92 66 Q66 88 40 66 Z" fill="#E9E7E1"/><circle cx="66" cy="66" r="7" fill="#050507"/><circle cx="66" cy="66" r="3" fill="#E5323C"/>
+        </svg>
+        <div>
+          <div class="card-no mono" id="c-no">CREW #---</div>
+          <div class="card-name display" id="c-name">닉네임</div>
+          <div class="card-dept mono">본점 AI 학습회</div>
+        </div>
+      </div>
+      <div class="card-bot mono"><span id="c-date">----.--.--</span><span>7919</span></div>
+    </div>
+    <div class="card-actions" id="card-actions" hidden>
+      <button type="button" class="act ghost" id="c-save">카드 저장</button>
+      <button type="button" class="act" id="c-enter">게시판 입장 →</button>
+    </div>
+    <p class="note mono" id="c-note"></p>
+  </section>
+
+  <!-- 4. 게시판 허브 -->
+  <section id="hub" hidden>
+    <header class="hub-head">
+      <div class="hub-brand">
+        <svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="60" fill="none" stroke="#E5323C" stroke-width="4" stroke-dasharray="2 14"/><path d="M40 66 Q66 44 92 66 Q66 88 40 66 Z" fill="#E9E7E1"/><circle cx="66" cy="66" r="7" fill="#050507"/><circle cx="66" cy="66" r="3" fill="#E5323C"/></svg>
+        <div><b>본점 AI 학습회</b><small class="mono">1기 · 내부망</small></div>
+      </div>
+      <div class="hub-me mono" id="hub-me"></div>
+    </header>
+    <nav class="tabs mono" id="tabs" aria-label="게시판">
+      <button type="button" data-tab="home" class="on">HOME</button>
+      <button type="button" data-tab="notice">공지</button>
+      <button type="button" data-tab="free">자유</button>
+      <button type="button" data-tab="works">작품</button>
+      <button type="button" data-tab="prompts">프롬프트</button>
+      <button type="button" data-tab="crew">크루</button>
+    </nav>
+
+    <div class="tab" id="tab-home">
+      <p class="term mono open home-term"><span class="l ok">&gt; 입장 확인. 환영한다.</span></p>
+      <div class="tiles" id="tiles"></div>
+      <div class="mission mono"><span>MISSION</span><p>주 1회 · 총 5회 · 매회 반복 업무 하나를 AI에게 시켜 도구로 만든다 · 마지막 회는 본부장 앞 시연 · 일정과 장소는 공지에 뜬다</p></div>
+    </div>
+    <div class="tab" id="tab-notice" hidden><div class="board" data-board="notice"></div></div>
+    <div class="tab" id="tab-free" hidden><div class="board" data-board="free"></div></div>
+    <div class="tab" id="tab-works" hidden><div class="board" data-board="works"></div></div>
+    <div class="tab" id="tab-prompts" hidden><div class="board" data-board="prompts"></div></div>
+    <div class="tab" id="tab-crew" hidden><div id="crewlist"></div></div>
+  </section>
+
+  <!-- 5. 담당자 -->
+  <section class="screen admin" id="admin" hidden>
+    <span class="classified mono">ADMIN · 명부</span>
+    <form class="term mono open" id="aform"><label for="apass">&gt;</label><input id="apass" type="password" placeholder="담당자 암호" aria-label="담당자 암호" enterkeyhint="go"><button type="submit" class="act small">확인</button></form>
+    <div id="apanel" hidden>
+      <div class="astats mono" id="astats"></div>
+      <div class="acts">
+        <button type="button" class="act small" id="a-csv">CSV 저장</button>
+        <button type="button" class="act small ghost" id="a-close">명부 마감</button>
+        <button type="button" class="act small ghost" id="a-reload">새로고침</button>
+        <button type="button" class="act small ghost" id="a-hub">게시판(공지 작성)</button>
+      </div>
+      <div class="atable-wrap"><table class="atable mono" id="atable"></table></div>
+      <p class="note mono" id="a-note"></p>
+    </div>
+  </section>
+
+  <footer class="foot mono">
+    <span>이 초대장은 코드 한 줄 없이 만들어졌음</span>
+    <span>v0.2 · 1기</span>
+  </footer>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+/* 본점 AI 학습회 · 모바일 기준 스타일. 큰 화면은 min-width 미디어쿼리로 확장. */
+:root{
+  --black:#050507; --ink:#0B0C10; --panel:#101218; --edge:#1B1E27;
+  --paper:#E9E7E1; --dim:#8A8D97; --faint:#3A3D48;
+  --red:#E5323C; --red-deep:#8E141C; --green:#5CFF8A; --green-dim:#2E7A47;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--black);color:var(--paper);font-family:"Noto Sans KR","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.mono{font-family:"Share Tech Mono",ui-monospace,Menlo,monospace}
+.display{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400}
+::selection{background:var(--paper);color:var(--black)}
+button{touch-action:manipulation}
+
+/* 분위기 */
+#rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.45}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,.8) 100%)}
+.scan{position:fixed;inset:0;z-index:2;pointer-events:none;mix-blend-mode:overlay;opacity:.3;background:repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0 1px, transparent 1px 3px)}
+.spot{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(220px 220px at var(--mx,50%) var(--my,30%), rgba(229,50,60,.10), transparent 70%)}
+@keyframes build{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes blink{50%{opacity:0}}
+
+.stage{position:relative;z-index:3;min-height:100%;display:flex;flex-direction:column;padding-inline:16px;padding-top:var(--sat);padding-bottom:var(--sab);max-width:960px;margin:0 auto;width:100%}
+
+/* 상단 */
+.strip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:12px;font-size:11px;letter-spacing:.14em;color:var(--dim);border-bottom:1px solid var(--edge)}
+.strip .tag{color:var(--red);display:inline-flex;align-items:center;gap:8px}
+.strip .tag::before{content:"";width:8px;height:8px;background:var(--red);border-radius:50%;animation:rec 1.2s steps(1) infinite;box-shadow:0 0 10px var(--red)}
+@keyframes rec{50%{opacity:.15}}
+.strip .right{display:flex;gap:14px;align-items:center}
+.linkbtn{appearance:none;background:none;border:0;color:var(--faint);font:inherit;letter-spacing:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:4px;padding:6px}
+.linkbtn:hover{color:var(--dim)}
+.linkbtn:focus-visible{outline:1px solid var(--green);outline-offset:4px}
+#quick{color:var(--green)}
+
+/* 관문 */
+.gate{flex:1;text-align:center;padding-block:28px 24px}
+.emblem{width:92px;height:92px;margin:0 auto 18px;position:relative}
+.emblem svg{width:100%;height:100%;overflow:visible}
+.ring{fill:none;stroke:var(--paper);stroke-opacity:.35;transform-origin:50% 50%}
+.ring.a{stroke-dasharray:3 6;animation:rot 26s linear infinite}
+.ring.b{stroke-dasharray:40 18;stroke-opacity:.18;animation:rot 40s linear infinite reverse}
+.ring.c{stroke:var(--red);stroke-dasharray:2 14;stroke-width:2;animation:rot 12s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.eye{fill:var(--paper);animation:blinkEye 6s infinite;transform-origin:50% 50%}
+@keyframes blinkEye{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+.emblem .glow{position:absolute;inset:-30px;background:radial-gradient(circle, rgba(229,50,60,.22), transparent 60%);z-index:-1}
+
+.classified{display:inline-block;font-size:11px;letter-spacing:.3em;color:var(--red);border:1px solid var(--red-deep);padding:6px 12px 5px;margin-bottom:18px;position:relative}
+.classified::before,.classified::after{content:"";position:absolute;top:-1px;width:8px;height:8px;border:1px solid var(--red)}
+.classified::before{left:-1px;border-right:0;border-bottom:0}
+.classified::after{right:-1px;border-left:0;border-bottom:0}
+
+h1{margin:0 0 18px;font-size:clamp(34px,11vw,88px);line-height:1.06;letter-spacing:-.01em;text-wrap:balance;word-break:keep-all;text-shadow:0 0 30px rgba(233,231,225,.12)}
+h1 .line{display:block}
+h1 .red{color:var(--red);text-shadow:0 0 40px rgba(229,50,60,.45)}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;opacity:0}
+.glitch::before{color:var(--red);transform:translate(-3px,0)}
+.glitch::after{color:#4CC9F0;transform:translate(3px,0)}
+.jitter .glitch::before,.jitter .glitch::after{animation:gl 1.2s steps(2) infinite;opacity:.8}
+.jitter .glitch::after{animation-delay:-.6s}
+@keyframes gl{0%{clip-path:inset(10% 0 80% 0)}20%{clip-path:inset(60% 0 10% 0)}40%{clip-path:inset(30% 0 50% 0)}60%{clip-path:inset(80% 0 5% 0)}80%{clip-path:inset(45% 0 40% 0)}100%{clip-path:inset(5% 0 85% 0)}}
+
+.letter{margin:0 auto 26px;max-width:34em;font-size:14px;color:var(--dim);letter-spacing:.03em;line-height:1.9}
+.letter p{margin:0;opacity:0;transform:translateY(4px);transition:opacity .5s ease, transform .5s ease}
+.letter p.on{opacity:1;transform:none}
+.letter p.q{margin-top:1em;color:var(--paper);font-size:1.15em;letter-spacing:.06em}
+
+/* 키캡 */
+.key{appearance:none;border:0;cursor:pointer;font:inherit;position:relative;padding:0;background:none;display:inline-block;max-width:100%}
+.key:focus-visible{outline:2px solid var(--green);outline-offset:6px}
+.key .cap{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 22px;border-radius:10px;background:linear-gradient(180deg,#1A1C24,#0F1116);color:var(--paper);border:1px solid #2A2D38;letter-spacing:.16em;font-size:14px;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 -3px 0 #000 inset, 0 8px 0 #07080B, 0 14px 30px rgba(0,0,0,.7);transition:transform .08s ease, box-shadow .08s ease}
+.key .cap .enter{font-size:11px;color:var(--dim);border:1px solid var(--faint);padding:2px 7px;border-radius:4px;letter-spacing:.1em}
+.key .cap .led{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 12px var(--red);flex:none}
+.key:active .cap,.key.down .cap{transform:translateY(8px);box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 -1px 0 #000 inset, 0 0 0 #07080B, 0 4px 12px rgba(0,0,0,.6)}
+.key.granted .cap .led,.key .led.on{background:var(--green);box-shadow:0 0 14px var(--green)}
+.key.enter{margin:18px auto 0;display:block}
+.hint{margin-top:12px;font-size:12px;letter-spacing:.14em;color:var(--faint)}
+
+/* 시험 카드 */
+.cipher{margin:28px auto 0;max-width:640px;text-align:left;background:var(--panel);border:1px solid var(--edge);border-radius:10px;overflow:hidden;animation:build .5s ease both;box-shadow:0 0 0 1px rgba(0,0,0,.6), 0 30px 60px -30px rgba(229,50,60,.25)}
+.cipher-head{display:flex;justify-content:space-between;padding:10px 14px;font-size:11px;letter-spacing:.2em;color:var(--red);border-bottom:1px solid var(--edge);background:rgba(229,50,60,.06)}
+.cipher-body{padding:14px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--dim);letter-spacing:.02em;line-height:1.7}
+.steps li{display:flex;gap:10px;align-items:flex-start}
+.steps b{flex:none;width:22px;height:22px;border:1px solid var(--red-deep);color:var(--red);display:grid;place-items:center;font-weight:400;font-size:11px;margin-top:2px}
+.steps em,.howto em{font-style:normal;color:var(--green);border-bottom:1px dotted var(--green-dim)}
+.prompt-wrap{margin-top:16px;border:1px solid var(--edge);border-radius:8px;overflow:hidden;background:#07080B}
+.prompt-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 8px 12px;font-size:11px;letter-spacing:.2em;color:var(--green);border-bottom:1px solid var(--edge);background:rgba(92,255,138,.04)}
+.prompt{margin:0;padding:12px;font-size:12px;line-height:1.7;color:var(--paper);white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;user-select:all}
+.howto{margin-top:12px;font-size:12px;color:var(--dim)}
+.howto summary{cursor:pointer;letter-spacing:.06em;padding:6px 0}
+.howto ol{margin:6px 0 0;padding-left:20px;line-height:1.8}
+.note{margin:12px 0 0;font-size:11px;letter-spacing:.04em;color:var(--faint);line-height:1.7}
+.note.ok{color:var(--green)}
+.note.warn{color:var(--red)}
+
+/* 버튼 */
+.act{appearance:none;cursor:pointer;font:inherit;font-family:"Share Tech Mono",monospace;letter-spacing:.12em;font-size:13px;padding:12px 16px;border-radius:8px;color:var(--paper);background:linear-gradient(180deg,#1A1C24,#0F1116);border:1px solid #2A2D38;text-decoration:none;display:inline-block;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 -2px 0 #000 inset, 0 5px 0 #07080B, 0 10px 20px rgba(0,0,0,.6);transition:transform .08s, box-shadow .08s}
+.act:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 -1px 0 #000 inset, 0 0 0 #07080B, 0 3px 8px rgba(0,0,0,.6)}
+.act:focus-visible{outline:2px solid var(--green);outline-offset:4px}
+.act.small{padding:8px 12px;font-size:11px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 -2px 0 #000 inset, 0 3px 0 #07080B, 0 6px 12px rgba(0,0,0,.6)}
+.act.small:active{transform:translateY(3px)}
+.act.ghost{color:var(--dim)}
+.act.wide{width:100%;text-align:center;margin-top:12px;padding:14px}
+.act:disabled{opacity:.4;cursor:default;transform:none}
+
+/* 터미널 */
+.term{margin:24px auto 0;max-width:640px;text-align:left;background:rgba(11,12,16,.88);border:1px solid var(--edge);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--green-dim);box-shadow:0 0 0 1px rgba(0,0,0,.6), inset 0 0 40px rgba(0,0,0,.6);animation:build .5s ease both}
+.term .l{display:block;white-space:pre-wrap;word-break:break-word;line-height:1.75}
+.term .l.ok{color:var(--green)}.term .l.warn{color:var(--red)}.term .l.hi{color:var(--paper)}
+.term .in{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;border-top:1px dashed var(--edge);padding-top:10px}
+.term .in label{color:var(--green)}
+.term .in input{flex:1;min-width:120px;background:none;border:0;outline:0;color:var(--paper);font:inherit;letter-spacing:.06em;padding:8px 0;font-size:16px}
+.term .in input::placeholder{color:var(--faint)}
+.term .in input:focus{box-shadow:0 1px 0 var(--green-dim)}
+.term .in .act{flex:none;color:var(--green);border-color:var(--green-dim)}
+.term.open{margin-top:0}
+
+/* 화면 공통 */
+.screen{flex:1;text-align:center;padding-block:28px 24px;animation:build .6s ease both}
+.qbox{max-width:520px;margin:6px auto 0;text-align:left;background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:16px;box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.q{margin:0;font-size:16px;color:var(--paper);letter-spacing:.04em;line-height:1.6}
+.q::before{content:"> ";color:var(--green)}
+.qsub{margin:4px 0 0;font-size:12px;color:var(--faint);letter-spacing:.03em;line-height:1.7}
+.qin{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.flabel{font-size:11px;letter-spacing:.2em;color:var(--dim);margin-top:6px}
+.qin input,.qin textarea{width:100%;background:#07080B;border:1px solid var(--edge);border-radius:6px;color:var(--paper);font:inherit;font-family:"Share Tech Mono",monospace;font-size:16px;padding:12px 14px;outline:0;letter-spacing:.04em;box-shadow:inset 0 2px 8px rgba(0,0,0,.6)}
+.qin textarea{min-height:110px;resize:vertical}
+.qin input:focus,.qin textarea:focus{border-color:var(--green-dim);box-shadow:inset 0 2px 8px rgba(0,0,0,.6), 0 0 0 3px rgba(92,255,138,.08)}
+.qerr{margin:8px 0 0;font-size:12px;color:var(--red);min-height:1.2em;letter-spacing:.04em}
+
+/* 카드 */
+.card{width:100%;max-width:520px;margin:18px auto 0;aspect-ratio:1.6;background:linear-gradient(160deg,#0F1117,#07080B);border:1px solid #2A2D38;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;position:relative;overflow:hidden;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 -2px 0 #000 inset, 0 30px 60px -20px rgba(0,0,0,.9), 0 0 80px -30px rgba(229,50,60,.5);animation:flip .8s cubic-bezier(.2,.9,.3,1.1) both}
+@keyframes flip{from{opacity:0;transform:perspective(900px) rotateY(70deg) scale(.9)}to{opacity:1;transform:none}}
+.card::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);pointer-events:none}
+.card-top,.card-bot{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.22em;color:var(--dim)}
+.card-top span:last-child,.card-bot span:last-child{color:var(--red)}
+.card-mid{display:flex;align-items:center;gap:14px}
+.card-eye{width:70px;height:70px;flex:none}
+.card-no{font-size:12px;letter-spacing:.3em;color:var(--red)}
+.card-name{font-size:clamp(28px,9vw,44px);line-height:1.1;color:var(--paper);margin:4px 0 6px;word-break:keep-all}
+.card-dept{font-size:11px;letter-spacing:.2em;color:var(--dim)}
+.card-actions{display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+
+/* 허브 */
+#hub{flex:1;animation:build .6s ease both;padding-bottom:30px}
+.hub-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:14px 10px}
+.hub-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.hub-brand svg{width:36px;height:36px;flex:none}
+.hub-brand b{display:block;font-weight:500;letter-spacing:-.01em;font-size:16px;white-space:nowrap}
+.hub-brand small{display:block;font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.hub-me{font-size:11px;letter-spacing:.1em;color:var(--dim);text-align:right;flex:none}
+.hub-me b{color:var(--green);font-weight:400}
+.tabs{position:sticky;top:var(--sat);z-index:5;display:flex;gap:4px;overflow-x:auto;padding:6px 0 8px;margin-inline:-16px;padding-inline:16px;border-bottom:1px solid var(--edge);scrollbar-width:none;background:linear-gradient(var(--black) 80%, transparent)}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{appearance:none;flex:none;cursor:pointer;font:inherit;font-family:"Share Tech Mono",monospace;font-size:12px;letter-spacing:.14em;padding:10px 13px;border-radius:6px;color:var(--dim);background:none;border:1px solid transparent;transition:all .15s}
+.tabs button.on{color:var(--paper);background:var(--panel);border-color:var(--edge);box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 2px 0 #07080B}
+.tab{padding-top:14px;animation:build .35s ease both}
+.home-term{margin:0 0 12px;padding:10px 12px}
+.tiles{display:grid;grid-template-columns:1fr;gap:10px}
+.tile{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:12px 14px;cursor:pointer;transition:transform .12s, border-color .2s;text-align:left;font:inherit;color:inherit;appearance:none;width:100%}
+.tile:active{transform:scale(.99)}
+.tile .th{display:flex;justify-content:space-between;font-family:"Share Tech Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--red);margin-bottom:6px}
+.tile .tt{font-size:15px;color:var(--paper);line-height:1.5;font-weight:400;word-break:keep-all}
+.tile .tm{font-family:"Share Tech Mono",monospace;font-size:11px;color:var(--faint);margin-top:4px;letter-spacing:.06em}
+.tile.cta{border-color:var(--red-deep);background:linear-gradient(160deg,rgba(229,50,60,.10),var(--panel))}
+.mission{margin-top:14px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim);letter-spacing:.03em;border:1px dashed var(--edge);border-radius:8px;padding:12px 14px}
+.mission span{color:var(--red);letter-spacing:.2em}
+.mission p{margin:0;line-height:1.8}
+
+.board-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.board-head h2{margin:0;font-size:17px;font-weight:500;letter-spacing:-.01em}
+.board-head h2 small{display:block;font-family:"Share Tech Mono",monospace;font-size:10px;letter-spacing:.16em;color:var(--dim);margin-top:2px}
+.only{font-family:"Share Tech Mono",monospace;font-size:10px;color:var(--faint);letter-spacing:.1em}
+.wform{background:var(--panel);border:1px solid var(--green-dim);border-radius:10px;padding:14px;margin-bottom:12px;animation:build .3s ease both;text-align:left}
+.wform .qin{margin-top:0}
+.wnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+.wnav .who{font-family:"Share Tech Mono",monospace;font-size:11px;color:var(--faint)}
+.posts{display:flex;flex-direction:column;gap:8px}
+.post{background:var(--panel);border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+.post-h{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:12px 14px;cursor:pointer;appearance:none;background:none;border:0;width:100%;text-align:left;font:inherit;color:inherit}
+.post-h .pn{font-family:"Share Tech Mono",monospace;font-size:11px;color:var(--faint);flex:none}
+.post-h .pt{flex:1 1 60%;font-size:14px;color:var(--paper);line-height:1.5;word-break:keep-all;min-width:0}
+.badge{font-family:"Share Tech Mono",monospace;font-size:10px;letter-spacing:.16em;color:var(--red);border:1px solid var(--red-deep);padding:1px 6px;border-radius:3px;margin-right:6px;vertical-align:1px}
+.post-h .pa{font-family:"Share Tech Mono",monospace;font-size:11px;color:var(--dim);flex:none;letter-spacing:.06em;margin-left:auto}
+.post-h .pa b{color:var(--green);font-weight:400}
+.post-b{display:none;padding:0 14px 14px;font-size:14px;color:var(--dim);line-height:1.8;white-space:pre-wrap;word-break:break-word;border-top:1px dashed var(--edge);padding-top:10px;text-align:left}
+.post.open .post-b{display:block}
+.post-b .pl{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.post-b pre{margin:8px 0 0;background:#07080B;border:1px solid var(--edge);border-radius:6px;padding:12px;font-family:"Share Tech Mono",monospace;font-size:12px;color:var(--paper);white-space:pre-wrap;word-break:break-word}
+.empty{padding:22px;text-align:center;color:var(--faint);font-family:"Share Tech Mono",monospace;font-size:12px;letter-spacing:.1em;border:1px dashed var(--edge);border-radius:10px}
+.crewgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.crewtile{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:10px 12px;text-align:left}
+.crewtile .cn{font-family:"Share Tech Mono",monospace;font-size:10px;color:var(--red);letter-spacing:.2em}
+.crewtile .ck{font-size:17px;color:var(--paper);margin-top:2px;word-break:keep-all}
+.crewtile .cd{font-family:"Share Tech Mono",monospace;font-size:10px;color:var(--faint);margin-top:2px}
+.crewtile.me{border-color:var(--green-dim)}
+
+/* 담당자 */
+.admin{text-align:left}
+.admin .term{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.admin .term label{color:var(--green)}
+.admin .term input{flex:1;min-width:120px;background:none;border:0;outline:0;color:var(--paper);font:inherit;font-size:16px;padding:6px 0}
+.astats{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px;font-size:12px}
+.astats span{padding:6px 10px;border:1px solid var(--edge);border-radius:6px;color:var(--dim)}
+.astats span b{color:var(--paper);font-weight:400;margin-left:6px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.atable-wrap{overflow-x:auto;border:1px solid var(--edge);border-radius:8px;background:var(--panel)}
+.atable{border-collapse:collapse;width:100%;font-size:12px;min-width:480px}
+.atable th,.atable td{padding:9px 10px;border-bottom:1px solid var(--edge);text-align:left;vertical-align:top;white-space:nowrap}
+.atable th{color:var(--red);letter-spacing:.12em;font-weight:400;background:rgba(229,50,60,.05)}
+.atable tr.wait td:first-child{color:var(--red)}
+
+.foot{padding-block:16px 22px;display:flex;justify-content:space-between;gap:12px;font-size:10px;letter-spacing:.12em;color:var(--faint);border-top:1px solid var(--edge)}
+
+/* 큰 화면 */
+@media (min-width:720px){
+  .stage{padding-inline:24px}
+  .strip{font-size:12px;padding-block:16px}
+  .gate{padding-block:40px 32px}
+  .emblem{width:112px;height:112px}
+  h1{font-size:clamp(40px,7.4vw,88px)}
+  .letter{font-size:16px}
+  .key .cap{padding:18px 32px;font-size:15px;letter-spacing:.2em}
+  .tiles{grid-template-columns:1fr 1fr}
+  .crewgrid{grid-template-columns:repeat(4,1fr)}
+  .mission{flex-direction:row;gap:14px}
+  .tabs{margin-inline:0;padding-inline:0}
+  .board-head h2 small{display:inline;margin-left:10px}
+  .post-b{padding-left:14px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+  #rain{display:none}
+}

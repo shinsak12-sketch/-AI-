@@ -1,0 +1,16 @@
+{
+  "name": "hq-ai-crew",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "본점 AI 학습회 1기 크루 모집 사이트 (Vercel + Neon)",
+  "scripts": {
+    "dev": "node dev/server.js",
+    "test": "node dev/smoke.js"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1"
+  },
+  "devDependencies": {}
+}
