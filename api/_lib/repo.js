@@ -4,6 +4,8 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 const newToken = () => randomBytes(24).toString('hex');
 const nickKey = s => String(s).trim().toLowerCase();
+export const ADMIN_NICK = '관리자';
+export const adminPass = () => process.env.ADMIN_PASS || '1234';
 export function hashPass(pw) { const salt = randomBytes(16).toString('hex'); return salt + ':' + scryptSync(String(pw), salt, 32).toString('hex'); }
 export function checkPass(pw, stored) { if (!stored) return false; const [salt, h] = String(stored).split(':'); if (!salt || !h) return false; const a = scryptSync(String(pw), salt, 32), b = Buffer.from(h, 'hex'); return a.length === b.length && timingSafeEqual(a, b); }
 
@@ -78,6 +80,10 @@ async function migrate() {
       await s`insert into messages (kind, author, text)
         select 'notice', '담당자', '환영한다. 여기는 모이지 않는 학습회다. 만든 것은 위 화면에 올리고, 할 말은 여기서 한다.'
         where not exists (select 1 from messages)`;
+      // 관리자 크루 계정 (seq 0). 없으면 만든다. 비밀번호는 ADMIN_PASS (기본 1234).
+      await s`insert into crew (seq, name, nick, nick_key, token, waitlist, pass_hash)
+        select 0, ${ADMIN_NICK}, ${ADMIN_NICK}, ${nickKey(ADMIN_NICK)}, ${newToken()}, false, ${hashPass(adminPass())}
+        where not exists (select 1 from crew where nick_key = ${nickKey(ADMIN_NICK)})`;
   }
 }
 const pubCrew = r => ({ id: r.id, seq: r.seq, nick: r.nick, waitlist: r.waitlist, created_at: r.created_at });
@@ -95,7 +101,7 @@ const neonRepo = {
     return r;
   },
   async findByName(name) { await ensure(); const rows = await sql()`select * from crew where lower(name) = ${String(name).trim().toLowerCase()}`; return rows.length === 1 ? rows[0] : null; },
-  async listCrew() { await ensure(); const rows = await sql()`select id, seq, nick, waitlist, created_at from crew order by seq`; return rows.map(pubCrew); },
+  async listCrew() { await ensure(); const rows = await sql()`select id, seq, nick, waitlist, created_at from crew where seq > 0 order by seq`; return rows.map(pubCrew); },
   async listCrewAdmin() { await ensure(); return await sql()`select id, seq, name, nick, waitlist, created_at from crew order by seq`; },
   async listWorks() { await ensure(); return await sql()`select id, title, link, (html <> '') as has_html, author, crew_id, created_at from works order by id desc limit 200`; },
   async getWork(id) { await ensure(); const [r] = await sql()`select * from works where id = ${Number(id)}`; return r || null; },
@@ -116,14 +122,15 @@ const neonRepo = {
 /* ---------- 메모리 구현 (로컬 개발용) ---------- */
 const mem = { crew: [], works: [], messages: [{ id: 1, kind: 'notice', author: '담당자', crew_id: null, text: '환영한다. 여기는 모이지 않는 학습회다. 만든 것은 위 화면에 올리고, 할 말은 여기서 한다.', work_id: null, created_at: new Date().toISOString() }], settings: { closed: false }, mid: 1, wid: 0 };
 const pubWork = ({ html, ...w }) => ({ ...w, has_html: !!html });
+mem.crew.push({ id: 0, seq: 0, name: ADMIN_NICK, nick: ADMIN_NICK, nick_key: nickKey(ADMIN_NICK), token: newToken(), waitlist: false, pass_hash: hashPass(adminPass()), created_at: new Date().toISOString() });
 const memRepo = {
   async settings() { return { ...mem.settings }; },
   async setClosed(closed) { mem.settings.closed = !!closed; return { ...mem.settings }; },
   async findByNick(nick) { return mem.crew.find(c => c.nick_key === nickKey(nick)) || null; },
   async findByToken(t) { return mem.crew.find(c => c.token === t) || null; },
-  async createCrew({ name, nick, password, waitlist }) { const r = { id: mem.crew.length + 1, seq: mem.crew.length + 1, name, nick, nick_key: nickKey(nick), token: newToken(), waitlist: !!waitlist, pass_hash: hashPass(password), created_at: new Date().toISOString() }; mem.crew.push(r); return r; },
+  async createCrew({ name, nick, password, waitlist }) { const n = mem.crew.filter(c => c.seq > 0).length + 1; const r = { id: n, seq: n, name, nick, nick_key: nickKey(nick), token: newToken(), waitlist: !!waitlist, pass_hash: hashPass(password), created_at: new Date().toISOString() }; mem.crew.push(r); return r; },
   async findByName(name) { const rows = mem.crew.filter(c => c.name.toLowerCase() === String(name).trim().toLowerCase()); return rows.length === 1 ? rows[0] : null; },
-  async listCrew() { return mem.crew.map(pubCrew); },
+  async listCrew() { return mem.crew.filter(c => c.seq > 0).map(pubCrew); },
   async listCrewAdmin() { return mem.crew.map(({ token, nick_key, pass_hash, ...r }) => r); },
   async listWorks() { return mem.works.slice().reverse().map(pubWork); },
   async getWork(id) { return mem.works.find(w => w.id === Number(id)) || null; },

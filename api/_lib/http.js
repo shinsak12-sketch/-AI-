@@ -13,7 +13,7 @@ export function body(req) {
 }
 
 export function isAdmin(req) {
-  const pass = process.env.ADMIN_PASS || '7919';
+  const pass = process.env.ADMIN_PASS || '1234';
   return (req.headers['x-admin-pass'] || '') === pass;
 }
 

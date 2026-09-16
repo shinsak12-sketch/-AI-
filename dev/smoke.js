@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH || 'playwright');
 
 const PORT = 3999;
-const srv = spawn(process.execPath, ['dev/server.js'], { env: { ...process.env, PORT, DEV_MEM: '1', ADMIN_PASS: '7919' }, stdio: 'inherit' });
+const srv = spawn(process.execPath, ['dev/server.js'], { env: { ...process.env, PORT, DEV_MEM: '1', ADMIN_PASS: '1234' }, stdio: 'inherit' });
 await new Promise(r => setTimeout(r, 800));
 const shots = process.env.SHOTS || '';
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined, args: ['--no-sandbox'] });
@@ -44,8 +44,10 @@ try {
   await pg.click('#quick'); await pg.waitForTimeout(200); await shot('m10-login');
   await pg.fill('#l-id', '홍길동'); await pg.fill('#l-pw', 'pass1234'); await pg.click('#l-go'); await pg.waitForTimeout(600);
   console.log('login by name → room visible:', await pg.isVisible('#hub'), '| me:', await pg.textContent('#hub-me'));
+  const adm = await pg.evaluate(() => fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: '관리자', password: '1234' }) }).then(r => r.status));
+  console.log('admin crew login (expect 200):', adm, '| public crew count (expect 1):', await pg.evaluate(() => fetch('/api/crew').then(r => r.json()).then(j => j.crew.length)));
   // 관리자
-  await pg.goto(url + '#admin'); await pg.waitForTimeout(900); await pg.fill('#apass', '7919'); await pg.press('#apass', 'Enter'); await pg.waitForTimeout(500);
+  await pg.goto(url + '#admin'); await pg.waitForTimeout(900); await pg.fill('#apass', '1234'); await pg.press('#apass', 'Enter'); await pg.waitForTimeout(500);
   console.log('admin rows:', (await pg.$$('#atable tr')).length - 1); await shot('m9-admin');
   await pg.click('#a-close'); await pg.waitForTimeout(400); console.log('closed label:', await pg.textContent('#a-close'));
   await pg.click('#a-hub'); await pg.waitForTimeout(800);

@@ -206,7 +206,7 @@
 
   function enterHub() {
     ['gate', 'reg', 'cardscr', 'admin', 'login'].forEach(id => show(id, false)); show('hub'); document.body.classList.add('room'); scrollTo(0, 0);
-    $('hub-me').innerHTML = me ? `1기 · <i>@${esc(me.nick)}</i> · #${pad3(me.seq)}` : (adminPass ? '1기 · <i>담당자</i>' : '1기 · 내부망');
+    $('hub-me').innerHTML = me ? `1기 · <i>@${esc(me.nick)}</i>${me.seq ? ' · #' + pad3(me.seq) : ' · ADMIN'}` : (adminPass ? '1기 · <i>담당자</i>' : '1기 · 내부망');
     chatin.placeholder = adminPass && !me ? '공지로 올라간다' : '할 말';
     if (!me && !adminPass) { $('b-plus').disabled = true; }
     loadWorks(true); poll(); startPoll(); refreshCrewCount();
