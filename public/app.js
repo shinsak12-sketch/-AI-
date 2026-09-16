@@ -238,7 +238,10 @@
   }
   $('s-prev').addEventListener('click', () => showWork(stageIdx - 1));
   $('s-next').addEventListener('click', () => showWork(stageIdx + 1));
-  $('s-full').addEventListener('click', () => { const on = $('stagebox').classList.toggle('full'); $('s-full').textContent = on ? '✕' : '⤢'; });
+  $('s-full').addEventListener('click', () => { $('stagebox').classList.remove('mini'); const on = $('stagebox').classList.toggle('full'); $('s-full').textContent = on ? '✕' : '⤢'; });
+  const setMini = on => { $('stagebox').classList.toggle('mini', on); $('s-mini').textContent = on ? '▴' : '▾'; $('s-mini').setAttribute('aria-label', on ? '출력 화면 펼치기' : '출력 화면 접기'); local.write('hq-mini', on); };
+  $('s-mini').addEventListener('click', () => setMini(!$('stagebox').classList.contains('mini')));
+  if (local.read('hq-mini')) setMini(true);
 
   /* 채팅 */
   function addMsg(m, scroll) {
@@ -249,7 +252,7 @@
     else if (m.kind === 'sys') { el.className = 'msg sys'; el.innerHTML = `<div class="bub">${esc(m.text)}</div>`; }
     else { el.className = 'msg' + (mine ? ' me' : ''); el.innerHTML = `<div class="meta"><b>@${esc(m.author)}</b> ${timeOf(m.created_at)}</div><div class="bub">${esc(m.text)}</div>`; }
     chatEl.appendChild(el);
-    const wb = el.querySelector('[data-work]'); if (wb) wb.addEventListener('click', () => { const i = works.findIndex(w => w.id === Number(wb.dataset.work)); if (i >= 0) { showWork(i); $('stagebox').scrollIntoView({ block: 'start' }); } else loadWorks(true); });
+    const wb = el.querySelector('[data-work]'); if (wb) wb.addEventListener('click', () => { const i = works.findIndex(w => w.id === Number(wb.dataset.work)); if (i >= 0) { setMini(false); showWork(i); $('stagebox').scrollIntoView({ block: 'start' }); } else loadWorks(true); });
     if (scroll) chatEl.scrollTop = chatEl.scrollHeight;
   }
   async function poll() {
@@ -260,7 +263,7 @@
       let newWork = false;
       for (const m of r.messages) { if (m.id > lastId) { lastId = m.id; addMsg(m, false); if (m.kind === 'work') newWork = true; } }
       if (r.messages.length && nearBottom) chatEl.scrollTop = chatEl.scrollHeight;
-      if (newWork) loadWorks(true);
+      if (newWork) { setMini(false); loadWorks(true); }
       if (!chatEl.children.length) chatEl.innerHTML = '<div class="empty">아직 조용하다. 첫 마디를 던져라.</div>';
     } catch {}
   }
@@ -296,7 +299,7 @@
     if (link && !/^https?:\/\//i.test(link)) { err.textContent = '링크는 http(s):// 로 시작해야 한다.'; return; }
     if (html.length > 300000) { err.textContent = '코드가 너무 크다 (300KB 이하).'; return; }
     $('w-go').disabled = true; err.textContent = '';
-    try { await api.post('/api/works', { title, html, link }, authH()); $('w-title').value = ''; $('w-html').value = ''; $('w-link').value = ''; $('sheet-work').hidden = true; await poll(); await loadWorks(true); $('stagebox').scrollIntoView({ block: 'start' }); }
+    try { await api.post('/api/works', { title, html, link }, authH()); $('w-title').value = ''; $('w-html').value = ''; $('w-link').value = ''; $('sheet-work').hidden = true; await poll(); setMini(false); await loadWorks(true); $('stagebox').scrollIntoView({ block: 'start' }); }
     catch (e) { err.textContent = e.code === 'not_crew' ? '명부에 없는 계정. 첫 화면에서 다시 입장하라.' : '올리기 실패 · ' + e.code; }
     $('w-go').disabled = false;
   });
