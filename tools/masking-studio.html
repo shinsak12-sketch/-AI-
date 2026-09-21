@@ -122,6 +122,7 @@ select,input[type=text],input[type=number]{
   font-family:inherit;font-size:13px;color:var(--txt);background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r3);padding:9px 11px;box-shadow:var(--ing);outline:none;transition:.22s var(--ez);width:100%}
 select:focus,input:focus{border-color:var(--acc);box-shadow:var(--ing),0 0 0 3px var(--acc-soft)}
+select:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.2)}
 select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b769a' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
   background-repeat:no-repeat;background-position:right 8px center;background-size:15px;padding-right:29px}
 
@@ -170,11 +171,17 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;u
 .col .cs{font-size:11px;color:var(--txt3);margin:0 0 9px 0;height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
 .col .cfg{display:grid;gap:7px;max-height:0;opacity:0;overflow:hidden;transition:max-height .4s var(--ez),opacity .3s var(--ez),margin .3s var(--ez)}
 .col.on .cfg{max-height:190px;opacity:1;margin-top:3px}
-.col .cfg .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.col.on .cfg{max-height:220px}
+.col.on.del{border-color:color-mix(in srgb,var(--bad) 50%,transparent);
+  background:linear-gradient(160deg,color-mix(in srgb,var(--bad) 10%,transparent),var(--surface));
+  box-shadow:var(--emb),0 0 0 1px color-mix(in srgb,var(--bad) 12%,transparent)}
+.col.on.del .badge.a{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
 .seg{display:flex;gap:3px;padding:3px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;box-shadow:var(--ing)}
 .seg button{flex:1;border:0;background:transparent;color:var(--txt3);font-family:inherit;font-size:11.5px;font-weight:700;
   padding:6px 4px;border-radius:7px;cursor:pointer;transition:.25s var(--sp)}
 .seg button.on{background:linear-gradient(150deg,var(--acc),color-mix(in srgb,var(--acc) 65%,var(--acc2)));color:#fff;box-shadow:var(--emb)}
+.seg button.on.dl{background:linear-gradient(150deg,var(--bad),color-mix(in srgb,var(--bad) 55%,var(--warn)))}
+.seg.tri button{font-size:11px;padding:6px 2px}
 
 /* ── 표 ── */
 .tw{border:1px solid var(--line);border-radius:var(--r2);overflow:auto;max-height:440px;box-shadow:var(--ing);background:var(--surface)}
@@ -185,6 +192,7 @@ thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,var(-
   font-weight:750;font-size:11.5px;color:var(--txt2);cursor:pointer;transition:.2s var(--ez);user-select:none}
 thead th:hover{color:var(--txt);background:var(--surface3)}
 thead th.sel{color:var(--acc);background:linear-gradient(180deg,var(--acc-soft),var(--surface2))}
+thead th.sel.del{color:var(--bad);background:linear-gradient(180deg,color-mix(in srgb,var(--bad) 13%,transparent),var(--surface2))}
 th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--surface2);text-align:center;width:52px;min-width:52px;
   color:var(--txt3);font-variant-numeric:tabular-nums;cursor:pointer}
 thead th.rh{z-index:4}
@@ -192,6 +200,9 @@ tbody tr:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
 tbody tr.rsel td{background:color-mix(in srgb,var(--warn) 11%,transparent)}
 tbody tr.rsel td.rh{background:color-mix(in srgb,var(--warn) 22%,var(--surface2));color:var(--warn);font-weight:750}
 td.csel{background:color-mix(in srgb,var(--acc) 9%,transparent)}
+td.csel.del{background:color-mix(in srgb,var(--bad) 8%,transparent)}
+td.gone{position:relative}
+td.gone::after{content:'삭제됨';font-size:10px;font-weight:700;color:var(--bad);opacity:.55;letter-spacing:.3px}
 td.mk{color:var(--acc2);font-weight:650}
 :root[data-theme="light"] td.mk{color:var(--acc)}
 tbody tr{animation:fade .3s var(--ez) backwards}
@@ -318,12 +329,13 @@ tbody tr{animation:fade .3s var(--ez) backwards}
 
   <div class="card dim" id="c5" style="animation-delay:.18s">
     <div class="hd"><div class="n">5</div><h3>실행 · 내려받기</h3></div>
-    <p class="sub">같은 원본값은 파일 전체에서 항상 같은 값으로 바뀜 → 매칭표로 100% 되돌릴 수 있음</p>
+    <p class="sub">같은 원본값은 파일 전체에서 항상 같은 값으로 바뀜 → 매칭표로 100% 되돌릴 수 있음. <b>삭제</b>한 열은 매칭표에 안 들어감(복원 불가)</p>
     <div class="stats" id="stats">
       <div class="stat"><b id="s1">0</b><span>전체 행</span></div>
       <div class="stat"><b id="s2">0</b><span>마스킹 대상 열</span></div>
       <div class="stat"><b id="s3">0</b><span>바뀐 셀</span></div>
       <div class="stat"><b id="s4">0</b><span>고유 매핑 값</span></div>
+      <div class="stat"><b id="s5">0</b><span>삭제된 셀</span></div>
     </div>
     <div class="row" style="margin-bottom:14px">
       <button class="btn pri lg" id="run"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>마스킹 실행</button>
@@ -401,6 +413,13 @@ tbody tr{animation:fade .3s var(--ez) backwards}
     <div class="note mt">
       <b>◆ 토큰 모드</b><br>
       NAME_0001, PHONE_0007 처럼 일련번호로 바꿈. 한눈에 가짜인 게 보여야 할 때 씀. 접두어는 열마다 직접 고칠 수 있음
+    </div>
+    <div class="note mt" style="border-left-color:var(--bad)">
+      <b>◆ 삭제 모드</b><br>
+      값을 바꾸는 게 아니라 아예 없앰. 애초에 안 넘겨도 되는 열(주민번호·계좌번호·내부 메모 같은 것)에 씀<br>
+      기본은 완전 공란이고, 대체 문자 칸에 <b>●●●</b>나 <b>[삭제]</b>를 적으면 그 값으로 채움<br>
+      원본이 남지 않으므로 <b>매칭 파일에 기록되지 않고, 복원도 안 됨</b>. 정말 안 쓸 열에만 쓰는 게 맞음<br>
+      다른 열 문장 속에 섞여 있던 같은 값도 같이 지워짐
     </div>
     <div class="note mt">
       <b>◆ 일관성 보장</b><br>
@@ -743,7 +762,7 @@ function loadSheet(autoPick){
   S.cols=hdr.map((name,c)=>{
     const vals=[]; for(let r=start;r<S.grid.length&&vals.length<260;r++){ const v=S.grid[r][c]; if(v!==''&&v!=null) vals.push(v); }
     const t=detectType(hr>=0?name:'', vals);
-    return { idx:c, name, detected:t, type:t, mode:'shape', prefix:TYPES[t].prefix, on:false,
+    return { idx:c, name, detected:t, type:t, mode:'shape', prefix:TYPES[t].prefix, blank:'', on:false,
              sample:vals.slice(0,3).map(v=>String(v)).join(' · ') };
   });
   if(autoPick) S.cols.forEach(c=>{ if(SENSITIVE.includes(c.detected)) c.on=true; });
@@ -758,19 +777,25 @@ $('#reload').onclick=()=>{ loadSheet(true); toast('다시 읽음','ok'); };
 /* ══════════ 3) 열 설정 UI ══════════ */
 function renderCols(){
   $('#cols').innerHTML=S.cols.map((c,i)=>{
+    const del=c.mode==='del';
     const opts=Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(k===c.type?' selected':'')+'>'+TYPES[k].label+'</option>').join('');
-    return '<div class="col'+(c.on?' on':'')+'" data-i="'+i+'" style="animation-delay:'+Math.min(i*22,420)+'ms">'
+    const extra = c.mode==='token'
+      ? '<input type="text" data-act="prefix" value="'+esc(c.prefix)+'" placeholder="토큰 접두어">'
+      : del
+      ? '<input type="text" data-act="blank" value="'+esc(c.blank)+'" placeholder="대체 문자 — 비워두면 완전 공란">'
+      : '';
+    return '<div class="col'+(c.on?' on':'')+(del?' del':'')+'" data-i="'+i+'" style="animation-delay:'+Math.min(i*22,420)+'ms">'
       +'<div class="ct"><span class="sw'+(c.on?' on':'')+'" data-act="tog"></span>'
       +'<span class="cn" title="'+esc(c.name)+'">'+esc(c.name)+'</span>'
       +'<span class="badge'+(SENSITIVE.includes(c.detected)?' w':'')+'">'+TYPES[c.detected].label+'</span></div>'
       +'<p class="cs">'+(c.sample?esc(c.sample):'<span style="opacity:.5">값 없음</span>')+'</p>'
       +'<div class="cfg">'
-        +'<div class="row2">'
-          +'<select data-act="type">'+opts+'</select>'
-          +'<div class="seg"><button data-act="mode" data-v="shape" class="'+(c.mode==='shape'?'on':'')+'">형태유지</button>'
-          +'<button data-act="mode" data-v="token" class="'+(c.mode==='token'?'on':'')+'">토큰</button></div>'
-        +'</div>'
-        +'<input type="text" data-act="prefix" value="'+esc(c.prefix)+'" placeholder="토큰 접두어"'+(c.mode==='token'?'':' style="display:none"')+'>'
+        +'<select data-act="type"'+(del?' disabled title="삭제 모드에선 유형이 필요 없음"':'')+'>'+opts+'</select>'
+        +'<div class="seg tri">'
+          +'<button data-act="mode" data-v="shape" class="'+(c.mode==='shape'?'on':'')+'">형태유지</button>'
+          +'<button data-act="mode" data-v="token" class="'+(c.mode==='token'?'on':'')+'">토큰</button>'
+          +'<button data-act="mode" data-v="del" class="'+(del?'on dl':'')+'">삭제</button>'
+        +'</div>'+extra
       +'</div></div>';
   }).join('');
 }
@@ -785,6 +810,7 @@ $('#cols').addEventListener('change',e=>{
   const c=S.cols[+card.dataset.i], act=e.target.dataset.act;
   if(act==='type'){ c.type=e.target.value; c.prefix=TYPES[c.type].prefix; markDirty(); renderCols(); }
   else if(act==='prefix'){ c.prefix=e.target.value.trim()||TYPES[c.type].prefix; markDirty(); }
+  else if(act==='blank'){ c.blank=e.target.value; markDirty(); }
 });
 $('#autopick').onclick=()=>{
   let n=0; S.cols.forEach(c=>{ if(SENSITIVE.includes(c.detected)&&!c.on){c.on=true;n++;} });
@@ -802,15 +828,16 @@ function renderTable(){
   const src=(S.showMask&&S.masked)?S.masked:S.grid;
   const end=Math.min(S.grid.length,start+PREVIEW_ROWS);
   let h='<table><thead><tr><th class="rh">#</th>';
-  S.cols.forEach((c,i)=>{ h+='<th class="'+(c.on?'sel':'')+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+'</th>'; });
+  S.cols.forEach((c,i)=>{ h+='<th class="'+(c.on?(c.mode==='del'?'sel del':'sel'):'')+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+(c.on&&c.mode==='del'?' ✕':'')+'</th>'; });
   h+='</tr></thead><tbody>';
   for(let r=start;r<end;r++){
     const rs=S.rows.has(r);
     h+='<tr class="'+(rs?'rsel':'')+'" style="animation-delay:'+Math.min((r-start)*4,300)+'ms"><td class="rh" data-r="'+r+'" title="눌러서 이 행 전체 마스킹">'+(r+1)+'</td>';
     for(let c=0;c<S.cols.length;c++){
       const changed = S.masked && S.showMask && String(S.grid[r][c])!==String(S.masked[r][c]);
-      const cls=(S.cols[c].on?'csel ':'')+(changed?'mk':'');
       const v=src[r]?src[r][c]:'';
+      const gone = changed && String(v)==='' ;
+      const cls=(S.cols[c].on?(S.cols[c].mode==='del'?'csel del ':'csel '):'')+(changed?(gone?'gone':'mk'):'');
       h+='<td class="'+cls.trim()+'" title="'+esc(v)+'">'+esc(v)+'</td>';
     }
     h+='</tr>';
@@ -875,9 +902,10 @@ async function runMask(){
   const dict=new Map();       // 'type\u0000원본' -> 마스킹값
   const used=new Set();       // 생성된 마스킹값 전체
   const seq={};               // 토큰 모드 접두어별 일련번호
-  const recs=[];              // 매핑표 레코드
+  const recs=[];              // 매핑표 레코드 (삭제 모드는 여기 안 들어감)
+  const delRep=new Map();     // 삭제된 원본값 -> 대체 문자 (문장 속 치환용)
   const masked=S.grid.map(row=>row.slice());
-  let cells=0;
+  let cells=0, dels=0;
 
   function make(col,orig){
     const key=col.type+'\u0000'+orig;
@@ -906,6 +934,13 @@ async function runMask(){
       const v=S.grid[r][c];
       if(v===''||v==null||!isTarget(r,c)) continue;
       const col=S.cols[c];
+      /* 삭제 모드 — 값을 대체 문자(기본 공란)로 없앰. 매핑표에 남기지 않으므로 복원 불가 */
+      if(col.mode==='del'){
+        const b=col.blank||'';
+        if(String(v)!==b){ masked[r][c]=b; cells++; dels++; }
+        if(String(v).length>=2) delRep.set(String(v),b);
+        continue;
+      }
       const mv=make(col,String(v));
       masked[r][c]= (col.type==='number' && typeof v==='number' && /^-?[\d.]+$/.test(mv)) ? Number(mv) : mv;
       cells++;
@@ -916,12 +951,12 @@ async function runMask(){
   /* 2차: 고르지 않은 열의 문장 속에 섞여 있는 원본값도 같이 치환
      (예: 비고 칸의 "홍길동 담당자 연락요" → "서지우 담당자 연락요") */
   let swept=0;
-  if(S.sweep && recs.length){
-    const cand=recs.filter(r=>r.type!=='숫자'&&r.type!=='날짜'&&r.orig.length>=2);
-    if(cand.length>8000){ toast('매핑이 너무 많아서 문장 속 치환은 건너뜀','warn'); }
-    else if(cand.length){
-      const rep=new Map();
-      cand.forEach(r=>{ if(!rep.has(r.orig)) rep.set(r.orig,r.masked); });
+  if(S.sweep && (recs.length || delRep.size)){
+    const rep=new Map();
+    recs.forEach(r=>{ if(r.type!=='숫자'&&r.type!=='날짜'&&r.orig.length>=2&&!rep.has(r.orig)) rep.set(r.orig,r.masked); });
+    delRep.forEach((b,o)=>{ if(o.length>=2 && !/^-?[\d,.]+$/.test(o) && !rep.has(o)) rep.set(o,b); });
+    if(rep.size>8000){ toast('매핑이 너무 많아서 문장 속 치환은 건너뜀','warn'); }
+    else if(rep.size){
       const keys=Array.from(rep.keys()).sort((a,b)=>b.length-a.length);
       let re=null;
       try{ re=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){ re=null; }
@@ -944,13 +979,12 @@ async function runMask(){
   progress(1); setTimeout(()=>progress(-1),400);
 
   S.masked=masked; S.records=recs; S.dirty=false;
-  countUp($('#s3'),cells); countUp($('#s4'),recs.length);
-  $('#dl1').disabled=false; $('#dl2').disabled=false;
-  const fn=S.fname+(S.isCsv?'_masked.csv':'_masked.xlsx');
-  $('#dl1n').textContent=fn;
-  $('#dl2n').textContent=S.fname+'_mapping.xlsx';
+  countUp($('#s3'),cells); countUp($('#s4'),recs.length); countUp($('#s5'),dels);
+  $('#dl1').disabled=false; $('#dl2').disabled=!recs.length;
+  $('#dl1n').textContent=S.fname+(S.isCsv?'_masked.csv':'_masked.xlsx');
+  $('#dl2n').textContent=recs.length ? S.fname+'_mapping.xlsx' : '삭제만 해서 되돌릴 값이 없음';
   renderTable();
-  toast('마스킹 완료 · 셀 '+nf(cells)+'개'+(swept?' (문장 속 '+nf(swept)+'개 포함)':'')+' · '+Math.round(performance.now()-t0)+'ms','ok');
+  toast('완료 · 셀 '+nf(cells)+'개 처리'+(dels?' (삭제 '+nf(dels)+'개)':'')+(swept?' · 문장 속 '+nf(swept)+'개':'')+' · '+Math.round(performance.now()-t0)+'ms','ok');
 }
 $('#run').onclick=()=>{ if(!S.grid.length) return toast('파일부터 올려야 함','warn'); runMask(); };
 
@@ -987,11 +1021,13 @@ $('#dl2').onclick=()=>{
   const info=[['마스킹 스튜디오 매칭 파일'],[],
     ['원본 파일',S.fname],['시트',S.sheet],['생성 일시',stamp],
     ['헤더 행',S.noHeader?'없음':String(S.headerRow+1)],
-    ['마스킹 열',S.cols.filter(c=>c.on).map(c=>c.name+'('+TYPES[c.type].label+'/'+(c.mode==='token'?'토큰':'형태유지')+')').join(', ')||'없음'],
+    ['마스킹 열',S.cols.filter(c=>c.on&&c.mode!=='del').map(c=>c.name+'('+TYPES[c.type].label+'/'+(c.mode==='token'?'토큰':'형태유지')+')').join(', ')||'없음'],
+    ['삭제 열 (복원 불가)',S.cols.filter(c=>c.on&&c.mode==='del').map(c=>c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', ')||'없음'],
     ['마스킹 행',S.rows.size?Array.from(S.rows).sort((a,b)=>a-b).map(r=>r+1).join(', '):'없음'],
     ['매핑 항목 수',S.records.length],[],
     ['※ 이 파일은 원본 개인정보를 담고 있음. 외부 반출 금지'],
-    ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌릴 수 있음']];
+    ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌릴 수 있음'],
+    ['※ 삭제 열은 원본이 남아있지 않아 복원되지 않음']];
   const wsI=XLSX.utils.aoa_to_sheet(info); wsI['!cols']=[{wch:16},{wch:70}];
   const map=[['원본값','마스킹값','유형','열','시트']];
   S.records.forEach(r=>map.push([r.orig,r.masked,r.type,r.col,S.sheet]));
