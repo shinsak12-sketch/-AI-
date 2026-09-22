@@ -596,6 +596,69 @@ const SENSITIVE=['name','phone','email','rrn','card','account','address','id'];
 const PATTERNED=['phone','rrn','card','account','email'];
 const MODE_LABEL={shape:'형태유지',token:'토큰',safe:'비식별형',del:'삭제'};
 
+/* ══════════ CSV 직접 처리 ══════════
+   CSV를 라이브러리의 시트 객체로 바꿔서 오가면 셀 하나하나가 객체가 되어
+   수백만 셀에서 수십 초가 걸림. CSV는 그냥 텍스트이므로 직접 읽고 씀.
+   규칙은 표준(RFC 4180) 그대로 — 쉼표·따옴표·줄바꿈이 있으면 따옴표로 감싸고
+   안쪽 따옴표는 두 번 씀 */
+function csvFromAoa(aoa){
+  const out=new Array(aoa.length);
+  for(let r=0;r<aoa.length;r++){
+    const row=aoa[r], m=row.length, cells=new Array(m);
+    for(let c=0;c<m;c++){
+      const v=row[c];
+      if(v==null||v===''){ cells[c]=''; continue; }
+      const s=typeof v==='string'?v:String(v);
+      cells[c]=(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0||s.indexOf('\r')>=0)
+        ? '"'+s.replace(/"/g,'""')+'"' : s;
+    }
+    out[r]=cells.join(',');
+  }
+  return out.join('\n');
+}
+function csvToAoa(text){
+  const rows=[]; let row=[], i=0, w=0; const n=text.length;
+  while(i<n){
+    let val;
+    if(text.charCodeAt(i)===34){                 // 따옴표로 감싼 값
+      let out='', j=i+1;
+      for(;;){
+        const k=text.indexOf('"',j);
+        if(k<0){ out+=text.slice(j); j=n; break; }
+        if(text.charCodeAt(k+1)===34){ out+=text.slice(j,k+1); j=k+2; continue; }
+        out+=text.slice(j,k); j=k+1; break;
+      }
+      val=out; i=j;
+    }else{                                        // 일반 값 — 구분자까지 통째로 잘라냄
+      let j=i;
+      while(j<n){ const c=text.charCodeAt(j); if(c===44||c===10||c===13) break; j++; }
+      val=text.slice(i,j); i=j;
+    }
+    row.push(val);
+    const c=i<n?text.charCodeAt(i):-1;
+    if(c===44){ i++; continue; }                  // 다음 칸
+    if(row.length>w) w=row.length;
+    rows.push(row); row=[];
+    if(c===13){ i++; if(text.charCodeAt(i)===10) i++; }
+    else if(c===10){ i++; }
+    else break;
+  }
+  if(row.length){ if(row.length>w) w=row.length; rows.push(row); }
+  /* 파일 끝 줄바꿈이 만든 빈 줄 하나는 버림 */
+  const last=rows[rows.length-1];
+  if(last && last.length===1 && last[0]==='') rows.pop();
+  return {rows,w};
+}
+
+/* ══════════ 미리보기 상한 ══════════
+   미리보기는 어디까지나 "샘플"임. 수십·수백만 행짜리 파일을 화면에 다 그리면
+   DOM 노드만 수백만 개가 되어 브라우저가 멈춤. 행·열 양쪽에 상한을 둠.
+   화면에 몇 줄이 보이든 마스킹은 항상 전체 행에 적용됨 */
+const PREVIEW_ROWS0=20;    // 기본 샘플 행 수
+const PREVIEW_STEP=100;    // [더 보기] 한 번에 늘리는 행 수
+const PREVIEW_MAX=500;     // 아무리 늘려도 이 이상은 안 그림
+const PREVIEW_COLS=60;     // 열이 아주 많은 파일 대비 (설정 카드에는 전체 열이 다 나옴)
+
 /* ══════════ 한국 성씨 사전 (이름 판별 + 생성 양쪽에 씀) ══════════ */
 const SUR=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍','고','문','양','손','배','백','허','유','남','심','노','하','곽','성','차','주','우','구','민','유','진','지','엄','채','원','천','방','공','현','함','변','염','여','추','도','소','석','선','설','마','길','연','위','표','명','기','반','왕','금','옥','육','인','맹','제','모','남궁','선우','황보'];
 const SURSET=new Set(SUR);
@@ -810,8 +873,9 @@ function readWorkbook(file){
            "…올림픽로 58-6" 같은 주소를 1958-06-01로, 사번 "007"을 7로 망가뜨림.
            xlsx는 날짜가 형식으로 구분되므로 cellDates로 정상 변환됨 */
         if(isCsvName(file.name)){
-          const text=decodeText(e.target.result);
-          res({wb:XLSX.read(text,{type:'string',raw:true,dense:true}), raw:{text}});
+          /* CSV는 라이브러리를 거치지 않고 직접 읽음 (3배 빠르고 값 훼손 위험도 없음) */
+          const {rows,w}=csvToAoa(decodeText(e.target.result));
+          res({wb:{SheetNames:['Sheet1'],Sheets:{Sheet1:{__aoa:rows,__w:w}}}, raw:null});
         }else{
           const buf=e.target.result;
           res({wb:XLSX.read(new Uint8Array(buf),{type:'array',cellDates:true,dense:true}), raw:{buf}});
@@ -825,6 +889,14 @@ function fmtDate(d){
   return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2);
 }
 function sheetToGrid(ws){
+  if(ws && ws.__aoa){              /* 직접 읽은 CSV — 모든 값이 이미 문자열임 */
+    const rows=ws.__aoa, w=ws.__w;
+    for(let r=0;r<rows.length;r++){
+      const row=rows[r];
+      for(let i=row.length;i<w;i++) row[i]='';
+    }
+    return rows;
+  }
   const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,blankrows:true});
   let w=0; aoa.forEach(r=>{ if(r.length>w) w=r.length; });
   return aoa.map(r=>{
@@ -838,7 +910,7 @@ const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.f
 /* ══════════ 상태 ══════════ */
 const S={ wb:null, fname:'', isCsv:false, sheet:'', grid:[], headerRow:0, noHeader:false,
           cols:[], rows:new Set(), masked:null, records:[], showMask:true, sweep:true, dirty:false,
-          previewRows:60, file1:null, file2:null };
+          previewRows:PREVIEW_ROWS0, file1:null, file2:null };
 
 /* ══════════ 드롭존 ══════════ */
 function bindDrop(dropSel, inputSel, onFile){
@@ -876,7 +948,7 @@ function loadSheet(autoPick){
   const ws=S.wb.Sheets[S.sheet];
   S.grid=sheetToGrid(ws);
   if(!S.grid.length){ toast('시트가 비어 있음','warn'); return; }
-  S.rows.clear(); S.masked=null; S.records=[]; S.dirty=false; S.previewRows=60;
+  S.rows.clear(); S.masked=null; S.records=[]; S.dirty=false; S.previewRows=PREVIEW_ROWS0;
   const hr=S.noHeader?-1:S.headerRow;
   const width=S.grid[0].length;
   const hdr=[];
@@ -967,7 +1039,6 @@ $('#clearrow').onclick=()=>{ S.rows.clear(); markDirty(); $$('#tw tbody tr.rsel'
 /* ══════════ 4) 미리보기 표 ══════════
    표는 파일/시트/마스킹 결과가 바뀔 때만 다시 그림.
    열·행 켜고 끄기는 클래스만 갈아끼워서 레이아웃 재계산을 피함 */
-const PREVIEW_STEP=200;
 const MODE_CLS={del:' del',safe:' safe'};
 function colClass(c){ return c.on?('csel'+(MODE_CLS[c.mode]||'')):''; }
 function thClass(c){ return c.on?('sel'+(MODE_CLS[c.mode]||'')):''; }
@@ -981,16 +1052,21 @@ function renderTable(){
   const hr=S.noHeader?-1:S.headerRow, start=hr+1;
   const src=(S.showMask&&S.masked)?S.masked:S.grid;
   const total=S.grid.length-start;
-  const end=Math.min(S.grid.length,start+S.previewRows);
+  const shown=Math.min(total,S.previewRows,PREVIEW_MAX);
+  const end=start+shown;
+  const nc=Math.min(S.cols.length,PREVIEW_COLS);   // 화면에 그릴 열 수
   const h=[];
-  h.push('<table><colgroup><col class="cr">'+S.cols.map(()=>'<col>').join('')+'</colgroup><thead><tr><th class="rh">#</th>');
-  S.cols.forEach((c,i)=>{ h.push('<th class="'+thClass(c)+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+thMark(c)+'</th>'); });
+  h.push('<table><colgroup><col class="cr">');
+  for(let i=0;i<nc;i++) h.push('<col>');
+  h.push('</colgroup><thead><tr><th class="rh">#</th>');
+  for(let i=0;i<nc;i++){ const c=S.cols[i];
+    h.push('<th class="'+thClass(c)+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+thMark(c)+'</th>'); }
   h.push('</tr></thead><tbody>');
-  const cls=S.cols.map(colClass);
+  const cls=[]; for(let i=0;i<nc;i++) cls.push(colClass(S.cols[i]));
   for(let r=start;r<end;r++){
     h.push('<tr data-r="'+r+'"'+(S.rows.has(r)?' class="rsel"':'')+'><td class="rh" data-r="'+r+'" title="눌러서 이 행 전체 마스킹">'+(r+1)+'</td>');
     const orow=S.grid[r], mrow=src[r];
-    for(let c=0;c<S.cols.length;c++){
+    for(let c=0;c<nc;c++){
       const v=mrow?mrow[c]:'';
       const changed = S.masked && S.showMask && String(orow[c])!==String(S.masked[r][c]);
       const k=cls[c]+(changed?(String(v)===''?' gone':' mk'):'');
@@ -1000,11 +1076,14 @@ function renderTable(){
   }
   h.push('</tbody></table>');
   $('#tw').innerHTML=h.join('');
-  const shown=Math.min(total,S.previewRows);
-  $('#more').innerHTML = shown<total
-    ? '<button class="btn sm" id="morebtn">+'+nf(Math.min(PREVIEW_STEP,total-shown))+'행 더 보기 (지금 '+nf(shown)+' / '+nf(total)+')</button>'
-    : '';
-  $('#pnote').innerHTML='전체 <b>'+nf(total)+'행</b> 중 '+nf(shown)+'행을 화면에 보여줌 (처리는 전체 행에 다 적용됨)'
+
+  const canMore=shown<total && shown<PREVIEW_MAX;
+  $('#more').innerHTML = canMore
+    ? '<button class="btn sm" id="morebtn">+'+nf(Math.min(PREVIEW_STEP,total-shown,PREVIEW_MAX-shown))+'행 더 보기</button>'
+    : (shown<total ? '<span style="font-size:11.5px;color:var(--txt3)">미리보기는 '+nf(PREVIEW_MAX)+'행까지만 그림 — 나머지는 결과 파일에서 확인</span>' : '');
+  $('#pnote').innerHTML='<b>샘플 '+nf(shown)+'행</b>만 화면에 띄움 (전체 '+nf(total)+'행) · '
+    + '<b>마스킹은 화면에 안 보이는 행까지 전체에 적용됨</b>'
+    + (nc<S.cols.length?' · 열은 앞 '+nc+'개만 표시, 나머지 '+(S.cols.length-nc)+'개는 위 [마스킹할 열 고르기]에서 설정':'')
     + (S.wb&&S.wb.SheetNames.length>1?' · 다른 시트 '+(S.wb.SheetNames.length-1)+'개는 원본 그대로 같이 저장됨':'');
   rowBadge();
 }
@@ -1035,7 +1114,7 @@ $('#tw').addEventListener('click',e=>{
 });
 $('#more').addEventListener('click',e=>{
   if(!e.target.closest('#morebtn')) return;
-  S.previewRows+=PREVIEW_STEP; renderTable();
+  S.previewRows=Math.min(S.previewRows+PREVIEW_STEP,PREVIEW_MAX); renderTable();
 });
 swBind('#showmask',v=>{ S.showMask=v; renderTable(); });
 swBind('#sweep',v=>{ S.sweep=v; markDirty(); });
@@ -1338,7 +1417,7 @@ $('#rrun').onclick=async ()=>{
       try{ re=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){ re=null; }
     }else if(keys.length>8000){ toast('매핑이 많아서 정확 일치만 복원함','warn'); }
   }
-  let hits=0, sheets=0;
+  let hits=0, sheets=0, firstGrid=null;
   const wb=XLSX.utils.book_new();
   for(const sn of R.wbA.SheetNames){
     const g=sheetToGrid(R.wbA.Sheets[sn]);
@@ -1351,9 +1430,11 @@ $('#rrun').onclick=async ()=>{
       }
       if(r%4000===3999) await yieldNow();
     }
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(g),sn); sheets++;
+    if(R.csvA) firstGrid=firstGrid||g;
+    else XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(g),sn);
+    sheets++;
   }
-  R.out={wb,csv:R.csvA?XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]):null};
+  R.out={wb,csv:R.csvA?csvFromAoa(firstGrid||[]):null};
   countUp($('#r2'),hits); countUp($('#r3'),sheets);
   $('#rdl').disabled=false; idle();
   toast(hits?('복원 완료 · 셀 '+nf(hits)+'개'):'되돌릴 값을 못 찾음 (매칭 파일이 맞는지 확인)', hits?'ok':'warn');
@@ -1381,6 +1462,21 @@ console.log('%c마스킹 스튜디오','font:700 15px sans-serif;color:#6d7cff',
    ══════════════════════════════════════════════════════════════ */
 const WORKER_BODY = [
 'var WB=null;',
+'function csvFromAoa(aoa){',
+'  var out=new Array(aoa.length);',
+'  for(var r=0;r<aoa.length;r++){',
+'    var row=aoa[r], m=row.length, cells=new Array(m);',
+'    for(var c=0;c<m;c++){',
+'      var v=row[c];',
+'      if(v==null||v===""){ cells[c]=""; continue; }',
+'      var s=typeof v==="string"?v:String(v);',
+'      cells[c]=(s.indexOf(",")>=0||s.indexOf("\\"")>=0||s.indexOf("\\n")>=0||s.indexOf("\\r")>=0)',
+'        ? "\\""+s.replace(/"/g,"\\"\\"")+"\\"" : s;',
+'    }',
+'    out[r]=cells.join(",");',
+'  }',
+'  return out.join("\\n");',
+'}',
 'onmessage=function(e){',
 '  var d=e.data, id=d.id;',
 '  try{',
@@ -1390,7 +1486,7 @@ const WORKER_BODY = [
 '      postMessage({id:id,ok:true});',
 '    } else if(d.cmd==="build"){',
 '      if(d.isCsv){',
-'        postMessage({id:id,text:XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(d.aoa))});',
+'        postMessage({id:id,text:csvFromAoa(d.aoa)});',
 '      } else {',
 '        var wb=XLSX.utils.book_new(), names=(WB&&WB.SheetNames.indexOf(d.name)>=0)?WB.SheetNames:[d.name];',
 '        for(var i=0;i<names.length;i++){',
@@ -1402,7 +1498,7 @@ const WORKER_BODY = [
 '      }',
 '    } else if(d.cmd==="table"){',
 '      if(d.asCsv){',
-'        postMessage({id:id,text:XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(d.map))});',
+'        postMessage({id:id,text:csvFromAoa(d.map)});',
 '      } else {',
 '        var w2=XLSX.utils.book_new();',
 '        var wsM=XLSX.utils.aoa_to_sheet(d.map); wsM["!cols"]=d.mcols;',
@@ -1451,6 +1547,7 @@ const WK={
      첫 화면이 그려진 뒤에 시작해야 초기 렌더와 CPU를 다투지 않음 */
   preload(raw){
     this.loaded=null;
+    if(!raw) return;          /* CSV는 보존할 다른 시트가 없어 원본 적재 자체가 불필요 */
     if(!this.get()) return;
     this.loaded=new Promise(res=>{
       setTimeout(()=>{
@@ -1505,7 +1602,9 @@ function prebuild(){
   const pl=S.records.length?mappingPayload():null;
   const name2=pl?(S.fname+'_mapping.'+(pl.asCsv?'csv':'xlsx')):'';
 
-  S.file1=WK.ready().then(ok=>{
+  /* xlsx는 다른 시트를 보존해야 해서 워커에 원본이 올라간 뒤에만 맡길 수 있음.
+     CSV는 시트 개념이 없으므로 바로 맡기면 됨 */
+  S.file1=(S.isCsv?Promise.resolve(true):WK.ready()).then(ok=>{
     if(!ok) throw 0;
     return WK.call('build',{name:S.sheet,aoa:S.masked,isCsv:S.isCsv}).then(r=>({blob:toBlob(r),name:name1}));
   }).catch(()=>({blob:buildMaskedMain(),name:name1}));
