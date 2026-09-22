@@ -185,15 +185,17 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;u
 
 /* ── 표 ── */
 .tw{border:1px solid var(--line);border-radius:var(--r2);overflow:auto;max-height:440px;box-shadow:var(--ing);background:var(--surface)}
-table{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-content;min-width:100%}
+table{border-collapse:separate;border-spacing:0;font-size:12.5px;table-layout:fixed;width:max-content}
+col{width:158px}
+col.cr{width:58px}
 th,td{padding:7px 11px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;
-  max-width:230px;overflow:hidden;text-overflow:ellipsis}
+  overflow:hidden;text-overflow:ellipsis}
 thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,var(--surface3),var(--surface2));
   font-weight:750;font-size:11.5px;color:var(--txt2);cursor:pointer;transition:.2s var(--ez);user-select:none}
 thead th:hover{color:var(--txt);background:var(--surface3)}
 thead th.sel{color:var(--acc);background:linear-gradient(180deg,var(--acc-soft),var(--surface2))}
 thead th.sel.del{color:var(--bad);background:linear-gradient(180deg,color-mix(in srgb,var(--bad) 13%,transparent),var(--surface2))}
-th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--surface2);text-align:center;width:52px;min-width:52px;
+th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--surface2);text-align:center;
   color:var(--txt3);font-variant-numeric:tabular-nums;cursor:pointer}
 thead th.rh{z-index:4}
 tbody tr:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
@@ -205,7 +207,6 @@ td.gone{position:relative}
 td.gone::after{content:'삭제됨';font-size:10px;font-weight:700;color:var(--bad);opacity:.55;letter-spacing:.3px}
 td.mk{color:var(--acc2);font-weight:650}
 :root[data-theme="light"] td.mk{color:var(--acc)}
-tbody tr{animation:fade .3s var(--ez) backwards}
 
 /* ── 통계 ── */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:11px;margin-bottom:15px}
@@ -226,6 +227,17 @@ tbody tr{animation:fade .3s var(--ez) backwards}
 @keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 
 /* ── 토스트 ── */
+#busy{position:fixed;inset:0;z-index:300;display:none;place-items:center;
+  background:color-mix(in srgb,var(--bg0) 62%,transparent);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+#busy.on{display:grid;animation:fade .2s var(--ez)}
+#busy .bx{display:flex;flex-direction:column;align-items:center;gap:13px;padding:30px 42px;border-radius:var(--r);
+  background:linear-gradient(160deg,var(--surface2),var(--surface));border:1px solid var(--line);box-shadow:var(--emb-hi)}
+#busy b{font-size:15px;font-weight:750}
+#busy span{font-size:12px;color:var(--txt3);min-height:16px}
+.spin{width:38px;height:38px;border-radius:99px;border:3px solid var(--line);border-top-color:var(--acc);
+  border-right-color:var(--acc2);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.more{margin-top:11px;display:flex;justify-content:center}
 #toasts{position:fixed;bottom:22px;right:22px;z-index:200;display:flex;flex-direction:column;gap:9px;align-items:flex-end}
 .toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r2);font-size:13px;font-weight:650;
   background:linear-gradient(160deg,var(--surface3),var(--surface2));border:1px solid var(--line);box-shadow:var(--emb-hi);
@@ -324,6 +336,7 @@ tbody tr{animation:fade .3s var(--ez) backwards}
     </div>
     <p class="sub">열 머리글 누르면 그 열 켜고 끔. 왼쪽 행 번호 누르면 그 행 <b>전체</b>가 마스킹 대상이 됨</p>
     <div class="tw" id="tw"></div>
+    <div class="more" id="more"></div>
     <div class="note mt" id="pnote"></div>
   </div>
 
@@ -442,6 +455,7 @@ tbody tr{animation:fade .3s var(--ez) backwards}
   </div>
 </section>
 </main>
+<div id="busy"><div class="bx"><div class="spin"></div><b id="busyt">처리 중</b><span id="busys"></span></div></div>
 <div id="toasts"></div>
 
 <script>/* SheetJS (xlsx) 0.18.5 — Apache-2.0 — 오프라인 동작을 위해 내장함 */
@@ -493,6 +507,14 @@ function toast(msg,kind){
   $('#toasts').appendChild(el);
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350);},kind==='bad'?4600:2900);
 }
+
+/* ── 처리 중 오버레이 ── 화면에 실제로 그려진 뒤 무거운 작업을 시작해야 멈춘 것처럼 안 보임 */
+function busy(title,sub){
+  $('#busyt').textContent=title; $('#busys').textContent=sub||'';
+  $('#busy').classList.add('on');
+  return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(r,0))));
+}
+function idle(){ $('#busy').classList.remove('on'); }
 
 /* ── 테마 ── */
 const SUN='<path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M6.3 6.3L4.9 4.9M19.1 19.1l-1.4-1.4M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/><circle cx="12" cy="12" r="4"/>';
@@ -691,9 +713,13 @@ function readWorkbook(file){
     fr.onerror=()=>rej(new Error('파일을 읽지 못함'));
     fr.onload=e=>{
       try{
+        /* dense 모드가 큰 시트에서 눈에 띄게 빠름 (읽기·쓰기 왕복 확인됨)
+           CSV는 반드시 raw:true — 안 그러면 자바스크립트 날짜 파서가
+           "…올림픽로 58-6" 같은 주소를 1958-06-01로, 사번 "007"을 7로 망가뜨림.
+           xlsx는 날짜가 형식으로 구분되므로 cellDates로 정상 변환됨 */
         res(isCsvName(file.name)
-          ? XLSX.read(decodeText(e.target.result),{type:'string',cellDates:true})
-          : XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true}));
+          ? XLSX.read(decodeText(e.target.result),{type:'string',raw:true,dense:true})
+          : XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true,dense:true}));
       }catch(err){ rej(err); }
     };
     fr.readAsArrayBuffer(file);
@@ -715,7 +741,7 @@ const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.f
 
 /* ══════════ 상태 ══════════ */
 const S={ wb:null, fname:'', isCsv:false, sheet:'', grid:[], headerRow:0, noHeader:false,
-          cols:[], rows:new Set(), masked:null, records:[], showMask:true, sweep:true, dirty:false };
+          cols:[], rows:new Set(), masked:null, records:[], showMask:true, sweep:true, dirty:false, previewRows:60 };
 
 /* ══════════ 드롭존 ══════════ */
 function bindDrop(dropSel, inputSel, onFile){
@@ -729,9 +755,10 @@ function bindDrop(dropSel, inputSel, onFile){
 
 /* ══════════ 1) 업로드 ══════════ */
 bindDrop('#drop','#file',async file=>{
+  await busy('파일 읽는 중…', file.name+' · '+(file.size/1048576).toFixed(1)+'MB');
   try{
     const wb=await readWorkbook(file);
-    if(!wb.SheetNames.length) return toast('시트가 하나도 없는 파일임','bad');
+    if(!wb.SheetNames.length){ idle(); return toast('시트가 하나도 없는 파일임','bad'); }
     S.wb=wb; S.fname=file.name.replace(/\.[^.]+$/,''); S.isCsv=isCsvName(file.name);
     S.sheet=wb.SheetNames[0]; S.headerRow=0; S.noHeader=false;
     $('#sheet').innerHTML=wb.SheetNames.map(n=>'<option>'+esc(n)+'</option>').join('');
@@ -739,10 +766,11 @@ bindDrop('#drop','#file',async file=>{
     $('#drop').classList.add('has');
     $('#dtext').textContent=file.name+' · '+(file.size/1024).toFixed(0)+' KB';
     $('#fbadge').textContent='불러옴'; $('#fbadge').className='badge g';
-    ['#c2','#c3','#c4','#c5'].forEach(s=>$(s).classList.remove('dim'));
+    ['#c2','#c3','#c4','#c5'].forEach(x=>$(x).classList.remove('dim'));
     loadSheet(true);
     toast('파일 읽음 · 시트 '+wb.SheetNames.length+'개','ok');
   }catch(e){ console.error(e); toast('파일을 열지 못함: '+e.message,'bad'); }
+  idle();
 });
 
 /* ══════════ 2) 시트 / 헤더 ══════════ */
@@ -750,7 +778,7 @@ function loadSheet(autoPick){
   const ws=S.wb.Sheets[S.sheet];
   S.grid=sheetToGrid(ws);
   if(!S.grid.length){ toast('시트가 비어 있음','warn'); return; }
-  S.rows.clear(); S.masked=null; S.records=[]; S.dirty=false;
+  S.rows.clear(); S.masked=null; S.records=[]; S.dirty=false; S.previewRows=60;
   const hr=S.noHeader?-1:S.headerRow;
   const width=S.grid[0].length;
   const hdr=[];
@@ -769,109 +797,164 @@ function loadSheet(autoPick){
   renderCols(); renderTable(); updateStats();
   lockDownloads();
 }
-$('#sheet').onchange=e=>{ S.sheet=e.target.value; loadSheet(true); };
-$('#hrow').onchange=e=>{ S.headerRow=Math.max(0,(parseInt(e.target.value,10)||1)-1); loadSheet(true); };
-swBind('#nohdr',v=>{ S.noHeader=v; $('#hrow').disabled=v; loadSheet(true); });
-$('#reload').onclick=()=>{ loadSheet(true); toast('다시 읽음','ok'); };
+async function reload(autoPick){ await busy('시트 읽는 중…',S.sheet); loadSheet(autoPick); idle(); }
+$('#sheet').onchange=e=>{ S.sheet=e.target.value; reload(true); };
+$('#hrow').onchange=e=>{ S.headerRow=Math.max(0,(parseInt(e.target.value,10)||1)-1); reload(true); };
+swBind('#nohdr',v=>{ S.noHeader=v; $('#hrow').disabled=v; reload(true); });
+$('#reload').onclick=async()=>{ await reload(true); toast('다시 읽음','ok'); };
 
 /* ══════════ 3) 열 설정 UI ══════════ */
-function renderCols(){
-  $('#cols').innerHTML=S.cols.map((c,i)=>{
-    const del=c.mode==='del';
-    const opts=Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(k===c.type?' selected':'')+'>'+TYPES[k].label+'</option>').join('');
-    const extra = c.mode==='token'
-      ? '<input type="text" data-act="prefix" value="'+esc(c.prefix)+'" placeholder="토큰 접두어">'
-      : del
-      ? '<input type="text" data-act="blank" value="'+esc(c.blank)+'" placeholder="대체 문자 — 비워두면 완전 공란">'
-      : '';
-    return '<div class="col'+(c.on?' on':'')+(del?' del':'')+'" data-i="'+i+'" style="animation-delay:'+Math.min(i*22,420)+'ms">'
-      +'<div class="ct"><span class="sw'+(c.on?' on':'')+'" data-act="tog"></span>'
-      +'<span class="cn" title="'+esc(c.name)+'">'+esc(c.name)+'</span>'
-      +'<span class="badge'+(SENSITIVE.includes(c.detected)?' w':'')+'">'+TYPES[c.detected].label+'</span></div>'
-      +'<p class="cs">'+(c.sample?esc(c.sample):'<span style="opacity:.5">값 없음</span>')+'</p>'
-      +'<div class="cfg">'
-        +'<select data-act="type"'+(del?' disabled title="삭제 모드에선 유형이 필요 없음"':'')+'>'+opts+'</select>'
-        +'<div class="seg tri">'
-          +'<button data-act="mode" data-v="shape" class="'+(c.mode==='shape'?'on':'')+'">형태유지</button>'
-          +'<button data-act="mode" data-v="token" class="'+(c.mode==='token'?'on':'')+'">토큰</button>'
-          +'<button data-act="mode" data-v="del" class="'+(del?'on dl':'')+'">삭제</button>'
-        +'</div>'+extra
-      +'</div></div>';
-  }).join('');
+function cardHTML(c,i){
+  const del=c.mode==='del';
+  const opts=Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(k===c.type?' selected':'')+'>'+TYPES[k].label+'</option>').join('');
+  const extra = c.mode==='token'
+    ? '<input type="text" data-act="prefix" value="'+esc(c.prefix)+'" placeholder="토큰 접두어">'
+    : del
+    ? '<input type="text" data-act="blank" value="'+esc(c.blank)+'" placeholder="대체 문자 — 비워두면 완전 공란">'
+    : '';
+  return '<div class="col'+(c.on?' on':'')+(del?' del':'')+'" data-i="'+i+'">'
+    +'<div class="ct"><span class="sw'+(c.on?' on':'')+'" data-act="tog"></span>'
+    +'<span class="cn" title="'+esc(c.name)+'">'+esc(c.name)+'</span>'
+    +'<span class="badge'+(SENSITIVE.includes(c.detected)?' w':'')+'">'+TYPES[c.detected].label+'</span></div>'
+    +'<p class="cs">'+(c.sample?esc(c.sample):'<span style="opacity:.5">값 없음</span>')+'</p>'
+    +'<div class="cfg">'
+      +'<select data-act="type"'+(del?' disabled title="삭제 모드에선 유형이 필요 없음"':'')+'>'+opts+'</select>'
+      +'<div class="seg tri">'
+        +'<button data-act="mode" data-v="shape" class="'+(c.mode==='shape'?'on':'')+'">형태유지</button>'
+        +'<button data-act="mode" data-v="token" class="'+(c.mode==='token'?'on':'')+'">토큰</button>'
+        +'<button data-act="mode" data-v="del" class="'+(del?'on dl':'')+'">삭제</button>'
+      +'</div>'+extra
+    +'</div></div>';
+}
+function renderCols(){ $('#cols').innerHTML=S.cols.map(cardHTML).join(''); }
+/* 카드 하나만 교체 — 전체를 다시 그리지 않음 */
+function renderCard(i){
+  const el=$('.col[data-i="'+i+'"]'); if(!el) return;
+  const t=document.createElement('template'); t.innerHTML=cardHTML(S.cols[i],i);
+  el.replaceWith(t.content.firstChild);
+}
+/* 켜고 끄기는 클래스만 바꿈 — 레이아웃 재계산 없음 */
+function paintCard(i){
+  const c=S.cols[i], el=$('.col[data-i="'+i+'"]'); if(!el) return;
+  el.classList.toggle('on',c.on); el.classList.toggle('del',c.mode==='del');
+  el.querySelector('.sw').classList.toggle('on',c.on);
 }
 $('#cols').addEventListener('click',e=>{
   const card=e.target.closest('.col'); if(!card) return;
-  const c=S.cols[+card.dataset.i], act=e.target.dataset.act;
-  if(act==='tog'||(!act&&e.target.closest('.ct'))){ c.on=!c.on; markDirty(); renderCols(); renderTable(); updateStats(); }
-  else if(act==='mode'){ c.mode=e.target.dataset.v; markDirty(); renderCols(); }
+  const i=+card.dataset.i, c=S.cols[i], act=e.target.dataset.act;
+  if(act==='tog'||(!act&&e.target.closest('.ct'))){ c.on=!c.on; markDirty(); paintCard(i); paintCol(i); updateStats(); }
+  else if(act==='mode'){ c.mode=e.target.dataset.v; markDirty(); renderCard(i); paintCol(i); }
 });
 $('#cols').addEventListener('change',e=>{
   const card=e.target.closest('.col'); if(!card) return;
-  const c=S.cols[+card.dataset.i], act=e.target.dataset.act;
-  if(act==='type'){ c.type=e.target.value; c.prefix=TYPES[c.type].prefix; markDirty(); renderCols(); }
+  const i=+card.dataset.i, c=S.cols[i], act=e.target.dataset.act;
+  if(act==='type'){ c.type=e.target.value; c.prefix=TYPES[c.type].prefix; markDirty(); renderCard(i); }
   else if(act==='prefix'){ c.prefix=e.target.value.trim()||TYPES[c.type].prefix; markDirty(); }
   else if(act==='blank'){ c.blank=e.target.value; markDirty(); }
 });
 $('#autopick').onclick=()=>{
   let n=0; S.cols.forEach(c=>{ if(SENSITIVE.includes(c.detected)&&!c.on){c.on=true;n++;} });
-  markDirty(); renderCols(); renderTable(); updateStats();
+  markDirty(); renderCols(); repaintAllCols(); updateStats();
   toast(n?('개인정보로 보이는 열 '+n+'개 켬'):'추가로 켤 만한 열이 없음', n?'ok':'warn');
 };
-$('#clearpick').onclick=()=>{ S.cols.forEach(c=>c.on=false); markDirty(); renderCols(); renderTable(); updateStats(); };
-$('#clearrow').onclick=()=>{ S.rows.clear(); markDirty(); renderTable(); updateStats(); };
+$('#clearpick').onclick=()=>{ S.cols.forEach(c=>c.on=false); markDirty(); renderCols(); repaintAllCols(); updateStats(); };
+$('#clearrow').onclick=()=>{ S.rows.clear(); markDirty(); $$('#tw tbody tr.rsel').forEach(t=>t.classList.remove('rsel')); rowBadge(); updateStats(); };
 
-/* ══════════ 4) 미리보기 표 ══════════ */
-const PREVIEW_ROWS=200;
-function renderTable(){
-  if(!S.grid.length){ $('#tw').innerHTML=''; return; }
-  const hr=S.noHeader?-1:S.headerRow, start=hr+1;
-  const src=(S.showMask&&S.masked)?S.masked:S.grid;
-  const end=Math.min(S.grid.length,start+PREVIEW_ROWS);
-  let h='<table><thead><tr><th class="rh">#</th>';
-  S.cols.forEach((c,i)=>{ h+='<th class="'+(c.on?(c.mode==='del'?'sel del':'sel'):'')+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+(c.on&&c.mode==='del'?' ✕':'')+'</th>'; });
-  h+='</tr></thead><tbody>';
-  for(let r=start;r<end;r++){
-    const rs=S.rows.has(r);
-    h+='<tr class="'+(rs?'rsel':'')+'" style="animation-delay:'+Math.min((r-start)*4,300)+'ms"><td class="rh" data-r="'+r+'" title="눌러서 이 행 전체 마스킹">'+(r+1)+'</td>';
-    for(let c=0;c<S.cols.length;c++){
-      const changed = S.masked && S.showMask && String(S.grid[r][c])!==String(S.masked[r][c]);
-      const v=src[r]?src[r][c]:'';
-      const gone = changed && String(v)==='' ;
-      const cls=(S.cols[c].on?(S.cols[c].mode==='del'?'csel del ':'csel '):'')+(changed?(gone?'gone':'mk'):'');
-      h+='<td class="'+cls.trim()+'" title="'+esc(v)+'">'+esc(v)+'</td>';
-    }
-    h+='</tr>';
-  }
-  h+='</tbody></table>';
-  $('#tw').innerHTML=h;
-  const total=S.grid.length-start;
-  $('#pnote').innerHTML='전체 <b>'+nf(total)+'행</b> 중 앞 '+nf(Math.min(total,PREVIEW_ROWS))+'행만 화면에 보여줌 (처리는 전체 행에 다 적용됨)'
-    + (S.wb&&S.wb.SheetNames.length>1?' · 다른 시트 '+(S.wb.SheetNames.length-1)+'개는 원본 그대로 같이 저장됨':'');
+/* ══════════ 4) 미리보기 표 ══════════
+   표는 파일/시트/마스킹 결과가 바뀔 때만 다시 그림.
+   열·행 켜고 끄기는 클래스만 갈아끼워서 레이아웃 재계산을 피함 */
+const PREVIEW_STEP=200;
+function colClass(c){ return c.on?(c.mode==='del'?'csel del':'csel'):''; }
+function thClass(c){ return c.on?(c.mode==='del'?'sel del':'sel'):''; }
+function rowBadge(){
   $('#rowbadge').textContent='행 선택 '+S.rows.size+'개';
   $('#rowbadge').className='badge'+(S.rows.size?' w':'');
 }
+function renderTable(){
+  if(!S.grid.length){ $('#tw').innerHTML=''; $('#more').innerHTML=''; return; }
+  const hr=S.noHeader?-1:S.headerRow, start=hr+1;
+  const src=(S.showMask&&S.masked)?S.masked:S.grid;
+  const total=S.grid.length-start;
+  const end=Math.min(S.grid.length,start+S.previewRows);
+  const h=[];
+  h.push('<table><colgroup><col class="cr">'+S.cols.map(()=>'<col>').join('')+'</colgroup><thead><tr><th class="rh">#</th>');
+  S.cols.forEach((c,i)=>{ h.push('<th class="'+thClass(c)+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+(c.on&&c.mode==='del'?' ✕':'')+'</th>'); });
+  h.push('</tr></thead><tbody>');
+  const cls=S.cols.map(colClass);
+  for(let r=start;r<end;r++){
+    h.push('<tr data-r="'+r+'"'+(S.rows.has(r)?' class="rsel"':'')+'><td class="rh" data-r="'+r+'" title="눌러서 이 행 전체 마스킹">'+(r+1)+'</td>');
+    const orow=S.grid[r], mrow=src[r];
+    for(let c=0;c<S.cols.length;c++){
+      const v=mrow?mrow[c]:'';
+      const changed = S.masked && S.showMask && String(orow[c])!==String(S.masked[r][c]);
+      const k=cls[c]+(changed?(String(v)===''?' gone':' mk'):'');
+      h.push(k?'<td class="'+k.trim()+'">':'<td>', esc(v),'</td>');
+    }
+    h.push('</tr>');
+  }
+  h.push('</tbody></table>');
+  $('#tw').innerHTML=h.join('');
+  const shown=Math.min(total,S.previewRows);
+  $('#more').innerHTML = shown<total
+    ? '<button class="btn sm" id="morebtn">+'+nf(Math.min(PREVIEW_STEP,total-shown))+'행 더 보기 (지금 '+nf(shown)+' / '+nf(total)+')</button>'
+    : '';
+  $('#pnote').innerHTML='전체 <b>'+nf(total)+'행</b> 중 '+nf(shown)+'행을 화면에 보여줌 (처리는 전체 행에 다 적용됨)'
+    + (S.wb&&S.wb.SheetNames.length>1?' · 다른 시트 '+(S.wb.SheetNames.length-1)+'개는 원본 그대로 같이 저장됨':'');
+  rowBadge();
+}
+/* 열 하나의 머리글 + 해당 열 셀만 클래스 교체 */
+function paintCol(i){
+  const c=S.cols[i];
+  const th=$('#tw thead th[data-c="'+i+'"]');
+  if(!th) return;
+  th.className=thClass(c);
+  th.textContent=c.name+(c.on&&c.mode==='del'?' ✕':'');
+  const base=colClass(c), rows=$('#tw tbody').children;
+  for(let r=0;r<rows.length;r++){
+    const td=rows[r].children[i+1]; if(!td) continue;
+    const keep=td.classList.contains('gone')?' gone':(td.classList.contains('mk')?' mk':'');
+    td.className=(base+keep).trim();
+  }
+}
+function repaintAllCols(){ for(let i=0;i<S.cols.length;i++) paintCol(i); }
+function paintRow(r){
+  const tr=$('#tw tbody tr[data-r="'+r+'"]');
+  if(tr) tr.classList.toggle('rsel',S.rows.has(r));
+}
 $('#tw').addEventListener('click',e=>{
   const th=e.target.closest('th[data-c]');
-  if(th){ const c=S.cols[+th.dataset.c]; c.on=!c.on; markDirty(); renderCols(); renderTable(); updateStats(); return; }
+  if(th){ const i=+th.dataset.c; S.cols[i].on=!S.cols[i].on; markDirty(); paintCard(i); paintCol(i); updateStats(); return; }
   const td=e.target.closest('td.rh');
-  if(td){ const r=+td.dataset.r; S.rows.has(r)?S.rows.delete(r):S.rows.add(r); markDirty(); renderTable(); updateStats(); }
+  if(td){ const r=+td.dataset.r; S.rows.has(r)?S.rows.delete(r):S.rows.add(r); markDirty(); paintRow(r); rowBadge(); updateStats(); }
+});
+$('#more').addEventListener('click',e=>{
+  if(!e.target.closest('#morebtn')) return;
+  S.previewRows+=PREVIEW_STEP; renderTable();
 });
 swBind('#showmask',v=>{ S.showMask=v; renderTable(); });
 swBind('#sweep',v=>{ S.sweep=v; markDirty(); });
 
-function markDirty(){ if(S.masked){ S.dirty=true; S.masked=null; S.records=[]; lockDownloads(); } }
+/* 마스킹 결과가 살아 있던 경우에만 표를 다시 그림 (그 외에는 클래스만 갈아끼움) */
+function markDirty(){
+  if(!S.masked) return false;
+  S.dirty=true; S.masked=null; S.records=[]; lockDownloads(); renderTable(); return true;
+}
 function lockDownloads(){ $('#dl1').disabled=true; $('#dl2').disabled=true; }
 
 /* ══════════ 통계 ══════════ */
 function countUp(el,to){
-  const from=parseInt(String(el.textContent).replace(/,/g,''),10)||0;
+  to=Math.max(0,Math.round(to)||0);
+  if(el._raf){ cancelAnimationFrame(el._raf); el._raf=0; }
+  const from=Math.max(0,parseInt(String(el.textContent).replace(/[^\d-]/g,''),10)||0);
   if(from===to){ el.textContent=nf(to); return; }
   const t0=performance.now(), dur=520;
-  (function step(t){
-    const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+  /* 무거운 작업 직후엔 rAF 타임스탬프가 t0보다 이를 수 있어 p를 0~1로 묶어둬야 함 */
+  const step=t=>{
+    const p=Math.min(1,Math.max(0,(t-t0)/dur)), e=1-Math.pow(1-p,3);
     el.textContent=nf(Math.round(from+(to-from)*e));
-    if(p<1) requestAnimationFrame(step);
-  })(performance.now());
+    el._raf = p<1 ? requestAnimationFrame(step) : 0;
+  };
+  el._raf=requestAnimationFrame(step);
 }
 function updateStats(){
   const start=(S.noHeader?-1:S.headerRow)+1;
@@ -982,13 +1065,22 @@ async function runMask(){
   countUp($('#s3'),cells); countUp($('#s4'),recs.length); countUp($('#s5'),dels);
   $('#dl1').disabled=false; $('#dl2').disabled=!recs.length;
   $('#dl1n').textContent=S.fname+(S.isCsv?'_masked.csv':'_masked.xlsx');
-  $('#dl2n').textContent=recs.length ? S.fname+'_mapping.xlsx' : '삭제만 해서 되돌릴 값이 없음';
+  $('#dl2n').textContent=recs.length
+    ? S.fname+'_mapping.'+(recs.length>MAP_CSV_OVER?'csv':'xlsx')+' · '+nf(recs.length)+'건'
+    : '삭제만 해서 되돌릴 값이 없음';
   renderTable();
   toast('완료 · 셀 '+nf(cells)+'개 처리'+(dels?' (삭제 '+nf(dels)+'개)':'')+(swept?' · 문장 속 '+nf(swept)+'개':'')+' · '+Math.round(performance.now()-t0)+'ms','ok');
 }
-$('#run').onclick=()=>{ if(!S.grid.length) return toast('파일부터 올려야 함','warn'); runMask(); };
+$('#run').onclick=async()=>{
+  if(!S.grid.length) return toast('파일부터 올려야 함','warn');
+  await busy('마스킹 처리 중…', nf(Math.max(0,S.grid.length-((S.noHeader?-1:S.headerRow)+1)))+'행');
+  await runMask(); idle();
+};
 
 /* ══════════ 저장 ══════════ */
+/* 매핑 건수가 이 이상이면 xlsx 대신 CSV로 저장함.
+   내용은 동일하고 복원 탭에서 그대로 읽히는데, 저장 속도가 10배 가까이 빠름 */
+const MAP_CSV_OVER=20000;
 function saveBlob(blob,name){
   const u=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=u; a.download=name; document.body.appendChild(a); a.click();
@@ -1009,34 +1101,48 @@ function buildMaskedWorkbook(){
   });
   return wb;
 }
-$('#dl1').onclick=()=>{
+$('#dl1').onclick=async()=>{
   if(!S.masked) return;
-  if(S.isCsv) saveBlob(aoaToCsvBlob(S.masked), S.fname+'_masked.csv');
-  else saveBlob(wbToBlob(buildMaskedWorkbook()), S.fname+'_masked.xlsx');
-  toast('마스킹 파일 내려받음','ok');
+  await busy('마스킹 파일 만드는 중…','행이 많으면 몇 초 걸림');
+  try{
+    if(S.isCsv) saveBlob(aoaToCsvBlob(S.masked), S.fname+'_masked.csv');
+    else saveBlob(wbToBlob(buildMaskedWorkbook()), S.fname+'_masked.xlsx');
+    toast('마스킹 파일 내려받음','ok');
+  }catch(e){ toast('저장 실패: '+e.message,'bad'); }
+  idle();
 };
-$('#dl2').onclick=()=>{
+$('#dl2').onclick=async()=>{
   if(!S.records.length) return;
-  const stamp=new Date().toLocaleString('ko-KR');
-  const info=[['마스킹 스튜디오 매칭 파일'],[],
-    ['원본 파일',S.fname],['시트',S.sheet],['생성 일시',stamp],
-    ['헤더 행',S.noHeader?'없음':String(S.headerRow+1)],
-    ['마스킹 열',S.cols.filter(c=>c.on&&c.mode!=='del').map(c=>c.name+'('+TYPES[c.type].label+'/'+(c.mode==='token'?'토큰':'형태유지')+')').join(', ')||'없음'],
-    ['삭제 열 (복원 불가)',S.cols.filter(c=>c.on&&c.mode==='del').map(c=>c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', ')||'없음'],
-    ['마스킹 행',S.rows.size?Array.from(S.rows).sort((a,b)=>a-b).map(r=>r+1).join(', '):'없음'],
-    ['매핑 항목 수',S.records.length],[],
-    ['※ 이 파일은 원본 개인정보를 담고 있음. 외부 반출 금지'],
-    ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌릴 수 있음'],
-    ['※ 삭제 열은 원본이 남아있지 않아 복원되지 않음']];
-  const wsI=XLSX.utils.aoa_to_sheet(info); wsI['!cols']=[{wch:16},{wch:70}];
-  const map=[['원본값','마스킹값','유형','열','시트']];
-  S.records.forEach(r=>map.push([r.orig,r.masked,r.type,r.col,S.sheet]));
-  const wsM=XLSX.utils.aoa_to_sheet(map); wsM['!cols']=[{wch:26},{wch:26},{wch:14},{wch:20},{wch:16}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,wsM,'MAPPING');
-  XLSX.utils.book_append_sheet(wb,wsI,'INFO');
-  saveBlob(wbToBlob(wb), S.fname+'_mapping.xlsx');
-  toast('매칭 파일 내려받음 · 외부 반출 주의','warn');
+  const asCsv=S.records.length>MAP_CSV_OVER;
+  await busy('매칭 파일 만드는 중…', nf(S.records.length)+'건'+(asCsv?' · CSV로 저장':''));
+  try{
+    const map=[['원본값','마스킹값','유형','열','시트']];
+    S.records.forEach(r=>map.push([r.orig,r.masked,r.type,r.col,S.sheet]));
+    if(asCsv){
+      saveBlob(aoaToCsvBlob(map), S.fname+'_mapping.csv');
+      toast('매칭 파일(CSV) 내려받음 · 외부 반출 주의','warn');
+    }else{
+      const stamp=new Date().toLocaleString('ko-KR');
+      const info=[['마스킹 스튜디오 매칭 파일'],[],
+        ['원본 파일',S.fname],['시트',S.sheet],['생성 일시',stamp],
+        ['헤더 행',S.noHeader?'없음':String(S.headerRow+1)],
+        ['마스킹 열',S.cols.filter(c=>c.on&&c.mode!=='del').map(c=>c.name+'('+TYPES[c.type].label+'/'+(c.mode==='token'?'토큰':'형태유지')+')').join(', ')||'없음'],
+        ['삭제 열 (복원 불가)',S.cols.filter(c=>c.on&&c.mode==='del').map(c=>c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', ')||'없음'],
+        ['마스킹 행',S.rows.size?Array.from(S.rows).sort((a,b)=>a-b).map(r=>r+1).join(', '):'없음'],
+        ['매핑 항목 수',S.records.length],[],
+        ['※ 이 파일은 원본 개인정보를 담고 있음. 외부 반출 금지'],
+        ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌릴 수 있음'],
+        ['※ 삭제 열은 원본이 남아있지 않아 복원되지 않음']];
+      const wsI=XLSX.utils.aoa_to_sheet(info); wsI['!cols']=[{wch:18},{wch:70}];
+      const wsM=XLSX.utils.aoa_to_sheet(map); wsM['!cols']=[{wch:26},{wch:26},{wch:14},{wch:20},{wch:16}];
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,wsM,'MAPPING');
+      XLSX.utils.book_append_sheet(wb,wsI,'INFO');
+      saveBlob(wbToBlob(wb), S.fname+'_mapping.xlsx');
+      toast('매칭 파일 내려받음 · 외부 반출 주의','warn');
+    }
+  }catch(e){ toast('저장 실패: '+e.message,'bad'); }
+  idle();
 }
 
 /* ══════════ 복원 ══════════ */
@@ -1045,13 +1151,16 @@ swBind('#partial',v=>{R.partial=v;});
 function readyRestore(){ $('#rrun').disabled=!(R.wbA&&R.map&&R.map.size); }
 
 bindDrop('#rdropA','#rfileA',async f=>{
+  await busy('결과 파일 읽는 중…',f.name);
   try{
     R.wbA=await readWorkbook(f); R.nameA=f.name.replace(/\.[^.]+$/,''); R.csvA=isCsvName(f.name);
     $('#rdropA').classList.add('has'); $('#rtextA').textContent=f.name;
     readyRestore(); toast('결과 파일 읽음','ok');
   }catch(e){ toast('결과 파일을 열지 못함','bad'); }
+  idle();
 });
 bindDrop('#rdropB','#rfileB',async f=>{
+  await busy('매칭 파일 읽는 중…',f.name);
   try{
     const wb=await readWorkbook(f);
     const sn = wb.SheetNames.includes('MAPPING') ? 'MAPPING' : wb.SheetNames[0];
@@ -1070,10 +1179,12 @@ bindDrop('#rdropB','#rfileB',async f=>{
     R.map=m; $('#rdropB').classList.add('has'); $('#rtextB').textContent=f.name+' · '+nf(m.size)+'건';
     countUp($('#r1'),m.size); readyRestore(); toast('매칭 파일 읽음 · '+nf(m.size)+'건','ok');
   }catch(e){ toast('매칭 파일을 읽지 못함: '+e.message,'bad'); }
+  idle();
 });
 
 $('#rrun').onclick=async ()=>{
   const m=R.map;
+  await busy('복원 처리 중…', nf(m.size)+'건 매핑 적용');
   let re=null;
   if(R.partial){
     const keys=Array.from(m.keys()).filter(k=>k.length>=3).sort((a,b)=>b.length-a.length);
@@ -1098,14 +1209,15 @@ $('#rrun').onclick=async ()=>{
   }
   R.out={wb,csv:R.csvA?XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]):null};
   countUp($('#r2'),hits); countUp($('#r3'),sheets);
-  $('#rdl').disabled=false;
+  $('#rdl').disabled=false; idle();
   toast(hits?('복원 완료 · 셀 '+nf(hits)+'개'):'되돌릴 값을 못 찾음 (매칭 파일이 맞는지 확인)', hits?'ok':'warn');
 };
-$('#rdl').onclick=()=>{
+$('#rdl').onclick=async()=>{
   if(!R.out) return;
+  await busy('복원 파일 만드는 중…');
   if(R.csvA) saveBlob(new Blob(['﻿'+R.out.csv],{type:'text/csv;charset=utf-8'}), R.nameA+'_restored.csv');
   else saveBlob(wbToBlob(R.out.wb), R.nameA+'_restored.xlsx');
-  toast('복원 파일 내려받음','ok');
+  toast('복원 파일 내려받음','ok'); idle();
 };
 
 /* ── 페이지 나갈 때 경고 (작업 중 실수 방지) ── */
