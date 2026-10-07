@@ -281,6 +281,20 @@ td.mk{color:var(--acc2);font-weight:650}
 #dlp.clean .t i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
 #dlp ul{margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--txt2);line-height:1.85}
 #dlp code{background:var(--surface3);padding:1px 6px;border-radius:5px;font-size:11.5px;color:var(--txt)}
+/* 파일 탭 — 여러 파일을 한 코드 체계로 같이 처리할 때 */
+.strip{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.fchip{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--emb);font-size:12.5px;font-weight:650;
+  transition:.25s var(--sp);max-width:280px}
+.fchip:hover{transform:translateY(-2px);box-shadow:var(--emb-hi)}
+.fchip.on{border-color:color-mix(in srgb,var(--acc) 55%,transparent);
+  background:linear-gradient(160deg,var(--acc-soft),var(--surface));color:var(--acc)}
+.fchip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fchip .sz{font-size:10.5px;color:var(--txt3);font-weight:500;flex:0 0 auto}
+.fchip .x{width:17px;height:17px;border-radius:99px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--surface3);color:var(--txt3);font-size:11px;line-height:1;transition:.2s var(--ez)}
+.fchip .x:hover{background:var(--bad);color:#fff}
+.fchip.add{border-style:dashed;color:var(--txt2);font-weight:700}
 .book{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:14px;padding:12px 15px;border-radius:var(--r2);
   border:1px solid var(--line);background:var(--surface);box-shadow:var(--ing);transition:.3s var(--ez)}
 .book.on{border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
@@ -332,7 +346,9 @@ td.mk{color:var(--acc2);font-weight:650}
       <b>여기로 파일 끌어다 놓거나 클릭</b>
       <span id="dtext">엑셀 / CSV 파일 선택하면 자동으로 구조 읽음</span>
     </div>
-    <input type="file" id="file" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt">
+    <input type="file" id="file" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt" multiple>
+    <div class="strip hide" id="strip"></div>
+    <div class="note mt hide" id="multinote">파일 <b id="mcount">2</b>개를 <b>하나의 코드 체계</b>로 같이 마스킹함 — 파일이 달라도 같은 값이면 같은 코드라 합쳐서 분석할 수 있음</div>
   </div>
 
   <div class="card dim" id="c2" style="animation-delay:.06s">
@@ -368,7 +384,7 @@ td.mk{color:var(--acc2);font-weight:650}
 
   <div class="card dim" id="c5" style="animation-delay:.18s">
     <div class="hd"><div class="n">5</div><h3>실행 · 내려받기</h3></div>
-    <p class="sub">같은 원본값은 파일 전체에서 항상 같은 값으로 바뀜 → 매칭표로 100% 되돌릴 수 있음. <b>삭제</b>한 열은 매칭표에 안 들어감(복원 불가)</p>
+    <p class="sub">같은 값은 <b>행이 달라도 열이 달라도 파일이 달라도</b> 항상 같은 코드로 바뀜 → 그대로 집계·조인 가능. <b>삭제</b>한 열은 매칭표에 안 들어감(복원 불가)</p>
     <div id="dlp"></div>
     <div class="stats" id="stats">
       <div class="stat"><b id="s1">0</b><span>전체 행</span></div>
@@ -376,6 +392,16 @@ td.mk{color:var(--acc2);font-weight:650}
       <div class="stat"><b id="s3">0</b><span>바뀐 셀</span></div>
       <div class="stat"><b id="s4">0</b><span>고유 매핑 값</span></div>
       <div class="stat"><b id="s5">0</b><span>삭제된 셀</span></div>
+    </div>
+    <div class="book" id="normrow">
+      <div class="bi"><svg viewBox="0 0 24 24"><path d="M7 7h10M7 12h10M7 17h6"/><circle cx="19" cy="17" r="2.5"/></svg></div>
+      <div style="flex:1;min-width:190px">
+        <b>같은 값으로 묶는 기준</b>
+        <span id="normtext">표기가 조금 다른 값을 같은 값으로 볼지 정함</span>
+      </div>
+      <div class="seg" id="normseg" style="flex:0 0 auto;width:230px">
+        <button data-v="0">끔</button><button data-v="1" class="on">기본</button><button data-v="2">강하게</button>
+      </div>
     </div>
     <div class="book" id="bookrow">
       <div class="bi"><svg viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 015.5 4H19v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M8 8h7M8 12h7"/></svg></div>
@@ -393,7 +419,7 @@ td.mk{color:var(--acc2);font-weight:650}
       <label class="ck" style="margin-left:6px" title="예: 비고 칸의 '홍길동 담당자 연락요' 같은 문장 속 이름도 같이 바꿈"><span class="sw on" id="sweep"></span> 안 고른 열의 문장 속에 섞인 값도 같이 치환</label>
     </div>
     <div class="prog" id="prog"><i></i></div>
-    <div class="dls mt">
+    <div class="dls mt" id="dls">
       <button class="dl" id="dl1" disabled>
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
         <div><b>마스킹 파일</b><span id="dl1n">업무용으로 쓸 파일</span></div>
@@ -495,9 +521,29 @@ td.mk{color:var(--acc2);font-weight:650}
       한 값이 모드가 다른 여러 열에 걸쳐 있으면 <b>형식이 가장 강한 모드</b>를 따름 (비식별형 &gt; 토큰 &gt; 형태유지).
       어느 한 열에서라도 개인정보 형식이 새어나가지 않게 하기 위함
     </div>
+    <div class="note mt" style="border-left-color:var(--acc2)">
+      <b>◆ 파일 여러 개를 한 번에 — 합쳐서 분석하려면</b><br>
+      업로드할 때 파일을 <b>여러 개 선택</b>하거나, 올린 뒤 [+ 파일 추가]를 누르면 됨<br>
+      파일들은 <b>하나의 코드 체계</b>로 같이 마스킹됨 → 1월 파일의 <code>강북차량보상부</code>와
+      2월 파일의 <code>강북차량보상부</code>가 같은 코드를 받음<br>
+      결과는 <b>파일별 마스킹 파일 + 공통 매칭 파일 1개</b>로 나옴.
+      마스킹된 파일들을 그대로 합치거나 조인해서 분석에 넣으면 됨<br>
+      파일 탭의 ✕ 로 뺄 수 있고, 전부 빼면 처음 상태로 돌아감
+    </div>
+    <div class="note mt">
+      <b>◆ 같은 값으로 묶는 기준</b><br>
+      실무 데이터는 같은 대상인데 표기가 흔들림. 묶는 기준을 3단계로 고를 수 있음<br>
+      <b>끔</b> — 글자가 완전히 같아야 같은 값<br>
+      <b>기본</b>(권장) — 공백 차이와 전각/반각, 보이지 않는 문자를 무시.
+      <code>강북차량보상부</code> / <code>강북차량보상부␣</code> / <code>강북␣␣차량보상부</code> → 같은 코드<br>
+      <b>강하게</b> — 기본 + 괄호·점·하이픈 같은 기호와 영문 대소문자를 무시하고
+      <code>(주)가온</code> / <code>㈜가온</code> / <code>주식회사 가온</code> 도 같게 봄<br>
+      묶인 경우 실행 후 "표기 다른 값 N건 묶음"으로 알려줌. 복원하면 처음 만난 표기로 되돌아감
+    </div>
     <div class="note mt" style="border-left-color:var(--ok)">
       <b>◆ 코드북 이어쓰기 — 파일이 달라도 집계가 이어짐</b><br>
-      코드는 실행할 때마다 새로 뽑히므로, 1월 파일과 2월 파일을 따로 마스킹하면 같은 조직이 다른 코드를 받음<br>
+      파일을 같이 올리지 못하고 <b>따로따로, 다른 날</b> 마스킹해야 할 때 씀.
+      코드는 실행할 때마다 새로 뽑히므로 그냥 하면 같은 조직이 다른 코드를 받음<br>
       [실행·내려받기]의 <b>코드북 이어쓰기</b>에 <b>지난번 매칭 파일</b>을 올리면,
       거기 있던 값은 같은 코드를 그대로 다시 씀. 새로 등장한 값만 새 코드를 받음<br>
       새로 받는 매칭 파일에는 이번 파일 내용 + 이어쓴 코드북이 <b>합쳐져서</b> 나오므로,
@@ -627,6 +673,27 @@ const SENSITIVE=['name','phone','email','rrn','card','account','address','id'];
 /* 값 자체가 정해진 형식을 갖는 유형 — 형식 검사 시스템이 패턴으로 잡아내는 것들 */
 const PATTERNED=['phone','rrn','card','account','email'];
 const MODE_LABEL={shape:'형태유지',token:'토큰',safe:'비식별형',del:'삭제'};
+
+/* ══════════ 값 묶기(정규화) ══════════
+   실무 데이터는 같은 대상인데 표기가 조금씩 다름.
+   "강북차량보상부 " / "강북차량보상부" / "강북 차량보상부" 가 다 다른 코드를 받으면
+   정작 집계할 때 세 조직으로 갈라져버림. 묶는 기준을 단계로 고를 수 있게 함.
+     0 끔    — 글자가 완전히 같아야 같은 값
+     1 기본  — 공백 차이(앞뒤·중간·개수)와 전각/반각, 보이지 않는 문자를 무시
+     2 강하게 — 기본 + 괄호·점·하이픈 같은 기호 무시, 영문 대소문자 무시,
+                (주)/㈜/주식회사 표기 통일 */
+const ZWSP=/[​-‍﻿­]/g;
+function normKey(s,level){
+  if(!level) return s;
+  let t=s.normalize('NFKC').replace(ZWSP,'').replace(/\s+/g,'');
+  if(level>1){
+    t=t.replace(/㈜|\(주\)|\(주식회사\)/g,'주식회사')
+       .replace(/[()[\]{}<>·・,.\-_/\\|]/g,'')
+       .toLowerCase();
+  }
+  return t;
+}
+const NORM_LABEL=['끔','기본','강하게'];
 
 /* ══════════ CSV 직접 처리 ══════════
    CSV를 라이브러리의 시트 객체로 바꿔서 오가면 셀 하나하나가 객체가 되어
@@ -939,40 +1006,110 @@ function sheetToGrid(ws){
 }
 const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26; } return s; };
 
-/* ══════════ 상태 ══════════ */
-const S={ wb:null, fname:'', isCsv:false, sheet:'', grid:[], headerRow:0, noHeader:false,
-          cols:[], rows:new Set(), masked:null, records:[], showMask:true, sweep:true, dirty:false,
-          previewRows:PREVIEW_ROWS0, file1:null, file2:null, book:null, bookName:'' };
+/* ══════════ 상태 ══════════
+   S 의 문서 관련 필드는 "지금 보고 있는 파일"의 것이고, 전체 목록은 S.docs 에 있음.
+   파일을 바꿀 때 현재 값을 docs 에 저장하고(docSave) 다른 파일 값을 꺼내옴(docLoad).
+   마스킹은 docs 전체를 하나의 코드 체계로 한 번에 처리함 */
+const DOCF=['wb','raw','fname','isCsv','sheet','grid','cols','rows','headerRow','noHeader',
+            'previewRows','masked','size','file1'];
+const S={ docs:[], di:0,
+          wb:null, raw:null, fname:'', isCsv:false, sheet:'', grid:[], headerRow:0, noHeader:false,
+          cols:[], rows:new Set(), masked:null, previewRows:PREVIEW_ROWS0, size:0, file1:null,
+          records:[], showMask:true, sweep:true, dirty:false, norm:1,
+          file2:null, book:null, bookName:'' };
+function docSave(){ const d=S.docs[S.di]; if(d) for(const k of DOCF) d[k]=S[k]; }
+function docLoad(i){
+  const d=S.docs[i]; if(!d) return;
+  S.di=i; for(const k of DOCF) S[k]=d[k];
+  $('#sheet').innerHTML=d.wb.SheetNames.map(n=>'<option'+(n===d.sheet?' selected':'')+'>'+esc(n)+'</option>').join('');
+  $('#hrow').value=d.headerRow+1; $('#hrow').disabled=d.noHeader;
+  $('#nohdr').classList.toggle('on',d.noHeader);
+  renderStrip(); renderCols(); renderTable(); updateStats();
+}
+/* ── 파일 탭 ── */
+function renderStrip(){
+  const el=$('#strip');
+  if(S.docs.length<1){ el.classList.add('hide'); el.innerHTML=''; return; }
+  el.classList.remove('hide');
+  el.innerHTML=S.docs.map((d,i)=>
+      '<div class="fchip'+(i===S.di?' on':'')+'" data-i="'+i+'" title="'+esc(d.fname)+'">'
+      +'<span class="nm">'+esc(d.fname)+'</span>'
+      +'<span class="sz">'+Math.max(1,Math.round(d.size/1024))+'KB</span>'
+      +(S.docs.length>1?'<span class="x" data-x="'+i+'" title="이 파일 빼기">✕</span>':'')
+      +'</div>').join('')
+    +'<div class="fchip add" id="addfile">+ 파일 추가</div>';
+}
+$('#strip').addEventListener('click',e=>{
+  const x=e.target.closest('[data-x]');
+  if(x){ removeDoc(+x.dataset.x); return; }
+  if(e.target.closest('#addfile')){ $('#file').click(); return; }
+  const c=e.target.closest('.fchip[data-i]');
+  if(c){ const i=+c.dataset.i; if(i!==S.di){ docSave(); docLoad(i); } }
+});
+function multiNote(){
+  $('#multinote').classList.toggle('hide',S.docs.length<2);
+  $('#mcount').textContent=S.docs.length;
+}
+function removeDoc(i){
+  docSave(); S.docs.splice(i,1);
+  if(S.di>=i) S.di=Math.max(0,S.di-1);
+  lockDownloads();
+  if(!S.docs.length){ resetAll(); return toast('처음 상태로 돌아감','ok'); }
+  markDirty(); docLoad(S.di); multiNote();
+  toast('파일 뺌 · 남은 '+S.docs.length+'개','ok');
+}
+/* 파일을 전부 빼면 처음 화면으로 */
+function resetAll(){
+  S.docs=[]; S.di=0; S.grid=[]; S.cols=[]; S.rows=new Set(); S.masked=null; S.records=[];
+  S.wb=null; S.fname=''; S.sheet='';
+  $('#drop').classList.remove('has');
+  $('#dtext').textContent='엑셀 / CSV 파일 선택하면 자동으로 구조 읽음';
+  $('#fbadge').textContent='대기 중'; $('#fbadge').className='badge';
+  $('#cols').innerHTML=''; $('#tw').innerHTML=''; $('#more').innerHTML=''; $('#pnote').innerHTML='';
+  ['#c2','#c3','#c4','#c5'].forEach(x=>$(x).classList.add('dim'));
+  renderStrip(); multiNote(); updateStats(); renderDls(false);
+}
 
 /* ══════════ 드롭존 ══════════ */
-function bindDrop(dropSel, inputSel, onFile){
+function bindDrop(dropSel, inputSel, onFiles){
   const d=$(dropSel), i=$(inputSel);
   d.onclick=()=>i.click();
-  i.onchange=()=>{ if(i.files[0]){ onFile(i.files[0]); i.value=''; } };
+  i.onchange=()=>{ if(i.files.length){ onFiles(i.files); i.value=''; } };
   ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over');}));
   ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over');}));
-  d.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) onFile(f); });
+  d.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) onFiles(e.dataTransfer.files); });
 }
 
 /* ══════════ 1) 업로드 ══════════ */
-bindDrop('#drop','#file',async file=>{
-  await busy('파일 읽는 중…', file.name+' · '+(file.size/1048576).toFixed(1)+'MB');
-  try{
-    const {wb,raw}=await readWorkbook(file);
-    if(!wb.SheetNames.length){ idle(); return toast('시트가 하나도 없는 파일임','bad'); }
-    WK.preload(raw);   /* 저장용 빌더에도 원본을 미리 올려둠 (백그라운드) */
-    S.wb=wb; S.fname=file.name.replace(/\.[^.]+$/,''); S.isCsv=isCsvName(file.name);
-    S.sheet=wb.SheetNames[0]; S.headerRow=0; S.noHeader=false;
-    $('#sheet').innerHTML=wb.SheetNames.map(n=>'<option>'+esc(n)+'</option>').join('');
-    $('#hrow').value=1; $('#nohdr').classList.remove('on');
-    $('#drop').classList.add('has');
-    $('#dtext').textContent=file.name+' · '+(file.size/1024).toFixed(0)+' KB';
-    $('#fbadge').textContent='불러옴'; $('#fbadge').className='badge g';
-    ['#c2','#c3','#c4','#c5'].forEach(x=>$(x).classList.remove('dim'));
-    loadSheet(true);
-    toast('파일 읽음 · 시트 '+wb.SheetNames.length+'개','ok');
-  }catch(e){ console.error(e); toast('파일을 열지 못함: '+e.message,'bad'); }
+bindDrop('#drop','#file',async list=>{
+  const files=Array.prototype.slice.call(list);
+  if(S.docs.length) docSave();
+  let added=0;
+  for(const file of files){
+    await busy('파일 읽는 중…', file.name+' · '+(file.size/1048576).toFixed(1)+'MB');
+    try{
+      const {wb,raw}=await readWorkbook(file);
+      if(!wb.SheetNames.length){ toast(file.name+' — 시트가 없음','bad'); continue; }
+      const doc={wb,raw,fname:file.name.replace(/\.[^.]+$/,''),isCsv:isCsvName(file.name),
+                 sheet:wb.SheetNames[0],headerRow:0,noHeader:false,grid:[],cols:[],rows:new Set(),
+                 previewRows:PREVIEW_ROWS0,masked:null,size:file.size,file1:null};
+      S.docs.push(doc); S.di=S.docs.length-1;
+      for(const k of DOCF) S[k]=doc[k];
+      loadSheet(true); docSave(); added++;
+    }catch(e){ console.error(e); toast(file.name+' — 열지 못함: '+e.message,'bad'); }
+  }
   idle();
+  if(!added||!S.docs.length) return;
+  /* 다른 시트 보존이 필요한 xlsx만 저장용 빌더에 원본을 올려둠 */
+  S.docs.forEach((d,i)=>{ if(d.raw) WK.preload(i,d.raw); d.raw=null; });
+  $('#drop').classList.add('has');
+  $('#fbadge').textContent=S.docs.length>1?(S.docs.length+'개 불러옴'):'불러옴';
+  $('#fbadge').className='badge g';
+  $('#dtext').textContent=S.docs.map(d=>d.fname).join(' · ').slice(0,100);
+  ['#c2','#c3','#c4','#c5'].forEach(x=>$(x).classList.remove('dim'));
+  markDirty(); lockDownloads(); multiNote();
+  docLoad(S.docs.length-1);
+  toast(S.docs.length>1?('파일 '+S.docs.length+'개 · 같은 코드 체계로 함께 처리함'):'파일 읽음','ok');
 });
 
 /* ══════════ 2) 시트 / 헤더 ══════════ */
@@ -1000,9 +1137,8 @@ function loadSheet(autoPick){
   });
   if(autoPick) S.cols.forEach(c=>{ if(SENSITIVE.includes(c.detected)) c.on=true; });
   renderCols(); renderTable(); updateStats();
-  lockDownloads();
 }
-async function reload(autoPick){ await busy('시트 읽는 중…',S.sheet); loadSheet(autoPick); idle(); }
+async function reload(autoPick){ await busy('시트 읽는 중…',S.sheet); loadSheet(autoPick); docSave(); markDirty(); lockDownloads(); idle(); }
 $('#sheet').onchange=e=>{ S.sheet=e.target.value; reload(true); };
 $('#hrow').onchange=e=>{ S.headerRow=Math.max(0,(parseInt(e.target.value,10)||1)-1); reload(true); };
 swBind('#nohdr',v=>{ S.noHeader=v; $('#hrow').disabled=v; reload(true); });
@@ -1153,14 +1289,14 @@ swBind('#sweep',v=>{ S.sweep=v; markDirty(); });
 
 /* 마스킹 결과가 살아 있던 경우에만 표를 다시 그림 (그 외에는 클래스만 갈아끼움) */
 function markDirty(){
-  if(!S.masked) return false;
-  S.dirty=true; S.masked=null; S.records=[]; lockDownloads(); renderTable(); return true;
+  if(!S.records.length && !S.masked) return false;
+  S.dirty=true; lockDownloads(); renderTable(); return true;
 }
 function lockDownloads(){
-  $('#dl1').disabled=true; $('#dl2').disabled=true;
-  S.file1=null; S.file2=null;
-  $('#dl1n').textContent='업무용으로 쓸 파일';
-  $('#dl2n').textContent='원본 ↔ 마스킹 대응표';
+  S.file2=null; S.records=[];
+  S.docs.forEach(d=>{ d.file1=null; d.masked=null; });
+  S.masked=null;
+  renderDls(false);
   $('#dlp').className='';
 }
 
@@ -1192,47 +1328,65 @@ function updateStats(){
 function progress(p){ const b=$('#prog'); b.classList.toggle('on',p>=0&&p<1); b.firstElementChild.style.width=(p*100)+'%'; }
 
 async function runMask(){
-  const start=(S.noHeader?-1:S.headerRow)+1;
-  const onCols=S.cols.filter(c=>c.on);
-  if(!onCols.length && !S.rows.size) return toast('마스킹할 열이나 행을 하나는 골라야 함','warn');
+  docSave();
+  const docs=S.docs;
+  if(!docs.length) return toast('파일부터 올려야 함','warn');
+  if(!docs.some(d=>d.cols.some(c=>c.on)||d.rows.size))
+    return toast('마스킹할 열이나 행을 하나는 골라야 함','warn');
 
-  const isTarget=(r,c)=> S.rows.has(r) || S.cols[c].on;
-  /* 1차: 값 단위 처리 계획
-     코드는 "값"에만 달려야 함. 열이나 감지된 유형이 코드에 섞이면
-     같은 조직명이 열마다 다른 코드를 받아 집계가 안 됨.
-     한 값이 여러 열에 걸쳐 있으면 형식이 가장 강한 모드를 따름 (비식별형 > 토큰 > 형태유지) */
+  const NL=S.norm;                                   // 값 묶기 단계 (0 끔 / 1 기본 / 2 강하게)
+  const startOf=d=>(d.noHeader?-1:d.headerRow)+1;
+  const targetOf=d=>((r,c)=>d.rows.has(r)||d.cols[c].on);
+
+  /* 1차: 값 단위 처리 계획 (파일 전체를 통틀어 한 번)
+     코드는 "값"에만 달림 — 행·열·파일이 달라도 같은 값이면 같은 코드.
+     한 값이 모드가 다른 여러 열에 걸쳐 있으면 형식이 가장 강한 모드를 따름 */
   const RANK={safe:2,token:1,shape:0};
-  const plan=new Map();       // 원본값 -> {mode,type,prefix,col}
-  const origSet=new Set();    // 모든 원본값 (마스킹값이 원본과 겹치지 않게 하려고)
-  for(let r=start;r<S.grid.length;r++)
-    for(let c=0;c<S.cols.length;c++){
-      const v=S.grid[r][c];
-      if(v===''||v==null||!isTarget(r,c)) continue;
-      const s=String(v); origSet.add(s);
-      const col=S.cols[c];
-      if(col.mode==='del') continue;          // 삭제는 코드를 만들지 않으므로 열 단위 그대로
-      const cur=plan.get(s);
-      if(!cur || RANK[col.mode]>RANK[cur.mode])
-        plan.set(s,{mode:col.mode,type:col.type,prefix:col.prefix,col:col.name});
+  const plan=new Map();        // 묶음키 -> {mode,type,prefix,col,rep}
+  const origSet=new Set();     // 원본값 전체 (코드가 원본과 겹치지 않게)
+  const variants=new Map();    // 묶음키 -> 표기 변형 개수
+  for(const d of docs){
+    const st=startOf(d), tgt=targetOf(d);
+    for(let r=st;r<d.grid.length;r++){
+      for(let c=0;c<d.cols.length;c++){
+        const v=d.grid[r][c];
+        if(v===''||v==null||!tgt(r,c)) continue;
+        const raw=String(v); origSet.add(raw);
+        const col=d.cols[c];
+        if(col.mode==='del') continue;            // 삭제는 코드를 만들지 않음
+        const k=normKey(raw,NL);
+        let vs=variants.get(k); if(!vs){ vs=new Set(); variants.set(k,vs); } vs.add(raw);
+        const cur=plan.get(k);
+        if(!cur) plan.set(k,{mode:col.mode,type:col.type,prefix:col.prefix,col:col.name,rep:raw});
+        else if(RANK[col.mode]>RANK[cur.mode]){
+          cur.mode=col.mode; cur.type=col.type; cur.prefix=col.prefix; cur.col=col.name;
+        }
+      }
+      if((r-st)%6000===5999) await yieldNow();
     }
+  }
 
-  const dict=new Map();       // 원본값 -> 마스킹값 (값 하나당 코드 하나)
-  const used=new Set();       // 이미 쓰인 마스킹값 전체
-  const seq={};               // 토큰 모드 접두어별 일련번호
-  const recs=[];              // 매핑표 레코드 (삭제 모드는 여기 안 들어감)
-  const delRep=new Map();     // 삭제된 원본값 -> 대체 문자 (문장 속 치환용)
-  const masked=S.grid.map(row=>row.slice());
-  let cells=0, dels=0, reused=0;
-  /* 이어쓸 코드북이 있으면 그 코드들을 먼저 선점해 새 코드와 겹치지 않게 함 */
-  const book=S.book;
-  if(book) book.forEach(m=>used.add(m));
+  const dict=new Map();        // 묶음키 -> 코드
+  const rawCode=new Map();     // 실제 등장한 원본값 -> 코드 (문장 속 치환용)
+  const used=new Set();
+  const seq={};
+  const recs=[];
+  const delRep=new Map();
+  let cells=0, dels=0, reused=0, swept=0;
 
-  function make(s){
-    let v=dict.get(s);
+  /* 코드북을 이어쓰면 그 코드를 먼저 선점하고, 같은 기준으로 묶어서 찾음 */
+  let bookN=null;
+  if(S.book){
+    bookN=new Map();
+    S.book.forEach((m,o)=>{ used.add(m); const k=normKey(o,NL); if(!bookN.has(k)) bookN.set(k,m); });
+  }
+
+  function makeByKey(k){
+    let v=dict.get(k);
     if(v!==undefined) return v;
-    const d=plan.get(s)||{mode:'shape',type:'text',prefix:'TXT',col:''};
-    const carried=book?book.get(s):undefined;
-    if(carried!==undefined){ v=carried; reused++; }     // 이전 파일에서 쓰던 코드 그대로
+    const d=plan.get(k)||{mode:'shape',type:'text',prefix:'TXT',col:'',rep:k};
+    const carried=bookN?bookN.get(k):undefined;
+    if(carried!==undefined){ v=carried; reused++; }
     else if(d.mode==='safe'){
       const p=safePrefix(d.prefix,d.type);
       do{ v=p+'-'+genSafeBody(); }while(used.has(v)||origSet.has(v));
@@ -1242,105 +1396,124 @@ async function runMask(){
       v=p+'_'+pad(seq[p],4);
       while(used.has(v)||origSet.has(v)){ seq[p]++; v=p+'_'+pad(seq[p],4); }
     }else{
-      const g=GEN[d.type]||genShape;
-      let n=0; do{ v=g(s); n++; }while((used.has(v)||origSet.has(v)||v===s)&&n<60);
-      if(used.has(v)||origSet.has(v)||v===s){
-        let k=2, base=v; do{ v=base+'#'+k++; }while(used.has(v)||origSet.has(v));
+      const g=GEN[d.type]||genShape, src=d.rep;
+      let n=0; do{ v=g(src); n++; }while((used.has(v)||origSet.has(v)||v===src)&&n<60);
+      if(used.has(v)||origSet.has(v)||v===src){
+        let j=2, base=v; do{ v=base+'#'+j++; }while(used.has(v)||origSet.has(v));
       }
     }
-    used.add(v); dict.set(s,v);
-    recs.push({orig:s, masked:v, type:TYPES[d.type].label, col:d.col});
+    used.add(v); dict.set(k,v);
+    recs.push({orig:d.rep, masked:v, type:TYPES[d.type].label, col:d.col});
     return v;
   }
 
   const t0=performance.now();
-  for(let r=start;r<S.grid.length;r++){
-    for(let c=0;c<S.cols.length;c++){
-      const v=S.grid[r][c];
-      if(v===''||v==null||!isTarget(r,c)) continue;
-      const col=S.cols[c];
-      /* 삭제 모드 — 값을 대체 문자(기본 공란)로 없앰. 매핑표에 남기지 않으므로 복원 불가 */
-      if(col.mode==='del'){
-        const b=col.blank||'';
-        if(String(v)!==b){ masked[r][c]=b; cells++; dels++; }
-        if(String(v).length>=2) delRep.set(String(v),b);
-        continue;
+  let doneRows=0, totalRows=0;
+  docs.forEach(d=>{ totalRows+=Math.max(0,d.grid.length-startOf(d)); });
+
+  /* 2차: 치환 */
+  for(const d of docs){
+    const st=startOf(d), tgt=targetOf(d);
+    const masked=d.grid.map(row=>row.slice());
+    for(let r=st;r<d.grid.length;r++){
+      for(let c=0;c<d.cols.length;c++){
+        const v=d.grid[r][c];
+        if(v===''||v==null||!tgt(r,c)) continue;
+        const col=d.cols[c], raw=String(v);
+        if(col.mode==='del'){                      // 삭제 — 대체 문자로 없앰
+          const b=col.blank||'';
+          if(raw!==b){ masked[r][c]=b; cells++; dels++; }
+          if(raw.length>=2) delRep.set(raw,b);
+          continue;
+        }
+        const k=normKey(raw,NL), mv=makeByKey(k), pd=plan.get(k);
+        rawCode.set(raw,mv);
+        masked[r][c]=(pd && pd.type==='number' && typeof v==='number' && /^-?[\d.]+$/.test(mv)) ? Number(mv) : mv;
+        cells++;
       }
-      const s=String(v), mv=make(s), d=plan.get(s);
-      masked[r][c]= (d && d.type==='number' && typeof v==='number' && /^-?[\d.]+$/.test(mv)) ? Number(mv) : mv;
-      cells++;
+      if(++doneRows%3000===0){ progress(doneRows/totalRows); await yieldNow(); }
     }
-    if((r-start)%3000===2999){ progress((r-start)/(S.grid.length-start)); await yieldNow(); }
+    d.masked=masked;
   }
 
-  /* 2차: 고르지 않은 열의 문장 속에 섞여 있는 원본값도 같이 치환
-     (예: 비고 칸의 "홍길동 담당자 연락요" → "서지우 담당자 연락요") */
-  let swept=0;
-  if(S.sweep && (recs.length || delRep.size)){
+  /* 3차: 고르지 않은 열의 문장 속에 섞인 값도 함께 치환 */
+  if(S.sweep && (rawCode.size || delRep.size)){
     const rep=new Map();
-    recs.forEach(r=>{ if(r.type!=='숫자'&&r.type!=='날짜'&&r.orig.length>=2&&!rep.has(r.orig)) rep.set(r.orig,r.masked); });
+    rawCode.forEach((code,raw)=>{ if(raw.length>=2 && !/^-?[\d,.]+$/.test(raw)) rep.set(raw,code); });
     delRep.forEach((b,o)=>{ if(o.length>=2 && !/^-?[\d,.]+$/.test(o) && !rep.has(o)) rep.set(o,b); });
     if(rep.size>8000){ toast('매핑이 너무 많아서 문장 속 치환은 건너뜀','warn'); }
     else if(rep.size){
       const keys=Array.from(rep.keys()).sort((a,b)=>b.length-a.length);
       let re=null;
       try{ re=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){ re=null; }
-      if(re) for(let r=start;r<S.grid.length;r++){
-        for(let c=0;c<S.cols.length;c++){
-          if(isTarget(r,c)) continue;
-          const v=S.grid[r][c];
-          if(typeof v!=='string'||v.length<2) continue;
-          re.lastIndex=0; if(!re.test(v)) continue;
-          re.lastIndex=0;
-          const nv=v.replace(re,x=>rep.get(x)||x);
-          if(nv!==v){ masked[r][c]=nv; swept++; }
+      if(re) for(const d of docs){
+        const st=startOf(d), tgt=targetOf(d), masked=d.masked;
+        for(let r=st;r<d.grid.length;r++){
+          for(let c=0;c<d.cols.length;c++){
+            if(tgt(r,c)) continue;
+            const v=d.grid[r][c];
+            if(typeof v!=='string'||v.length<2) continue;
+            re.lastIndex=0; if(!re.test(v)) continue;
+            re.lastIndex=0;
+            const nv=v.replace(re,x=>rep.get(x)||x);
+            if(nv!==v){ masked[r][c]=nv; swept++; }
+          }
+          if((r-st)%4000===3999) await yieldNow();
         }
-        if((r-start)%4000===3999) await yieldNow();
       }
     }
   }
   cells+=swept;
 
-  /* 3차: 결과 파일에 개인정보 "형식"의 값이 남았는지 점검.
-     마스킹한 열뿐 아니라 고르지 않은 열까지 전부 훑어서, 빠뜨린 열을 잡아냄 */
+  /* 4차: 결과에 개인정보 형식이 남았는지 점검 (고르지 않은 열까지 전부) */
   const piiCnt=new Array(PII.length).fill(0);
-  const piiByCol=new Map();
+  const piiByCol=new Map();          // 'di|ci' -> {n,kinds,di,ci}
   let piiTotal=0;
   piiCacheReset();
-  for(let r=start;r<S.grid.length;r++){
-    const mrow=masked[r];
-    for(let c=0;c<S.cols.length;c++){
-      const v=mrow[c]; let str;
-      if(typeof v==='string') str=v;
-      else if(typeof v==='number' && Math.abs(v)>=1e9) str=String(v);
-      else continue;
-      const k=piiHit(str);
-      if(k<0) continue;
-      piiCnt[k]++; piiTotal++;
-      let e=piiByCol.get(c);
-      if(!e){ e={n:0,kinds:new Set()}; piiByCol.set(c,e); }
-      e.n++; e.kinds.add(k);
+  for(let di=0;di<docs.length;di++){
+    const d=docs[di], st=startOf(d);
+    for(let r=st;r<d.grid.length;r++){
+      const mrow=d.masked[r];
+      for(let c=0;c<d.cols.length;c++){
+        const v=mrow[c]; let str;
+        if(typeof v==='string') str=v;
+        else if(typeof v==='number' && Math.abs(v)>=1e9) str=String(v);
+        else continue;
+        const k=piiHit(str);
+        if(k<0) continue;
+        piiCnt[k]++; piiTotal++;
+        const key=di+'|'+c;
+        let e=piiByCol.get(key);
+        if(!e){ e={n:0,kinds:new Set(),di:di,ci:c}; piiByCol.set(key,e); }
+        e.n++; e.kinds.add(k);
+      }
+      if((r-st)%6000===5999) await yieldNow();
     }
-    if((r-start)%6000===5999) await yieldNow();
   }
   renderPII(piiCnt,piiByCol,piiTotal);
 
+  let merged=0; variants.forEach(vs=>{ if(vs.size>1) merged++; });
   progress(1); setTimeout(()=>progress(-1),400);
 
-  S.masked=masked; S.records=recs; S.dirty=false;
+  S.records=recs; S.dirty=false;
+  docLoad(S.di);                      // 지금 보고 있는 파일 화면 갱신
+  countUp($('#s1'),totalRows);
+  countUp($('#s2'),docs.reduce((n,d)=>n+d.cols.filter(c=>c.on).length,0));
   countUp($('#s3'),cells); countUp($('#s4'),recs.length); countUp($('#s5'),dels);
-  $('#dl1').disabled=false; $('#dl2').disabled=!recs.length;
-  $('#dl1n').textContent=S.fname+(S.isCsv?'_masked.csv':'_masked.xlsx');
-  $('#dl2n').textContent=recs.length
-    ? S.fname+'_mapping.'+(recs.length>MAP_CSV_OVER?'csv':'xlsx')+' · '+nf(recs.length)+'건'
-    : '삭제만 해서 되돌릴 값이 없음';
-  renderTable();
-  prebuild();   /* 결과를 훑어보는 동안 다운로드 파일을 미리 만들어 둠 */
-  toast('완료 · 셀 '+nf(cells)+'개 처리'+(dels?' (삭제 '+nf(dels)+'개)':'')+(reused?' · 코드북에서 '+nf(reused)+'개 이어씀':'')+(swept?' · 문장 속 '+nf(swept)+'개':'')+' · '+Math.round(performance.now()-t0)+'ms','ok');
+  renderDls(true);
+  prebuild();
+  toast('완료 · 셀 '+nf(cells)+'개'
+    +(docs.length>1?' · 파일 '+docs.length+'개 공통 코드':'')
+    +(merged?' · 표기 다른 값 '+nf(merged)+'건 묶음':'')
+    +(dels?' · 삭제 '+nf(dels):'')
+    +(reused?' · 코드북 '+nf(reused):'')
+    +' · '+Math.round(performance.now()-t0)+'ms','ok');
 }
 /* ══════════ 개인정보 형식 점검 결과 ══════════ */
+let PII_FLAGS=[];
 function renderPII(cnt,byCol,total){
-  const el=$('#dlp');
+  const el=$('#dlp'), multi=S.docs.length>1;
+  PII_FLAGS=[];
   if(!total){
     el.className='on clean';
     el.innerHTML='<div class="t"><i></i>결과 파일에 개인정보 형식의 값이 남아 있지 않음</div>'
@@ -1349,11 +1522,15 @@ function renderPII(cnt,byCol,total){
     return;
   }
   const kinds=cnt.map((n,i)=>n?PII[i][0]+' '+nf(n):'').filter(Boolean).join(' · ');
-  const rows=Array.from(byCol.entries()).sort((a,b)=>b[1].n-a[1].n).slice(0,8)
-    .map(([c,e])=>'<li><b>'+esc(S.cols[c].name)+'</b> — '+nf(e.n)+'셀 · '
-      +Array.from(e.kinds).map(k=>PII[k][0]).join(', ')
-      +(S.cols[c].on?' <span style="color:var(--txt3)">(현재 '+MODE_LABEL[S.cols[c].mode]+')</span>':' <span style="color:var(--warn)">(마스킹 안 함)</span>')
-      +'</li>').join('');
+  const list=Array.from(byCol.values()).sort((x,y)=>y.n-x.n).slice(0,10);
+  const rows=list.map(e=>{
+    const d=S.docs[e.di], col=d.cols[e.ci];
+    PII_FLAGS.push({di:e.di,ci:e.ci});
+    return '<li>'+(multi?'<span style="color:var(--txt3)">'+esc(d.fname)+'</span> · ':'')
+      +'<b>'+esc(col.name)+'</b> — '+nf(e.n)+'셀 · '+Array.from(e.kinds).map(k=>PII[k][0]).join(', ')
+      +(col.on?' <span style="color:var(--txt3)">(현재 '+MODE_LABEL[col.mode]+')</span>'
+             :' <span style="color:var(--warn)">(마스킹 안 함)</span>')+'</li>';
+  }).join('');
   el.className='on';
   el.innerHTML='<div class="t"><i></i>결과 파일에 개인정보 형식의 값이 '+nf(total)+'셀 남아 있음</div>'
     +'<div style="font-size:12.5px;color:var(--txt2);margin-bottom:8px">'+esc(kinds)+'</div>'
@@ -1364,21 +1541,39 @@ function renderPII(cnt,byCol,total){
     +'<button class="btn sm" id="fixsafe">위 열 전부 비식별형으로 바꾸고 다시 실행</button>';
 }
 $('#dlp').addEventListener('click',async e=>{
-  if(!e.target.closest('#fixsafe')) return;
+  if(!e.target.closest('#fixsafe')||!PII_FLAGS.length) return;
+  docSave();
   let n=0;
-  $$('#dlp li b').forEach(b=>{
-    const i=S.cols.findIndex(c=>c.name===b.textContent);
-    if(i>=0 && S.cols[i].mode!=='del'){ S.cols[i].on=true; S.cols[i].mode='safe'; n++; }
+  PII_FLAGS.forEach(f=>{
+    const col=S.docs[f.di] && S.docs[f.di].cols[f.ci];
+    if(col && col.mode!=='del'){ col.on=true; col.mode='safe'; n++; }
   });
   if(!n) return;
-  markDirty(); renderCols(); renderTable(); updateStats();
+  docLoad(S.di); markDirty(); updateStats();
   toast('열 '+n+'개를 비식별형으로 바꿈 · 다시 실행함','ok');
   await busy('다시 마스킹하는 중…'); await runMask(); idle();
 });
 
+/* ══════════ 값 묶는 기준 ══════════ */
+const NORM_DESC=[
+  '글자가 완전히 같아야 같은 값으로 봄',
+  '공백 차이(앞뒤·중간·개수)와 전각/반각, 보이지 않는 문자를 무시하고 비교함',
+  '기본 + 괄호·점·하이픈 같은 기호와 영문 대소문자를 무시하고, (주)/㈜/주식회사 표기도 같게 봄'
+];
+$('#normseg').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-v]'); if(!b) return;
+  S.norm=+b.dataset.v;
+  $$('#normseg button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#normtext').textContent=NORM_DESC[S.norm];
+  $('#normrow').classList.toggle('on',S.norm>0);
+  markDirty();
+});
+
 $('#run').onclick=async()=>{
-  if(!S.grid.length) return toast('파일부터 올려야 함','warn');
-  await busy('마스킹 처리 중…', nf(Math.max(0,S.grid.length-((S.noHeader?-1:S.headerRow)+1)))+'행');
+  if(!S.docs.length) return toast('파일부터 올려야 함','warn');
+  docSave();
+  const rows=S.docs.reduce((n,d)=>n+Math.max(0,d.grid.length-((d.noHeader?-1:d.headerRow)+1)),0);
+  await busy('마스킹 처리 중…', nf(rows)+'행'+(S.docs.length>1?' · 파일 '+S.docs.length+'개':''));
   await runMask(); idle();
 };
 
@@ -1399,30 +1594,31 @@ function wbToBlob(wb){
   return new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'});
 }
 /* 마스킹한 시트만 교체하고 나머지 시트는 원본 그대로 보존 */
-function buildMaskedWorkbook(){
+function buildMaskedWorkbook(d){
   const wb=XLSX.utils.book_new();
-  S.wb.SheetNames.forEach(n=>{
-    XLSX.utils.book_append_sheet(wb, n===S.sheet ? XLSX.utils.aoa_to_sheet(S.masked) : S.wb.Sheets[n], n);
+  d.wb.SheetNames.forEach(n=>{
+    XLSX.utils.book_append_sheet(wb, n===d.sheet ? XLSX.utils.aoa_to_sheet(d.masked) : d.wb.Sheets[n], n);
   });
   return wb;
 }
-$('#dl1').onclick=async()=>{
-  const f=await grabFile(1); if(!f) return;
-  saveBlob(f.blob,f.name);
-  toast('마스킹 파일 내려받음','ok');
-};
-$('#dl2').onclick=async()=>{
-  const f=await grabFile(2); if(!f) return;
-  saveBlob(f.blob,f.name);
-  toast('매칭 파일 내려받음 · 외부 반출 주의','warn');
-};
+$('#dls').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-f]'); if(!b||b.disabled) return;
+  const f=await grabFile(+b.dataset.f); if(!f) return;
+  saveBlob(f.blob,f.name); toast('마스킹 파일 내려받음','ok');
+});
+$('#dls').addEventListener('click',async e=>{
+  if(!e.target.closest('#dl2')||$('#dl2').disabled) return;
+  const f=await grabFile('map'); if(!f) return;
+  saveBlob(f.blob,f.name); toast('매칭 파일 내려받음 · 외부 반출 주의','warn');
+});
 
 /* ══════════ 복원 ══════════ */
 const R={ wbA:null, nameA:'', csvA:false, map:null, out:null, partial:true };
 swBind('#partial',v=>{R.partial=v;});
 function readyRestore(){ $('#rrun').disabled=!(R.wbA&&R.map&&R.map.size); }
 
-bindDrop('#rdropA','#rfileA',async f=>{
+bindDrop('#rdropA','#rfileA',async list=>{
+  const f=list[0]; if(!f) return;
   await busy('결과 파일 읽는 중…',f.name);
   try{
     R.wbA=(await readWorkbook(f)).wb; R.nameA=f.name.replace(/\.[^.]+$/,''); R.csvA=isCsvName(f.name);
@@ -1450,7 +1646,8 @@ function readMappingPairs(wb){
   if(!rev.size) throw new Error('매핑 항목이 없음');
   return {fwd,rev};
 }
-bindDrop('#rdropB','#rfileB',async f=>{
+bindDrop('#rdropB','#rfileB',async list=>{
+  const f=list[0]; if(!f) return;
   await busy('매칭 파일 읽는 중…',f.name);
   try{
     const {rev}=readMappingPairs((await readWorkbook(f)).wb);
@@ -1542,7 +1739,7 @@ console.log('%c마스킹 스튜디오','font:700 15px sans-serif;color:#6d7cff',
    워커를 못 만드는 환경이면 기존처럼 메인 스레드에서 처리함(동작은 동일, 잠깐 멈춤).
    ══════════════════════════════════════════════════════════════ */
 const WORKER_BODY = [
-'var WB=null;',
+'var WBS={};',
 'function csvFromAoa(aoa){',
 '  var out=new Array(aoa.length);',
 '  for(var r=0;r<aoa.length;r++){',
@@ -1562,17 +1759,18 @@ const WORKER_BODY = [
 '  var d=e.data, id=d.id;',
 '  try{',
 '    if(d.cmd==="load"){',
-'      WB = d.text!=null ? XLSX.read(d.text,{type:"string",raw:true,dense:true})',
-'                        : XLSX.read(new Uint8Array(d.buf),{type:"array",cellDates:true,dense:true});',
+'      WBS[d.key] = d.text!=null ? XLSX.read(d.text,{type:"string",raw:true,dense:true})',
+'                                : XLSX.read(new Uint8Array(d.buf),{type:"array",cellDates:true,dense:true});',
 '      postMessage({id:id,ok:true});',
 '    } else if(d.cmd==="build"){',
 '      if(d.isCsv){',
 '        postMessage({id:id,text:csvFromAoa(d.aoa)});',
 '      } else {',
-'        var wb=XLSX.utils.book_new(), names=(WB&&WB.SheetNames.indexOf(d.name)>=0)?WB.SheetNames:[d.name];',
+'        var W=WBS[d.key];',
+'        var wb=XLSX.utils.book_new(), names=(W&&W.SheetNames.indexOf(d.name)>=0)?W.SheetNames:[d.name];',
 '        for(var i=0;i<names.length;i++){',
 '          var n=names[i];',
-'          XLSX.utils.book_append_sheet(wb, n===d.name?XLSX.utils.aoa_to_sheet(d.aoa):WB.Sheets[n], n);',
+'          XLSX.utils.book_append_sheet(wb, n===d.name?XLSX.utils.aoa_to_sheet(d.aoa):W.Sheets[n], n);',
 '        }',
 '        var out=XLSX.write(wb,{bookType:"xlsx",type:"array"});',
 '        postMessage({id:id,buf:out},[out]);',
@@ -1594,7 +1792,7 @@ const WORKER_BODY = [
 '};'].join('\n');
 
 const WK={
-  w:undefined, seq:0, cbs:new Map(), loaded:null,
+  w:undefined, seq:0, cbs:new Map(), loaded:{},
   get(){
     if(this.w!==undefined) return this.w;
     this.w=null;
@@ -1626,17 +1824,17 @@ const WK={
   /* 원본을 미리 워커에도 올려둠 — 다른 시트를 원본 그대로 보존하려면 필요함.
      ArrayBuffer는 복사 대신 소유권을 넘김(메인은 파싱을 이미 끝냈으므로 필요 없음).
      첫 화면이 그려진 뒤에 시작해야 초기 렌더와 CPU를 다투지 않음 */
-  preload(raw){
-    this.loaded=null;
+  preload(key,raw){
     if(!raw) return;          /* CSV는 보존할 다른 시트가 없어 원본 적재 자체가 불필요 */
     if(!this.get()) return;
-    this.loaded=new Promise(res=>{
+    this.loaded[key]=new Promise(res=>{
       setTimeout(()=>{
-        this.call('load',raw,raw.buf?[raw.buf]:[]).then(()=>res(true)).catch(()=>res(false));
+        this.call('load',Object.assign({key},raw),raw.buf?[raw.buf]:[])
+          .then(()=>res(true)).catch(()=>res(false));
       },260);
     });
   },
-  ready(){ return this.loaded||Promise.resolve(false); }
+  ready(key){ return this.loaded[key]||Promise.resolve(false); }
 };
 
 /* ══════════ 다운로드 파일 준비 ══════════ */
@@ -1648,16 +1846,21 @@ function mappingPayload(){
   const asCsv=S.records.length>MAP_CSV_OVER;
   const map=[['원본값','마스킹값','유형','열','시트']];
   const seen=new Set();
-  S.records.forEach(r=>{ seen.add(r.orig); map.push([r.orig,r.masked,r.type,r.col,S.sheet]); });
+  S.records.forEach(r=>{ seen.add(r.orig); map.push([r.orig,r.masked,r.type,r.col,'']); });
   /* 코드북을 이어쓴 경우, 이번 파일에 안 나온 코드도 남겨서 코드북이 누적되게 함 */
   if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) map.push([o,m,'(코드북)','','']); });
   if(asCsv) return {asCsv:true,map};
   const info=[['마스킹 스튜디오 매칭 파일'],[],
-    ['원본 파일',S.fname],['시트',S.sheet],['생성 일시',new Date().toLocaleString('ko-KR')],
-    ['헤더 행',S.noHeader?'없음':String(S.headerRow+1)],
-    ['마스킹 열',S.cols.filter(c=>c.on&&c.mode!=='del').map(c=>c.name+'('+TYPES[c.type].label+'/'+MODE_LABEL[c.mode]+')').join(', ')||'없음'],
-    ['삭제 열 (복원 불가)',S.cols.filter(c=>c.on&&c.mode==='del').map(c=>c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', ')||'없음'],
-    ['마스킹 행',S.rows.size?Array.from(S.rows).sort((a,b)=>a-b).map(r=>r+1).join(', '):'없음'],
+    ['원본 파일',S.docs.map(d=>d.fname).join(', ')],
+    ['파일 수',S.docs.length],
+    ['생성 일시',new Date().toLocaleString('ko-KR')],
+    ['값 묶는 기준',NORM_LABEL[S.norm]],
+    ['마스킹 열',S.docs.map(d=>d.cols.filter(c=>c.on&&c.mode!=='del')
+        .map(c=>(S.docs.length>1?d.fname+'/':'')+c.name+'('+TYPES[c.type].label+'/'+MODE_LABEL[c.mode]+')').join(', '))
+        .filter(Boolean).join(' | ')||'없음'],
+    ['삭제 열 (복원 불가)',S.docs.map(d=>d.cols.filter(c=>c.on&&c.mode==='del')
+        .map(c=>(S.docs.length>1?d.fname+'/':'')+c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', '))
+        .filter(Boolean).join(' | ')||'없음'],
     ['매핑 항목 수',S.records.length],
     ['이어쓴 코드북',S.bookName||'없음'],[],
     ['※ 이 파일은 원본 개인정보를 담고 있음. 외부 반출 금지'],
@@ -1667,8 +1870,8 @@ function mappingPayload(){
           mcols:[{wch:26},{wch:26},{wch:14},{wch:20},{wch:16}], icols:[{wch:18},{wch:70}]};
 }
 /* 메인 스레드 대체 경로 — 워커를 못 쓸 때만 탐 */
-function buildMaskedMain(){
-  return S.isCsv ? aoaToCsvBlob(S.masked) : wbToBlob(buildMaskedWorkbook());
+function buildMaskedMain(d){
+  return d.isCsv ? aoaToCsvBlob(d.masked) : wbToBlob(buildMaskedWorkbook(d));
 }
 function buildMappingMain(pl){
   if(pl.asCsv) return aoaToCsvBlob(pl.map);
@@ -1680,22 +1883,47 @@ function buildMappingMain(pl){
   return wbToBlob(wb);
 }
 
-/* 마스킹 직후 호출 — 사용자가 결과를 훑어보는 동안 파일을 만들어 둠 */
+/* ══════════ 다운로드 버튼 ══════════ */
+function dlName(d){ return d.fname+(d.isCsv?'_masked.csv':'_masked.xlsx'); }
+const DL_ICON='<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>';
+const MAP_ICON='<svg viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg>';
+function renderDls(ready){
+  const el=$('#dls'); if(!el) return;
+  const multi=S.docs.length>1;
+  let h='';
+  S.docs.forEach((d,i)=>{
+    const id=i===0?'dl1':'dlf'+i, nid=i===0?'dl1n':'dlf'+i+'n';
+    h+='<button class="dl" id="'+id+'" data-f="'+i+'"'+(ready?'':' disabled')+'>'
+      +'<div class="ic">'+DL_ICON+'</div><div><b>'+(multi?esc(d.fname):'마스킹 파일')+'</b>'
+      +'<span id="'+nid+'">'+(ready?dlName(d):(multi?'마스킹 결과':'업무용으로 쓸 파일'))+'</span></div></button>';
+  });
+  if(!S.docs.length)
+    h+='<button class="dl" id="dl1" data-f="0" disabled><div class="ic">'+DL_ICON
+      +'</div><div><b>마스킹 파일</b><span id="dl1n">업무용으로 쓸 파일</span></div></button>';
+  const mapOn=ready&&S.records.length;
+  h+='<button class="dl g" id="dl2"'+(mapOn?'':' disabled')+'><div class="ic">'+MAP_ICON+'</div>'
+    +'<div><b>매칭 파일 (매핑표)</b><span id="dl2n">'
+    +(mapOn?(S.docs[0].fname+'_mapping.'+(S.records.length>MAP_CSV_OVER?'csv':'xlsx')+' · '+nf(S.records.length)+'건')
+           :(ready?'삭제만 해서 되돌릴 값이 없음':'원본 ↔ 마스킹 대응표'))+'</span></div></button>';
+  el.innerHTML=h;
+}
+
+/* 마스킹 직후 호출 — 결과를 훑어보는 동안 파일을 미리 만들어 둠 */
 function prebuild(){
-  S.file1=null; S.file2=null;
-  const name1=S.fname+(S.isCsv?'_masked.csv':'_masked.xlsx');
-  const pl=S.records.length?mappingPayload():null;
-  const name2=pl?(S.fname+'_mapping.'+(pl.asCsv?'csv':'xlsx')):'';
-
-  /* xlsx는 다른 시트를 보존해야 해서 워커에 원본이 올라간 뒤에만 맡길 수 있음.
-     CSV는 시트 개념이 없으므로 바로 맡기면 됨 */
-  S.file1=(S.isCsv?Promise.resolve(true):WK.ready()).then(ok=>{
-    if(!ok) throw 0;
-    return WK.call('build',{name:S.sheet,aoa:S.masked,isCsv:S.isCsv}).then(r=>({blob:toBlob(r),name:name1}));
-  }).catch(()=>({blob:buildMaskedMain(),name:name1}));
-  S.file1.then(()=>markReady('#dl1n',name1)).catch(()=>{});
-
-  if(!pl){ S.file2=null; return; }
+  S.docs.forEach((d,i)=>{
+    const name=dlName(d);
+    d.file1=(d.isCsv?Promise.resolve(true):WK.ready(i)).then(ok=>{
+      if(!ok) throw 0;
+      return WK.call('build',{key:i,name:d.sheet,aoa:d.masked,isCsv:d.isCsv})
+               .then(r=>({blob:toBlob(r),name}));
+    }).catch(()=>({blob:buildMaskedMain(d),name}));
+    d.file1.then(()=>markReady(i===0?'#dl1n':'#dlf'+i+'n',name)).catch(()=>{});
+  });
+  /* docSave() 를 부르면 안 됨 — S.file1 은 아직 비어 있어서 방금 만든 약속을 덮어씀 */
+  if(S.docs[S.di]) S.file1=S.docs[S.di].file1;
+  if(!S.records.length){ S.file2=null; return; }
+  const pl=mappingPayload();
+  const name2=S.docs[0].fname+'_mapping.'+(pl.asCsv?'csv':'xlsx');
   S.file2=WK.call('table',pl).then(r=>({blob:toBlob(r),name:name2}))
     .catch(()=>({blob:buildMappingMain(pl),name:name2}));
   S.file2.then(()=>markReady('#dl2n',name2+' · '+nf(S.records.length)+'건')).catch(()=>{});
@@ -1703,7 +1931,7 @@ function prebuild(){
 function markReady(sel,txt){ const el=$(sel); if(el) el.textContent='✓ 준비됨 · '+txt; }
 
 async function grabFile(which){
-  const pending=which===1?S.file1:S.file2;
+  const pending = which==='map' ? S.file2 : (S.docs[which]&&S.docs[which].file1);
   if(!pending) return null;
   let done=false;
   const timer=setTimeout(()=>{ if(!done) busy('파일 만드는 중…','거의 다 됨'); },140);
