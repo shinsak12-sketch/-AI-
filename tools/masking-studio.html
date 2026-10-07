@@ -281,6 +281,16 @@ td.mk{color:var(--acc2);font-weight:650}
 #dlp.clean .t i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
 #dlp ul{margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--txt2);line-height:1.85}
 #dlp code{background:var(--surface3);padding:1px 6px;border-radius:5px;font-size:11.5px;color:var(--txt)}
+.book{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:14px;padding:12px 15px;border-radius:var(--r2);
+  border:1px solid var(--line);background:var(--surface);box-shadow:var(--ing);transition:.3s var(--ez)}
+.book.on{border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
+.book .bi{width:34px;height:34px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--surface3),var(--surface2));box-shadow:var(--emb)}
+.book .bi svg{width:17px;height:17px;stroke:var(--txt2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.book.on .bi svg{stroke:var(--ok)}
+.book b{display:block;font-size:13px;font-weight:750;margin-bottom:1px}
+.book span{font-size:11.5px;color:var(--txt3);line-height:1.55}
+.book span b{display:inline;font-size:inherit;font-weight:750;color:var(--txt2);margin:0}
 .note{font-size:12px;color:var(--txt3);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--acc);
   border-radius:var(--r3);padding:11px 13px;box-shadow:var(--ing);line-height:1.7}
 .note b{color:var(--txt2)}
@@ -367,6 +377,16 @@ td.mk{color:var(--acc2);font-weight:650}
       <div class="stat"><b id="s4">0</b><span>고유 매핑 값</span></div>
       <div class="stat"><b id="s5">0</b><span>삭제된 셀</span></div>
     </div>
+    <div class="book" id="bookrow">
+      <div class="bi"><svg viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 015.5 4H19v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M8 8h7M8 12h7"/></svg></div>
+      <div style="flex:1;min-width:180px">
+        <b>코드북 이어쓰기 <span style="font-weight:500;color:var(--txt3)">(선택)</span></b>
+        <span id="booktext">이전에 받은 매칭 파일을 올리면 같은 값에 <b>같은 코드</b>를 다시 부여함 — 파일이 달라도 집계가 이어짐</span>
+      </div>
+      <button class="btn sm" id="bookbtn">매칭 파일 선택</button>
+      <button class="btn sm hide" id="bookclear">해제</button>
+    </div>
+    <input type="file" id="bookfile" class="hide" accept=".xlsx,.xlsm,.xls,.csv">
     <div class="row" style="margin-bottom:14px">
       <button class="btn pri lg" id="run"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>마스킹 실행</button>
       <label class="ck" style="margin-left:6px"><span class="sw on" id="showmask"></span> 결과 미리보기로 보기</label>
@@ -467,9 +487,21 @@ td.mk{color:var(--acc2);font-weight:650}
       다른 열 문장 속에 섞여 있던 같은 값도 같이 지워짐
     </div>
     <div class="note mt">
-      <b>◆ 일관성 보장</b><br>
-      같은 원본값은 파일 전체에서 <b>항상 같은 값</b>으로 바뀜. 그래서 마스킹 후에도 집계·피벗·중복제거 결과가 원본과 똑같이 나옴<br>
-      반대로 서로 다른 원본값이 같은 값으로 겹치는 일은 절대 없음 → 복원이 100% 정확함
+      <b>◆ 일관성 보장 — 통계가 되는 이유</b><br>
+      코드는 <b>값에만</b> 달려 있음. 같은 조직명이 [소속조직] 열에 있든 [발령조직] 열에 있든,
+      그 열이 '이름'으로 감지됐든 '일반 텍스트'로 감지됐든 <b>항상 같은 코드</b>를 받음<br>
+      그래서 마스킹 후에도 집계·피벗·중복제거·조인 결과가 원본과 똑같이 나옴<br>
+      반대로 서로 다른 원본값이 같은 코드로 겹치는 일은 절대 없음 → 복원이 100% 정확함<br><br>
+      한 값이 모드가 다른 여러 열에 걸쳐 있으면 <b>형식이 가장 강한 모드</b>를 따름 (비식별형 &gt; 토큰 &gt; 형태유지).
+      어느 한 열에서라도 개인정보 형식이 새어나가지 않게 하기 위함
+    </div>
+    <div class="note mt" style="border-left-color:var(--ok)">
+      <b>◆ 코드북 이어쓰기 — 파일이 달라도 집계가 이어짐</b><br>
+      코드는 실행할 때마다 새로 뽑히므로, 1월 파일과 2월 파일을 따로 마스킹하면 같은 조직이 다른 코드를 받음<br>
+      [실행·내려받기]의 <b>코드북 이어쓰기</b>에 <b>지난번 매칭 파일</b>을 올리면,
+      거기 있던 값은 같은 코드를 그대로 다시 씀. 새로 등장한 값만 새 코드를 받음<br>
+      새로 받는 매칭 파일에는 이번 파일 내용 + 이어쓴 코드북이 <b>합쳐져서</b> 나오므로,
+      매달 마지막 매칭 파일만 들고 다니면 코드가 계속 누적됨
     </div>
     <div class="note mt">
       <b>◆ 행 마스킹</b><br>
@@ -910,7 +942,7 @@ const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.f
 /* ══════════ 상태 ══════════ */
 const S={ wb:null, fname:'', isCsv:false, sheet:'', grid:[], headerRow:0, noHeader:false,
           cols:[], rows:new Set(), masked:null, records:[], showMask:true, sweep:true, dirty:false,
-          previewRows:PREVIEW_ROWS0, file1:null, file2:null };
+          previewRows:PREVIEW_ROWS0, file1:null, file2:null, book:null, bookName:'' };
 
 /* ══════════ 드롭존 ══════════ */
 function bindDrop(dropSel, inputSel, onFile){
@@ -1165,44 +1197,59 @@ async function runMask(){
   if(!onCols.length && !S.rows.size) return toast('마스킹할 열이나 행을 하나는 골라야 함','warn');
 
   const isTarget=(r,c)=> S.rows.has(r) || S.cols[c].on;
-  /* 1차: 원본값 수집 (마스킹값이 원본값과 겹치지 않게 하려고) */
-  const origSet=new Set();
+  /* 1차: 값 단위 처리 계획
+     코드는 "값"에만 달려야 함. 열이나 감지된 유형이 코드에 섞이면
+     같은 조직명이 열마다 다른 코드를 받아 집계가 안 됨.
+     한 값이 여러 열에 걸쳐 있으면 형식이 가장 강한 모드를 따름 (비식별형 > 토큰 > 형태유지) */
+  const RANK={safe:2,token:1,shape:0};
+  const plan=new Map();       // 원본값 -> {mode,type,prefix,col}
+  const origSet=new Set();    // 모든 원본값 (마스킹값이 원본과 겹치지 않게 하려고)
   for(let r=start;r<S.grid.length;r++)
     for(let c=0;c<S.cols.length;c++){
       const v=S.grid[r][c];
-      if(v!==''&&v!=null&&isTarget(r,c)) origSet.add(String(v));
+      if(v===''||v==null||!isTarget(r,c)) continue;
+      const s=String(v); origSet.add(s);
+      const col=S.cols[c];
+      if(col.mode==='del') continue;          // 삭제는 코드를 만들지 않으므로 열 단위 그대로
+      const cur=plan.get(s);
+      if(!cur || RANK[col.mode]>RANK[cur.mode])
+        plan.set(s,{mode:col.mode,type:col.type,prefix:col.prefix,col:col.name});
     }
 
-  const dict=new Map();       // 'type\u0000원본' -> 마스킹값
-  const used=new Set();       // 생성된 마스킹값 전체
+  const dict=new Map();       // 원본값 -> 마스킹값 (값 하나당 코드 하나)
+  const used=new Set();       // 이미 쓰인 마스킹값 전체
   const seq={};               // 토큰 모드 접두어별 일련번호
   const recs=[];              // 매핑표 레코드 (삭제 모드는 여기 안 들어감)
   const delRep=new Map();     // 삭제된 원본값 -> 대체 문자 (문장 속 치환용)
   const masked=S.grid.map(row=>row.slice());
-  let cells=0, dels=0;
+  let cells=0, dels=0, reused=0;
+  /* 이어쓸 코드북이 있으면 그 코드들을 먼저 선점해 새 코드와 겹치지 않게 함 */
+  const book=S.book;
+  if(book) book.forEach(m=>used.add(m));
 
-  function make(col,orig){
-    /* 모드까지 키에 넣어야 같은 열에서 고른 모드의 형식이 그대로 유지됨 */
-    const key=col.mode+'\u0000'+col.type+'\u0000'+orig;
-    if(dict.has(key)) return dict.get(key);
-    let v;
-    if(col.mode==='safe'){
-      const p=safePrefix(col.prefix,col.type);
+  function make(s){
+    let v=dict.get(s);
+    if(v!==undefined) return v;
+    const d=plan.get(s)||{mode:'shape',type:'text',prefix:'TXT',col:''};
+    const carried=book?book.get(s):undefined;
+    if(carried!==undefined){ v=carried; reused++; }     // 이전 파일에서 쓰던 코드 그대로
+    else if(d.mode==='safe'){
+      const p=safePrefix(d.prefix,d.type);
       do{ v=p+'-'+genSafeBody(); }while(used.has(v)||origSet.has(v));
-    }else if(col.mode==='token'){
-      const p=col.prefix||TYPES[col.type].prefix;
+    }else if(d.mode==='token'){
+      const p=d.prefix||TYPES[d.type].prefix;
       seq[p]=(seq[p]||0)+1;
       v=p+'_'+pad(seq[p],4);
       while(used.has(v)||origSet.has(v)){ seq[p]++; v=p+'_'+pad(seq[p],4); }
     }else{
-      const g=GEN[col.type]||genShape;
-      let n=0; do{ v=g(orig); n++; }while((used.has(v)||origSet.has(v)||v===String(orig))&&n<60);
-      if(used.has(v)||origSet.has(v)||v===String(orig)){
+      const g=GEN[d.type]||genShape;
+      let n=0; do{ v=g(s); n++; }while((used.has(v)||origSet.has(v)||v===s)&&n<60);
+      if(used.has(v)||origSet.has(v)||v===s){
         let k=2, base=v; do{ v=base+'#'+k++; }while(used.has(v)||origSet.has(v));
       }
     }
-    used.add(v); dict.set(key,v);
-    recs.push({orig:String(orig), masked:v, type:TYPES[col.type].label, col:col.name});
+    used.add(v); dict.set(s,v);
+    recs.push({orig:s, masked:v, type:TYPES[d.type].label, col:d.col});
     return v;
   }
 
@@ -1219,8 +1266,8 @@ async function runMask(){
         if(String(v).length>=2) delRep.set(String(v),b);
         continue;
       }
-      const mv=make(col,String(v));
-      masked[r][c]= (col.type==='number' && typeof v==='number' && /^-?[\d.]+$/.test(mv)) ? Number(mv) : mv;
+      const s=String(v), mv=make(s), d=plan.get(s);
+      masked[r][c]= (d && d.type==='number' && typeof v==='number' && /^-?[\d.]+$/.test(mv)) ? Number(mv) : mv;
       cells++;
     }
     if((r-start)%3000===2999){ progress((r-start)/(S.grid.length-start)); await yieldNow(); }
@@ -1289,7 +1336,7 @@ async function runMask(){
     : '삭제만 해서 되돌릴 값이 없음';
   renderTable();
   prebuild();   /* 결과를 훑어보는 동안 다운로드 파일을 미리 만들어 둠 */
-  toast('완료 · 셀 '+nf(cells)+'개 처리'+(dels?' (삭제 '+nf(dels)+'개)':'')+(swept?' · 문장 속 '+nf(swept)+'개':'')+' · '+Math.round(performance.now()-t0)+'ms','ok');
+  toast('완료 · 셀 '+nf(cells)+'개 처리'+(dels?' (삭제 '+nf(dels)+'개)':'')+(reused?' · 코드북에서 '+nf(reused)+'개 이어씀':'')+(swept?' · 문장 속 '+nf(swept)+'개':'')+' · '+Math.round(performance.now()-t0)+'ms','ok');
 }
 /* ══════════ 개인정보 형식 점검 결과 ══════════ */
 function renderPII(cnt,byCol,total){
@@ -1384,28 +1431,62 @@ bindDrop('#rdropA','#rfileA',async f=>{
   }catch(e){ toast('결과 파일을 열지 못함','bad'); }
   idle();
 });
+/* 매칭 파일에서 원본↔마스킹 쌍을 읽어옴 (복원 탭과 코드북 이어쓰기가 함께 씀) */
+function readMappingPairs(wb){
+  const sn = wb.SheetNames.includes('MAPPING') ? 'MAPPING' : wb.SheetNames[0];
+  const aoa=sheetToGrid(wb.Sheets[sn]);
+  if(!aoa.length) throw new Error('빈 파일');
+  const head=aoa[0].map(v=>String(v).trim());
+  let oi=head.indexOf('원본값'), mi=head.indexOf('마스킹값');
+  if(oi<0||mi<0){ oi=0; mi=1; }
+  const fwd=new Map(), rev=new Map();
+  for(let i=1;i<aoa.length;i++){
+    const o=aoa[i][oi], k=aoa[i][mi];
+    if(k===''||k==null||o===''||o==null) continue;
+    const os=String(o), ks=String(k);
+    rev.set(ks,os);
+    if(!fwd.has(os)) fwd.set(os,ks);
+  }
+  if(!rev.size) throw new Error('매핑 항목이 없음');
+  return {fwd,rev};
+}
 bindDrop('#rdropB','#rfileB',async f=>{
   await busy('매칭 파일 읽는 중…',f.name);
   try{
-    const wb=(await readWorkbook(f)).wb;
-    const sn = wb.SheetNames.includes('MAPPING') ? 'MAPPING' : wb.SheetNames[0];
-    const aoa=sheetToGrid(wb.Sheets[sn]);
-    if(!aoa.length) throw new Error('빈 파일');
-    const head=aoa[0].map(v=>String(v).trim());
-    let oi=head.indexOf('원본값'), mi=head.indexOf('마스킹값');
-    if(oi<0||mi<0){ oi=0; mi=1; }
-    const m=new Map();
-    for(let i=1;i<aoa.length;i++){
-      const o=aoa[i][oi], k=aoa[i][mi];
-      if(k===''||k==null||o===''||o==null) continue;
-      m.set(String(k),String(o));
-    }
-    if(!m.size) throw new Error('매핑 항목이 없음');
-    R.map=m; $('#rdropB').classList.add('has'); $('#rtextB').textContent=f.name+' · '+nf(m.size)+'건';
-    countUp($('#r1'),m.size); readyRestore(); toast('매칭 파일 읽음 · '+nf(m.size)+'건','ok');
+    const {rev}=readMappingPairs((await readWorkbook(f)).wb);
+    R.map=rev; $('#rdropB').classList.add('has'); $('#rtextB').textContent=f.name+' · '+nf(rev.size)+'건';
+    countUp($('#r1'),rev.size); readyRestore(); toast('매칭 파일 읽음 · '+nf(rev.size)+'건','ok');
   }catch(e){ toast('매칭 파일을 읽지 못함: '+e.message,'bad'); }
   idle();
 });
+
+/* ══════════ 코드북 이어쓰기 ══════════
+   이전에 받은 매칭 파일을 올려두면, 거기 있던 값은 같은 코드를 그대로 다시 씀.
+   파일이 달라도 같은 조직·같은 사람이 같은 코드로 유지되어 집계가 이어짐 */
+$('#bookbtn').onclick=()=>$('#bookfile').click();
+$('#bookfile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value='';
+  if(!f) return;
+  await busy('코드북 읽는 중…',f.name);
+  try{
+    const {fwd}=readMappingPairs((await readWorkbook(f)).wb);
+    S.book=fwd; S.bookName=f.name;
+    $('#bookrow').classList.add('on');
+    $('#booktext').innerHTML='<b>'+esc(f.name)+'</b> · '+nf(fwd.size)+'건 이어씀 — 여기 있는 값은 같은 코드를 그대로 다시 부여함';
+    $('#bookclear').classList.remove('hide');
+    markDirty();
+    toast('코드북 '+nf(fwd.size)+'건 불러옴','ok');
+  }catch(err){ toast('코드북을 읽지 못함: '+err.message,'bad'); }
+  idle();
+};
+$('#bookclear').onclick=()=>{
+  S.book=null; S.bookName='';
+  $('#bookrow').classList.remove('on');
+  $('#booktext').innerHTML='이전에 받은 매칭 파일을 올리면 같은 값에 <b>같은 코드</b>를 다시 부여함 — 파일이 달라도 집계가 이어짐';
+  $('#bookclear').classList.add('hide');
+  markDirty();
+  toast('코드북 해제함','ok');
+};
 
 $('#rrun').onclick=async ()=>{
   const m=R.map;
@@ -1566,7 +1647,10 @@ function toBlob(r,isCsv){
 function mappingPayload(){
   const asCsv=S.records.length>MAP_CSV_OVER;
   const map=[['원본값','마스킹값','유형','열','시트']];
-  S.records.forEach(r=>map.push([r.orig,r.masked,r.type,r.col,S.sheet]));
+  const seen=new Set();
+  S.records.forEach(r=>{ seen.add(r.orig); map.push([r.orig,r.masked,r.type,r.col,S.sheet]); });
+  /* 코드북을 이어쓴 경우, 이번 파일에 안 나온 코드도 남겨서 코드북이 누적되게 함 */
+  if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) map.push([o,m,'(코드북)','','']); });
   if(asCsv) return {asCsv:true,map};
   const info=[['마스킹 스튜디오 매칭 파일'],[],
     ['원본 파일',S.fname],['시트',S.sheet],['생성 일시',new Date().toLocaleString('ko-KR')],
@@ -1574,7 +1658,8 @@ function mappingPayload(){
     ['마스킹 열',S.cols.filter(c=>c.on&&c.mode!=='del').map(c=>c.name+'('+TYPES[c.type].label+'/'+MODE_LABEL[c.mode]+')').join(', ')||'없음'],
     ['삭제 열 (복원 불가)',S.cols.filter(c=>c.on&&c.mode==='del').map(c=>c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', ')||'없음'],
     ['마스킹 행',S.rows.size?Array.from(S.rows).sort((a,b)=>a-b).map(r=>r+1).join(', '):'없음'],
-    ['매핑 항목 수',S.records.length],[],
+    ['매핑 항목 수',S.records.length],
+    ['이어쓴 코드북',S.bookName||'없음'],[],
     ['※ 이 파일은 원본 개인정보를 담고 있음. 외부 반출 금지'],
     ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌릴 수 있음'],
     ['※ 삭제 열은 원본이 남아있지 않아 복원되지 않음']];
