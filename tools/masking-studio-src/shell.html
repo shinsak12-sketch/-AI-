@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마스킹 스튜디오</title>
+<style>
+:root{
+  --bg0:#090b12; --bg1:#0f1220; --p0:#131726; --p1:#181d2f; --p2:#1f2539; --p3:#283049;
+  --ln:#262d46; --ln2:#35406a;
+  --t1:#eaeefb; --t2:#a6b0cc; --t3:#69749a;
+  --acc:#7080ff; --acc2:#38d4e6; --accs:rgba(112,128,255,.15);
+  --ok:#3fdc98; --warn:#ffb35a; --bad:#ff6b80; --vio:#b28cff; --amb:#ffc55a;
+  --m-shape:#7080ff; --m-token:#b28cff; --m-safe:#3fdc98; --m-calc:#ffb35a; --m-del:#ff6b80;
+  --up: 0 1px 0 rgba(255,255,255,.06) inset, 0 -1px 0 rgba(0,0,0,.4) inset, 0 10px 26px -14px rgba(0,0,0,.9), 0 2px 6px -2px rgba(0,0,0,.55);
+  --up2: 0 1px 0 rgba(255,255,255,.1) inset, 0 -1px 0 rgba(0,0,0,.45) inset, 0 20px 40px -18px rgba(0,0,0,.95), 0 4px 12px -4px rgba(0,0,0,.6);
+  --in: inset 0 2px 6px rgba(0,0,0,.55), inset 0 -1px 0 rgba(255,255,255,.04);
+  --r:16px; --r2:12px; --r3:9px;
+  --sp:cubic-bezier(.34,1.32,.42,1); --ez:cubic-bezier(.4,0,.2,1);
+}
+:root[data-theme="light"]{
+  --bg0:#eaeef7; --bg1:#e2e7f3; --p0:#f6f8fd; --p1:#ffffff; --p2:#f3f5fb; --p3:#e7ebf6;
+  --ln:#dde2f0; --ln2:#c9d1e6;
+  --t1:#151b2d; --t2:#56607f; --t3:#8a94b2;
+  --acc:#4f5fe8; --acc2:#0aa9c0; --accs:rgba(79,95,232,.1);
+  --ok:#0fa36a; --warn:#cf7d06; --bad:#e0435c; --vio:#8457e6; --amb:#cf8a06;
+  --m-shape:#4f5fe8; --m-token:#8457e6; --m-safe:#0fa36a; --m-calc:#cf7d06; --m-del:#e0435c;
+  --up: 0 1px 0 rgba(255,255,255,.95) inset, 0 -1px 0 rgba(0,0,0,.05) inset, 0 12px 24px -16px rgba(30,40,80,.42), 0 2px 5px -2px rgba(30,40,80,.14);
+  --up2: 0 1px 0 #fff inset, 0 -1px 0 rgba(0,0,0,.06) inset, 0 22px 40px -20px rgba(30,40,80,.48), 0 5px 12px -4px rgba(30,40,80,.2);
+  --in: inset 0 2px 5px rgba(30,40,80,.12), inset 0 -1px 0 rgba(255,255,255,.85);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Malgun Gothic','Segoe UI',Roboto,sans-serif;
+  font-size:13.5px;line-height:1.5;color:var(--t1);
+  background:radial-gradient(1100px 600px at 8% -10%,rgba(112,128,255,.17),transparent 60%),
+             radial-gradient(900px 520px at 96% 0%,rgba(56,212,230,.11),transparent 62%),
+             linear-gradient(175deg,var(--bg1),var(--bg0) 60%);
+  background-attachment:fixed;transition:color .3s var(--ez)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--ln2);border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--t3);background-clip:padding-box;border:3px solid transparent}
+::-webkit-scrollbar-track{background:transparent}
+svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.hide{display:none!important}
+
+/* ── 앱 골격 ── */
+.app{display:grid;grid-template-rows:auto minmax(0,1fr);height:100vh}
+.top{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--ln);
+  background:color-mix(in srgb,var(--bg0) 72%,transparent);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);z-index:40}
+.logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--up),0 6px 18px -7px var(--acc)}
+.logo svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.brand{font-weight:800;font-size:15.5px;letter-spacing:-.4px;line-height:1.2}
+.brand small{display:block;font-size:10.5px;font-weight:500;color:var(--t3);letter-spacing:0}
+.tabs{display:flex;gap:3px;padding:4px;margin:0 auto;background:var(--p0);border:1px solid var(--ln);border-radius:12px;box-shadow:var(--in)}
+.tab{border:0;background:transparent;color:var(--t3);font:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:9px;
+  cursor:pointer;display:flex;align-items:center;gap:7px;transition:.28s var(--sp)}
+.tab:hover{color:var(--t2)}
+.tab.on{color:#fff;background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 68%,var(--acc2)));box-shadow:var(--up),0 7px 18px -10px var(--acc)}
+.chip{font-size:11px;color:var(--t2);background:var(--p1);border:1px solid var(--ln);padding:5px 10px;border-radius:99px;
+  box-shadow:var(--up);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dot{width:6px;height:6px;border-radius:99px;background:var(--ok);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.ib{width:34px;height:34px;border-radius:10px;border:1px solid var(--ln);background:var(--p1);color:var(--t2);cursor:pointer;
+  display:grid;place-items:center;box-shadow:var(--up);transition:.22s var(--sp)}
+.ib:hover{color:var(--t1);transform:translateY(-2px);box-shadow:var(--up2)}
+.ib:active{transform:translateY(1px) scale(.95);box-shadow:var(--in)}
+
+.view{display:none;min-height:0}
+.view.on{display:grid;animation:vfade .35s var(--ez)}
+@keyframes vfade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#v-mask{grid-template-columns:292px minmax(0,1fr) 344px;gap:14px;padding:14px}
+.pane{min-height:0;display:flex;flex-direction:column;gap:12px;overflow:auto;padding:2px 3px 14px}
+.pane.mid{overflow:hidden;padding:2px}
+
+/* ── 패널 카드 ── */
+.card{background:linear-gradient(165deg,var(--p1),var(--p0));border:1px solid var(--ln);border-radius:var(--r);box-shadow:var(--up);
+  padding:14px;animation:rise .45s var(--sp) backwards;transition:box-shadow .3s var(--ez),border-color .3s var(--ez)}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+.ch{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.ch h3{margin:0;font-size:13.5px;font-weight:780;letter-spacing:-.25px}
+.ch .n{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;flex:0 0 auto;color:#fff;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--up),0 4px 10px -5px var(--acc)}
+.ch .sp{flex:1}
+.sub{font-size:11.5px;color:var(--t3);margin:-4px 0 10px;line-height:1.55}
+
+/* ── 버튼 · 입력 ── */
+.btn{position:relative;overflow:hidden;font:inherit;font-size:12.5px;font-weight:700;letter-spacing:-.2px;padding:8px 13px;border-radius:var(--r3);
+  border:1px solid var(--ln);background:linear-gradient(165deg,var(--p3),var(--p2));color:var(--t1);cursor:pointer;box-shadow:var(--up);
+  transition:.22s var(--sp);display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+.btn:hover{transform:translateY(-1.5px);box-shadow:var(--up2)}
+.btn:active{transform:translateY(1px) scale(.98);box-shadow:var(--in)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:var(--in);filter:saturate(.3)}
+.btn.pri{background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 60%,var(--acc2)));color:#fff;border-color:transparent;
+  box-shadow:var(--up),0 9px 22px -12px var(--acc)}
+.btn.ghost{background:transparent;box-shadow:none;border-color:transparent;color:var(--t2)}
+.btn.ghost:hover{background:var(--p2);color:var(--t1);box-shadow:none;transform:none}
+.btn.xs{padding:5px 9px;font-size:11.5px;border-radius:7px}
+.btn.lg{padding:13px 18px;font-size:14.5px;border-radius:var(--r2);width:100%}
+.btn .rip{position:absolute;border-radius:99px;background:rgba(255,255,255,.38);transform:scale(0);animation:rip .6s var(--ez);pointer-events:none}
+@keyframes rip{to{transform:scale(3.6);opacity:0}}
+.kbd{font-size:10px;font-weight:700;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,.18);margin-left:4px}
+select,input[type=text],input[type=date],input[type=number]{font:inherit;font-size:12.5px;color:var(--t1);background:var(--p0);
+  border:1px solid var(--ln);border-radius:8px;padding:6px 9px;box-shadow:var(--in);outline:none;transition:.2s var(--ez);min-width:0}
+select:focus,input:focus{border-color:var(--acc);box-shadow:var(--in),0 0 0 3px var(--accs)}
+select{cursor:pointer;appearance:none;padding-right:26px;background-repeat:no-repeat;background-position:right 7px center;background-size:13px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b769a' stroke-width='2.6' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>")}
+select:disabled,input:disabled{opacity:.42;cursor:not-allowed}
+input[type=date]{color-scheme:dark;padding:6px 5px;font-size:12px}
+:root[data-theme="light"] input[type=date]{color-scheme:light}
+
+/* ── 스위치 · 체크 ── */
+.sw{position:relative;width:34px;height:20px;border-radius:99px;background:var(--p3);box-shadow:var(--in);cursor:pointer;flex:0 0 auto;
+  border:1px solid var(--ln);transition:.3s var(--sp)}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:99px;background:linear-gradient(160deg,#fff,#c6cde3);
+  box-shadow:0 2px 4px rgba(0,0,0,.45);transition:.3s var(--sp)}
+.sw.on{background:linear-gradient(145deg,var(--acc),var(--acc2));border-color:transparent}
+.sw.on::after{left:16px;background:#fff}
+.sw.mix{background:linear-gradient(90deg,var(--acc) 50%,var(--p3) 50%);border-color:transparent}
+.sw.mix::after{left:9px}
+.ck{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--ln2);background:var(--p0);box-shadow:var(--in);cursor:pointer;
+  flex:0 0 auto;display:grid;place-items:center;transition:.2s var(--sp)}
+.ck::after{content:'';width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) scale(0);
+  margin-top:-2px;transition:.22s var(--sp)}
+.ck.on{background:linear-gradient(145deg,var(--acc),var(--acc2));border-color:transparent;box-shadow:0 2px 8px -2px var(--acc)}
+.ck.on::after{transform:rotate(-45deg) scale(1)}
+.ck.mix{background:var(--acc);border-color:transparent}
+.ck.mix::after{width:8px;height:0;border-left:0;border-bottom:2px solid #fff;transform:none;margin:0}
+.lbl{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--t2);font-weight:600;user-select:none}
+
+/* ── 세그먼트 ── */
+.seg{display:flex;gap:2px;padding:3px;background:var(--p0);border:1px solid var(--ln);border-radius:9px;box-shadow:var(--in)}
+.seg button{flex:1;border:0;background:transparent;color:var(--t3);font:inherit;font-size:11.5px;font-weight:700;padding:5px 7px;border-radius:6px;
+  cursor:pointer;transition:.22s var(--sp);white-space:nowrap}
+.seg button:hover{color:var(--t1)}
+.seg button.on{background:linear-gradient(150deg,var(--acc),color-mix(in srgb,var(--acc) 65%,var(--acc2)));color:#fff;box-shadow:var(--up)}
+.mseg button.on[data-v=shape]{background:var(--m-shape)}
+.mseg button.on[data-v=token]{background:var(--m-token)}
+.mseg button.on[data-v=safe]{background:var(--m-safe);color:#05261a}
+.mseg button.on[data-v=calc]{background:var(--m-calc);color:#2c1a00}
+.mseg button.on[data-v=del]{background:var(--m-del)}
+
+/* ── 배지 ── */
+.bd{font-size:10.5px;font-weight:750;padding:2px 7px;border-radius:99px;background:var(--p3);color:var(--t2);border:1px solid var(--ln);white-space:nowrap}
+.bd.a{background:var(--accs);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 30%,transparent)}
+.bd.g{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.bd.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+.bd.r{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
+
+/* ── 왼쪽: 드롭 · 파일 목록 ── */
+.drop{border:1.5px dashed var(--ln2);border-radius:var(--r2);padding:16px 12px;text-align:center;cursor:pointer;background:var(--p0);
+  box-shadow:var(--in);transition:.28s var(--sp)}
+.drop:hover,.drop.over{border-color:var(--acc);background:var(--accs)}
+.drop.over{transform:scale(1.015)}
+.drop .di{width:38px;height:38px;margin:0 auto 7px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,var(--p3),var(--p2));
+  box-shadow:var(--up);color:var(--acc);transition:.35s var(--sp)}
+.drop.over .di{transform:translateY(-4px) rotate(-6deg) scale(1.1)}
+.drop b{display:block;font-size:12.5px}
+.drop span{font-size:11px;color:var(--t3)}
+.book{border-radius:var(--r2);padding:11px;border:1px solid var(--ln);background:var(--p0);box-shadow:var(--in);transition:.3s var(--ez)}
+.book.on{border-color:color-mix(in srgb,var(--ok) 50%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--p0))}
+.book .bt{display:flex;align-items:center;gap:8px;font-weight:750;font-size:12.5px}
+.book .bs{font-size:11px;color:var(--t3);margin:4px 0 8px;line-height:1.5}
+.book.on .bs{color:var(--t2)}
+.flist{display:flex;flex-direction:column;gap:6px}
+.fgrp{border-radius:var(--r2);border:1px solid var(--ln);background:var(--p0);box-shadow:var(--in);padding:6px;animation:rise .4s var(--sp) backwards}
+.fgh{display:flex;align-items:center;gap:7px;padding:4px 6px 6px;font-size:11.5px;font-weight:750;color:var(--t2)}
+.fgh .sp{flex:1}
+.fgh .tag{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;background:var(--acc)}
+.frow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;cursor:pointer;transition:.2s var(--ez);border:1px solid transparent}
+.frow:hover{background:var(--p2)}
+.frow.sel{background:linear-gradient(160deg,var(--accs),transparent);border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.frow.focus{box-shadow:inset 3px 0 0 var(--acc)}
+.frow .fn{flex:1;min-width:0}
+.frow .fn b{display:block;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .fn span{font-size:10.5px;color:var(--t3)}
+.frow .x{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:var(--t3);opacity:0;transition:.2s}
+.frow:hover .x{opacity:1}
+.frow .x:hover{background:var(--bad);color:#fff}
+.fbar{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3)}
+
+/* ── 가운데 ── */
+.mid .card{display:flex;flex-direction:column;min-height:0;flex:1;padding:0;overflow:hidden}
+.mhd{padding:12px 14px 10px;border-bottom:1px solid var(--ln);display:flex;flex-direction:column;gap:9px}
+.mrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.target{font-size:13px;font-weight:750;display:flex;align-items:center;gap:8px;min-width:0}
+.target small{font-weight:500;color:var(--t3);font-size:11.5px}
+.sheetctl{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);font-weight:600}
+.sheetctl input[type=number]{width:52px}
+.mbody{flex:1;min-height:0;overflow:auto;position:relative}
+.empty{height:100%;display:grid;place-items:center;text-align:center;padding:30px;color:var(--t3)}
+.empty .ill{width:74px;height:74px;margin:0 auto 14px;border-radius:22px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--p3),var(--p1));box-shadow:var(--up2);color:var(--acc);animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.empty .ill svg{width:32px;height:32px}
+.empty h4{margin:0 0 6px;color:var(--t1);font-size:15px}
+.steps{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.steps div{font-size:11.5px;padding:8px 12px;border-radius:10px;background:var(--p1);border:1px solid var(--ln);box-shadow:var(--up);color:var(--t2)}
+.steps b{color:var(--acc);margin-right:4px}
+
+/* 일괄 작업 바 */
+.bulk{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 14px;
+  background:color-mix(in srgb,var(--p1) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid color-mix(in srgb,var(--acc) 40%,var(--ln));box-shadow:0 8px 18px -14px rgba(0,0,0,.7);animation:slide .28s var(--sp)}
+@keyframes slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.bulk .cnt{font-weight:800;font-size:12.5px;color:var(--acc);margin-right:2px}
+.bulk .div{width:1px;height:20px;background:var(--ln)}
+.bulk .seg button{padding:5px 8px}
+.bulk .grp{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);font-weight:700}
+
+/* 열 목록 — 가운데 패널 폭에 맞춰 단계적으로 줄어듦 */
+#colview{container-type:inline-size}
+.chead,.crow{display:grid;grid-template-columns:26px 38px minmax(150px,1fr) 104px 276px minmax(150px,210px);
+  align-items:center;gap:8px;padding:0 12px}
+.chead{position:sticky;top:0;z-index:4;height:32px;font-size:10.5px;font-weight:750;color:var(--t3);letter-spacing:.3px;
+  background:var(--p1);border-bottom:1px solid var(--ln)}
+.bulk~.chead{top:var(--bulkh,0px)}
+.crow{min-height:52px;border-bottom:1px solid var(--ln);transition:background .18s var(--ez);cursor:pointer;animation:rowin .3s var(--ez) backwards}
+@keyframes rowin{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.crow:hover{background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.crow.sel{background:linear-gradient(90deg,var(--accs),transparent 75%)}
+.crow.on{box-shadow:inset 3px 0 0 var(--mc,var(--acc))}
+.crow.off .nm,.crow.off small{opacity:.55}
+.cn{min-width:0}
+.cn .nm{font-weight:740;font-size:12.5px;display:flex;align-items:center;gap:6px;min-width:0}
+.cn .nm span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cn small{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--t3);margin-top:2px;min-width:0}
+.cn small .ex{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cn .bd{font-size:9.5px;padding:1px 6px}
+.crow .opt{display:flex;gap:6px;align-items:center;min-width:0}
+.crow .opt>*{flex:1;min-width:0}
+.crow .opt input[type=date]{flex:1.3}
+.mseg button{padding:5px 3px}
+.mseg .s{display:none}
+.mix{font-size:11px;color:var(--warn);font-weight:700}
+.nomatch{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@container (max-width:860px){
+  .chead,.crow{grid-template-columns:26px 38px minmax(110px,1fr) 92px 200px minmax(170px,200px)}
+  .mseg .l{display:none} .mseg .s{display:inline}
+  .crow .opt input[type=date]{flex:1.6}
+}
+@container (max-width:690px){
+  .chead{display:none}
+  .crow{grid-template-columns:26px 38px 1fr;row-gap:7px;padding:9px 12px}
+  .crow>.ty,.crow>.md,.crow>.opt{grid-column:2/-1}
+}
+
+/* 미리보기 */
+.ptool{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tw{overflow:auto}
+table{border-collapse:separate;border-spacing:0;font-size:12px;table-layout:fixed;width:max-content}
+col{width:150px} col.cr{width:54px}
+th,td{padding:6px 10px;border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,var(--p3),var(--p2));font-weight:750;font-size:11px;color:var(--t2);cursor:pointer;user-select:none}
+thead th:hover{color:var(--t1)}
+thead th.on{color:var(--mc,var(--acc));box-shadow:inset 0 -2px 0 var(--mc,var(--acc))}
+th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--p2);text-align:center;color:var(--t3);cursor:pointer;font-variant-numeric:tabular-nums}
+thead th.rh{z-index:4}
+tbody tr:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
+tbody tr.rsel td{background:color-mix(in srgb,var(--warn) 11%,transparent)}
+tbody tr.rsel td.rh{color:var(--warn);font-weight:750}
+td.on{background:color-mix(in srgb,var(--mc,var(--acc)) 7%,transparent)}
+td.mk{color:var(--acc2);font-weight:650}
+:root[data-theme="light"] td.mk{color:var(--acc)}
+td.gone::after{content:'삭제됨';font-size:10px;font-weight:700;color:var(--bad);opacity:.6}
+td.fail::after{content:'변환 불가';font-size:10px;font-weight:700;color:var(--warn);opacity:.75}
+.pnote{font-size:11px;color:var(--t3);padding:9px 14px;border-top:1px solid var(--ln);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pnote b{color:var(--t2)}
+
+/* ── 오른쪽: 실행 ── */
+.opt-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--ln)}
+.opt-row:last-child{border-bottom:0}
+.opt-row .ot{font-size:12.5px;font-weight:700}
+.opt-row .ot small{display:block;font-size:10.5px;color:var(--t3);font-weight:500;margin-top:1px;line-height:1.45}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.st{padding:9px 10px;border-radius:10px;background:linear-gradient(165deg,var(--p2),var(--p0));border:1px solid var(--ln);box-shadow:var(--up)}
+.st b{display:block;font-size:17px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.st span{font-size:10.5px;color:var(--t3);font-weight:600}
+.prog{height:6px;border-radius:99px;background:var(--p0);box-shadow:var(--in);overflow:hidden;margin-top:10px;display:none}
+.prog.on{display:block}
+.prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s var(--ez);position:relative;overflow:hidden}
+.prog i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:shim 1s linear infinite}
+@keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.scan{border-radius:var(--r2);padding:11px 12px;font-size:12px;border:1px solid color-mix(in srgb,var(--warn) 40%,var(--ln));
+  background:linear-gradient(165deg,color-mix(in srgb,var(--warn) 11%,transparent),var(--p0));animation:rise .4s var(--sp)}
+.scan.clean{border-color:color-mix(in srgb,var(--ok) 40%,var(--ln));background:linear-gradient(165deg,color-mix(in srgb,var(--ok) 10%,transparent),var(--p0))}
+.scan .t{display:flex;align-items:center;gap:8px;font-weight:780;margin-bottom:5px}
+.scan .t i{width:8px;height:8px;border-radius:99px;background:var(--warn);box-shadow:0 0 9px var(--warn)}
+.scan.clean .t i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+.scan ul{margin:4px 0 9px;padding-left:17px;color:var(--t2);line-height:1.75}
+.scan p{margin:0 0 4px;color:var(--t2)}
+.dlist{display:flex;flex-direction:column;gap:7px}
+.dl{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;border:1px solid var(--ln);cursor:pointer;text-align:left;width:100%;
+  background:linear-gradient(165deg,var(--p2),var(--p0));box-shadow:var(--up);transition:.22s var(--sp);font:inherit;color:var(--t1)}
+.dl:hover{transform:translateY(-2px);box-shadow:var(--up2);border-color:color-mix(in srgb,var(--acc) 40%,var(--ln))}
+.dl:active{transform:none;box-shadow:var(--in)}
+.dl:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.dl .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;color:#fff;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--up)}
+.dl.g .ic{background:linear-gradient(145deg,var(--ok),#25bfa6)}
+.dl.z .ic{background:linear-gradient(145deg,var(--vio),var(--acc))}
+.dl .tx{flex:1;min-width:0}
+.dl b{display:block;font-size:12.5px;font-weight:740;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl span{font-size:10.5px;color:var(--t3)}
+.dl .rd{font-size:10.5px;font-weight:800;color:var(--ok)}
+.warnbox{font-size:11px;color:var(--t3);padding:9px 11px;border-radius:10px;border:1px solid var(--ln);background:var(--p0);box-shadow:var(--in);line-height:1.6}
+.warnbox b{color:var(--warn)}
+
+/* ── 복원 · 도움말 ── */
+#v-rest{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:14px;max-width:1200px;margin:0 auto;width:100%;align-content:start;overflow:auto}
+#v-help{padding:14px;max-width:1200px;margin:0 auto;width:100%;overflow:auto;align-content:start}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.hc{font-size:12.5px;color:var(--t2);line-height:1.7}
+.hc b{color:var(--t1)}
+.hc code{background:var(--p3);padding:1px 6px;border-radius:5px;font-size:11.5px;color:var(--t1)}
+.hc .ch h3{font-size:13.5px}
+
+/* ── 오버레이 · 토스트 ── */
+#busy{position:fixed;inset:0;z-index:300;display:none;place-items:center;background:color-mix(in srgb,var(--bg0) 60%,transparent);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#busy.on{display:grid;animation:vfade .2s var(--ez)}
+#busy .bx{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 38px;border-radius:var(--r);
+  background:linear-gradient(165deg,var(--p2),var(--p0));border:1px solid var(--ln);box-shadow:var(--up2)}
+#busy b{font-size:14.5px} #busy span{font-size:11.5px;color:var(--t3);min-height:15px}
+.spin{width:36px;height:36px;border-radius:99px;border:3px solid var(--ln);border-top-color:var(--acc);border-right-color:var(--acc2);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toasts{position:fixed;bottom:18px;right:18px;z-index:200;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;padding:10px 15px;border-radius:12px;font-size:12.5px;font-weight:650;max-width:min(560px,92vw);
+  background:linear-gradient(165deg,var(--p3),var(--p1));border:1px solid var(--ln);box-shadow:var(--up2);animation:tin .4s var(--sp)}
+.toast.out{animation:tout .3s var(--ez) forwards}
+.toast i{width:8px;height:8px;border-radius:99px;flex:0 0 auto;background:var(--acc);box-shadow:0 0 9px var(--acc)}
+.toast.ok i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+.toast.bad i{background:var(--bad);box-shadow:0 0 9px var(--bad)}
+.toast.warn i{background:var(--warn);box-shadow:0 0 9px var(--warn)}
+@keyframes tin{from{opacity:0;transform:translateX(30px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes tout{to{opacity:0;transform:translateY(10px) scale(.95)}}
+
+/* ── 반응형 ── */
+@media (max-width:1280px){
+  #v-mask{grid-template-columns:262px minmax(0,1fr) 312px}
+}
+@media (max-width:1080px){
+  .app{height:auto;min-height:100vh}
+  #v-mask{grid-template-columns:1fr}
+  .pane,.pane.mid{overflow:visible}
+  .mid .card{min-height:520px}
+  .mbody{max-height:70vh}
+  #v-rest{grid-template-columns:1fr}
+  .top .chip{display:none}
+}
+@media (max-width:720px){
+  .brand small{display:none}
+  .tab span{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6z"/><path d="M8.5 12.5h7M8.5 9.5h7"/></svg></div>
+  <div class="brand">마스킹 스튜디오<small>개인정보 비식별화 · 완전 오프라인</small></div>
+  <nav class="tabs">
+    <button class="tab on" data-v="mask"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg><span>마스킹</span></button>
+    <button class="tab" data-v="rest"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg><span>복원</span></button>
+    <button class="tab" data-v="help"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 114 2.1c-.8.6-1.5 1-1.5 2"/><path d="M12 17h.01"/></svg><span>사용법</span></button>
+  </nav>
+  <div class="chip"><i class="dot"></i>로컬 처리 · 전송 없음</div>
+  <button class="ib" id="theme" title="테마 전환"><svg class="i" id="ticon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
+</header>
+
+<!-- ═════════════ 마스킹 ═════════════ -->
+<main class="view on" id="v-mask">
+  <!-- 왼쪽: 입력 -->
+  <section class="pane">
+    <div class="card">
+      <div class="ch"><div class="n">1</div><h3>파일</h3><div class="sp"></div><span class="bd" id="fcount">0개</span></div>
+      <div class="drop" id="drop">
+        <div class="di"><svg class="i" viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M12 16V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16"/></svg></div>
+        <b>끌어다 놓거나 클릭</b><span>xlsx · xls · csv — 여러 개 한 번에 가능</span>
+      </div>
+      <input type="file" id="file" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt" multiple>
+    </div>
+
+    <div class="card" style="animation-delay:.04s">
+      <div class="book" id="book">
+        <div class="bt"><svg class="i" viewBox="0 0 24 24" style="color:var(--ok)"><path d="M4 5.5A1.5 1.5 0 015.5 4H19v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M8 8h7M8 12h7"/></svg>
+          이전 매칭 파일 이어쓰기<span style="flex:1"></span><span class="bd" id="bookbd">선택</span></div>
+        <div class="bs" id="booktext">예전에 받은 매칭 파일을 넣으면, 거기 있던 값은 <b>같은 코드</b>를 그대로 받음. 추가 파일을 기존 결과와 합쳐 분석할 때 씀</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn xs" id="bookbtn" style="flex:1"><svg class="i" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16"/></svg>매칭 파일 넣기</button>
+          <button class="btn xs ghost hide" id="bookclear">빼기</button>
+        </div>
+      </div>
+      <input type="file" id="bookfile" class="hide" accept=".xlsx,.xlsm,.xls,.csv" multiple>
+    </div>
+
+    <div class="card hide" id="filecard" style="animation-delay:.08s">
+      <div class="ch"><div class="n">2</div><h3>편집할 파일 고르기</h3></div>
+      <p class="sub">체크한 파일들의 열을 <b>한 번에</b> 설정함. 같은 양식끼리는 자동으로 묶여 보임</p>
+      <div class="fbar" style="margin-bottom:8px">
+        <span class="lbl" id="fallk"><span class="ck" id="fall"></span>전체</span>
+        <span style="flex:1"></span>
+        <button class="btn xs ghost" id="addmore">+ 추가</button>
+        <button class="btn xs ghost" id="clearall">모두 빼기</button>
+      </div>
+      <div class="flist" id="flist"></div>
+    </div>
+  </section>
+
+  <!-- 가운데: 설정 · 미리보기 -->
+  <section class="pane mid">
+    <div class="card" style="animation-delay:.06s">
+      <div class="mhd">
+        <div class="mrow">
+          <div class="target" id="target">열 설정</div>
+          <span style="flex:1"></span>
+          <div class="seg" id="ctab" style="width:190px"><button data-v="cols" class="on">열 설정</button><button data-v="prev">미리보기</button></div>
+        </div>
+        <div class="mrow hide" id="ctl">
+          <div class="sheetctl">시트 <select id="sheet" style="max-width:150px"></select></div>
+          <div class="sheetctl">머리글 <input type="number" id="hrow" min="1" max="50" value="1">행</div>
+          <label class="lbl"><span class="sw" id="nohdr"></span>머리글 없음</label>
+          <span style="flex:1"></span>
+          <select id="picktype" style="width:auto" title="이 유형으로 감지된 열을 한꺼번에 고름"></select>
+          <button class="btn xs" id="autopick" title="개인정보로 보이는 열을 켬">자동 추천</button>
+          <button class="btn xs ghost" id="alloff">전부 끄기</button>
+        </div>
+      </div>
+      <div class="mbody" id="mbody">
+        <div class="empty" id="empty">
+          <div>
+            <div class="ill"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+            <h4>왼쪽에 파일을 올리면 시작함</h4>
+            <div>엑셀 / CSV 여러 개를 한 번에 올려도 됨. 같은 양식은 자동으로 묶임</div>
+            <div class="steps"><div><b>1</b>파일 올리기</div><div><b>2</b>가릴 열 고르기</div><div><b>3</b>실행 · 받기</div></div>
+          </div>
+        </div>
+        <div id="colview" class="hide"></div>
+        <div id="prevview" class="hide"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 오른쪽: 실행 -->
+  <section class="pane">
+    <div class="card" style="animation-delay:.1s">
+      <div class="ch"><div class="n">3</div><h3>실행 옵션</h3></div>
+      <div class="opt-row">
+        <div class="ot">같은 값으로 묶는 기준<small id="normtext">공백 차이·전각/반각·보이지 않는 문자를 무시하고 비교함</small></div>
+      </div>
+      <div class="seg" id="normseg" style="margin:2px 0 6px"><button data-v="0">끔</button><button data-v="1" class="on">기본</button><button data-v="2">강하게</button></div>
+      <div class="opt-row">
+        <div class="ot">문장 속 값도 치환<small>안 고른 열(비고 등)에 섞인 같은 값도 바꿈</small></div>
+        <span class="sw on" id="sweep"></span>
+      </div>
+      <button class="btn pri lg" id="run" style="margin-top:12px" disabled>
+        <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>마스킹 실행<span class="kbd">Ctrl+Enter</span></button>
+      <div class="prog" id="prog"><i></i></div>
+    </div>
+
+    <div class="card hide" id="rescard" style="animation-delay:.04s">
+      <div class="ch"><div class="n" style="background:linear-gradient(145deg,var(--ok),#25bfa6)">✓</div><h3>결과</h3></div>
+      <div class="stats" style="margin-bottom:10px">
+        <div class="st"><b id="s1">0</b><span>처리 행</span></div>
+        <div class="st"><b id="s2">0</b><span>바뀐 셀</span></div>
+        <div class="st"><b id="s3">0</b><span>매핑 값</span></div>
+        <div class="st"><b id="s4">0</b><span>기간 계산</span></div>
+        <div class="st"><b id="s5">0</b><span>삭제</span></div>
+        <div class="st"><b id="s6">0</b><span>이어쓴 코드</span></div>
+      </div>
+      <div id="scan"></div>
+      <div id="calcnote"></div>
+      <div class="dlist" id="dlist" style="margin-top:10px"></div>
+      <div class="warnbox" style="margin-top:10px"><b>매칭 파일은 원본 개인정보 그 자체임.</b> 밖으로 나가는 건 마스킹 파일만, 매칭 파일은 본인 PC에만 둘 것</div>
+    </div>
+  </section>
+</main>
+
+<!-- ═════════════ 복원 ═════════════ -->
+<main class="view" id="v-rest">
+  <section class="card">
+    <div class="ch"><div class="n">1</div><h3>되돌릴 파일 올리기</h3></div>
+    <p class="sub">마스킹된 채로 돌아온 결과 파일들과, 그때 받은 매칭 파일을 올리면 원래 값으로 되돌림</p>
+    <div class="drop" id="rdropA" style="margin-bottom:10px">
+      <div class="di"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+      <b>결과 파일 (여러 개 가능)</b><span id="rtextA">마스킹된 상태의 파일</span>
+    </div>
+    <input type="file" id="rfileA" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt" multiple>
+    <div class="drop" id="rdropB">
+      <div class="di"><svg class="i" viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg></div>
+      <b>매칭 파일</b><span id="rtextB">_mapping.xlsx / .csv</span>
+    </div>
+    <input type="file" id="rfileB" class="hide" accept=".xlsx,.xlsm,.xls,.csv">
+  </section>
+  <section class="card" style="animation-delay:.05s">
+    <div class="ch"><div class="n">2</div><h3>복원 실행</h3></div>
+    <div class="opt-row"><div class="ot">문장 속에 섞인 값도 찾아서 복원<small>“NAME_0001 님 확인” 같은 문장 안의 코드도 되돌림</small></div><span class="sw on" id="partial"></span></div>
+    <button class="btn pri lg" id="rrun" style="margin-top:12px" disabled><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>원래 값으로 되돌리기</button>
+    <div class="stats" style="margin:12px 0 10px">
+      <div class="st"><b id="r1">0</b><span>매핑 항목</span></div>
+      <div class="st"><b id="r2">0</b><span>복원된 셀</span></div>
+      <div class="st"><b id="r3">0</b><span>파일</span></div>
+    </div>
+    <div class="dlist" id="rlist"></div>
+  </section>
+</main>
+
+<!-- ═════════════ 사용법 ═════════════ -->
+<main class="view" id="v-help"><div class="hgrid" id="hgrid"></div></main>
+</div>
+
+<div id="busy"><div class="bx"><div class="spin"></div><b id="busyt">처리 중</b><span id="busys"></span></div></div>
+<div id="toasts"></div>

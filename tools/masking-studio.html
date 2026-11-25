@@ -6,565 +6,511 @@
 <title>마스킹 스튜디오</title>
 <style>
 :root{
-  --bg0:#0b0d14; --bg1:#11141f; --surface:#161a28; --surface2:#1c2133; --surface3:#232a40;
-  --line:#2b3350; --line2:#394469;
-  --txt:#e8ecf8; --txt2:#a3adc9; --txt3:#6b769a;
-  --acc:#6d7cff; --acc2:#37d6e8; --acc-soft:rgba(109,124,255,.14);
-  --ok:#3ddc97; --warn:#ffb457; --bad:#ff6b7f;
-  --emb: 0 1px 0 rgba(255,255,255,.06) inset, 0 -1px 0 rgba(0,0,0,.35) inset, 0 10px 24px -12px rgba(0,0,0,.85), 0 2px 6px -2px rgba(0,0,0,.6);
-  --emb-hi: 0 1px 0 rgba(255,255,255,.10) inset, 0 -1px 0 rgba(0,0,0,.4) inset, 0 20px 40px -16px rgba(0,0,0,.9), 0 4px 10px -3px rgba(0,0,0,.6);
-  --ing: inset 0 2px 5px rgba(0,0,0,.55), inset 0 -1px 0 rgba(255,255,255,.05);
+  --bg0:#090b12; --bg1:#0f1220; --p0:#131726; --p1:#181d2f; --p2:#1f2539; --p3:#283049;
+  --ln:#262d46; --ln2:#35406a;
+  --t1:#eaeefb; --t2:#a6b0cc; --t3:#69749a;
+  --acc:#7080ff; --acc2:#38d4e6; --accs:rgba(112,128,255,.15);
+  --ok:#3fdc98; --warn:#ffb35a; --bad:#ff6b80; --vio:#b28cff; --amb:#ffc55a;
+  --m-shape:#7080ff; --m-token:#b28cff; --m-safe:#3fdc98; --m-calc:#ffb35a; --m-del:#ff6b80;
+  --up: 0 1px 0 rgba(255,255,255,.06) inset, 0 -1px 0 rgba(0,0,0,.4) inset, 0 10px 26px -14px rgba(0,0,0,.9), 0 2px 6px -2px rgba(0,0,0,.55);
+  --up2: 0 1px 0 rgba(255,255,255,.1) inset, 0 -1px 0 rgba(0,0,0,.45) inset, 0 20px 40px -18px rgba(0,0,0,.95), 0 4px 12px -4px rgba(0,0,0,.6);
+  --in: inset 0 2px 6px rgba(0,0,0,.55), inset 0 -1px 0 rgba(255,255,255,.04);
   --r:16px; --r2:12px; --r3:9px;
-  --sp:cubic-bezier(.34,1.3,.42,1); --ez:cubic-bezier(.4,0,.2,1);
+  --sp:cubic-bezier(.34,1.32,.42,1); --ez:cubic-bezier(.4,0,.2,1);
 }
 :root[data-theme="light"]{
-  --bg0:#eef1f8; --bg1:#e4e9f5; --surface:#ffffff; --surface2:#f4f6fc; --surface3:#e9edf8;
-  --line:#dfe4f1; --line2:#ccd4e8;
-  --txt:#161c2e; --txt2:#5a6482; --txt3:#8b95b3;
-  --acc:#4f5fe8; --acc2:#0eb6cc; --acc-soft:rgba(79,95,232,.10);
-  --ok:#12a86e; --warn:#d1820a; --bad:#e0435c;
-  --emb: 0 1px 0 rgba(255,255,255,.9) inset, 0 -1px 0 rgba(0,0,0,.05) inset, 0 12px 22px -14px rgba(30,40,80,.4), 0 2px 5px -2px rgba(30,40,80,.14);
-  --emb-hi: 0 1px 0 rgba(255,255,255,1) inset, 0 -1px 0 rgba(0,0,0,.06) inset, 0 22px 40px -18px rgba(30,40,80,.45), 0 5px 12px -4px rgba(30,40,80,.2);
-  --ing: inset 0 2px 5px rgba(30,40,80,.13), inset 0 -1px 0 rgba(255,255,255,.8);
+  --bg0:#eaeef7; --bg1:#e2e7f3; --p0:#f6f8fd; --p1:#ffffff; --p2:#f3f5fb; --p3:#e7ebf6;
+  --ln:#dde2f0; --ln2:#c9d1e6;
+  --t1:#151b2d; --t2:#56607f; --t3:#8a94b2;
+  --acc:#4f5fe8; --acc2:#0aa9c0; --accs:rgba(79,95,232,.1);
+  --ok:#0fa36a; --warn:#cf7d06; --bad:#e0435c; --vio:#8457e6; --amb:#cf8a06;
+  --m-shape:#4f5fe8; --m-token:#8457e6; --m-safe:#0fa36a; --m-calc:#cf7d06; --m-del:#e0435c;
+  --up: 0 1px 0 rgba(255,255,255,.95) inset, 0 -1px 0 rgba(0,0,0,.05) inset, 0 12px 24px -16px rgba(30,40,80,.42), 0 2px 5px -2px rgba(30,40,80,.14);
+  --up2: 0 1px 0 #fff inset, 0 -1px 0 rgba(0,0,0,.06) inset, 0 22px 40px -20px rgba(30,40,80,.48), 0 5px 12px -4px rgba(30,40,80,.2);
+  --in: inset 0 2px 5px rgba(30,40,80,.12), inset 0 -1px 0 rgba(255,255,255,.85);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Malgun Gothic','Segoe UI',Roboto,sans-serif;
-  background:
-    radial-gradient(1200px 600px at 12% -8%, rgba(109,124,255,.16), transparent 60%),
-    radial-gradient(900px 500px at 92% 4%, rgba(55,214,232,.12), transparent 62%),
-    linear-gradient(175deg,var(--bg1),var(--bg0) 55%);
-  background-attachment:fixed;
-  color:var(--txt); min-height:100vh; font-size:14.5px; line-height:1.55;
-  transition:background .5s var(--ez), color .3s var(--ez);
-}
-::-webkit-scrollbar{width:11px;height:11px}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Malgun Gothic','Segoe UI',Roboto,sans-serif;
+  font-size:13.5px;line-height:1.5;color:var(--t1);
+  background:radial-gradient(1100px 600px at 8% -10%,rgba(112,128,255,.17),transparent 60%),
+             radial-gradient(900px 520px at 96% 0%,rgba(56,212,230,.11),transparent 62%),
+             linear-gradient(175deg,var(--bg1),var(--bg0) 60%);
+  background-attachment:fixed;transition:color .3s var(--ez)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--ln2);border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--t3);background-clip:padding-box;border:3px solid transparent}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--line2);border-radius:9px;border:3px solid transparent;background-clip:padding-box}
-::-webkit-scrollbar-thumb:hover{background:var(--txt3);background-clip:padding-box;border:3px solid transparent}
+svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.hide{display:none!important}
 
-/* ── 앱바 ── */
-.bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:14px;
-  padding:13px 22px;backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);
-  background:color-mix(in srgb,var(--bg0) 74%,transparent);border-bottom:1px solid var(--line)}
-.logo{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;
-  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--emb),0 6px 18px -6px var(--acc);
-  animation:breathe 5s var(--ez) infinite}
-@keyframes breathe{0%,100%{box-shadow:var(--emb),0 6px 18px -8px var(--acc)}50%{box-shadow:var(--emb),0 10px 26px -6px var(--acc)}}
-.logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
-.brand{font-weight:800;letter-spacing:-.4px;font-size:17px}
-.brand small{display:block;font-weight:500;font-size:11px;color:var(--txt3);letter-spacing:0}
-.bar .sp{flex:1}
-.chip{font-size:11.5px;color:var(--txt2);background:var(--surface2);border:1px solid var(--line);
-  padding:5px 11px;border-radius:99px;box-shadow:var(--emb);display:flex;align-items:center;gap:6px}
-.dot{width:6px;height:6px;border-radius:99px;background:var(--ok);box-shadow:0 0 0 0 var(--ok);animation:pulse 2.4s infinite}
+/* ── 앱 골격 ── */
+.app{display:grid;grid-template-rows:auto minmax(0,1fr);height:100vh}
+.top{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--ln);
+  background:color-mix(in srgb,var(--bg0) 72%,transparent);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);z-index:40}
+.logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--up),0 6px 18px -7px var(--acc)}
+.logo svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.brand{font-weight:800;font-size:15.5px;letter-spacing:-.4px;line-height:1.2}
+.brand small{display:block;font-size:10.5px;font-weight:500;color:var(--t3);letter-spacing:0}
+.tabs{display:flex;gap:3px;padding:4px;margin:0 auto;background:var(--p0);border:1px solid var(--ln);border-radius:12px;box-shadow:var(--in)}
+.tab{border:0;background:transparent;color:var(--t3);font:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:9px;
+  cursor:pointer;display:flex;align-items:center;gap:7px;transition:.28s var(--sp)}
+.tab:hover{color:var(--t2)}
+.tab.on{color:#fff;background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 68%,var(--acc2)));box-shadow:var(--up),0 7px 18px -10px var(--acc)}
+.chip{font-size:11px;color:var(--t2);background:var(--p1);border:1px solid var(--ln);padding:5px 10px;border-radius:99px;
+  box-shadow:var(--up);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dot{width:6px;height:6px;border-radius:99px;background:var(--ok);animation:pulse 2.4s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
-.iconbtn{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--surface2);
-  color:var(--txt2);cursor:pointer;display:grid;place-items:center;box-shadow:var(--emb);transition:.22s var(--sp)}
-.iconbtn:hover{color:var(--txt);transform:translateY(-2px);box-shadow:var(--emb-hi)}
-.iconbtn:active{transform:translateY(1px) scale(.96);box-shadow:var(--ing)}
-.iconbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ib{width:34px;height:34px;border-radius:10px;border:1px solid var(--ln);background:var(--p1);color:var(--t2);cursor:pointer;
+  display:grid;place-items:center;box-shadow:var(--up);transition:.22s var(--sp)}
+.ib:hover{color:var(--t1);transform:translateY(-2px);box-shadow:var(--up2)}
+.ib:active{transform:translateY(1px) scale(.95);box-shadow:var(--in)}
 
-/* ── 탭 ── */
-.tabs{display:flex;gap:4px;padding:5px;margin:22px auto 0;width:min(1180px,94vw);
-  background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:var(--ing)}
-.tab{flex:1;padding:11px;border:0;background:transparent;color:var(--txt3);font-weight:700;font-size:13.5px;
-  font-family:inherit;border-radius:11px;cursor:pointer;transition:.3s var(--sp);display:flex;align-items:center;justify-content:center;gap:8px}
-.tab svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tab:hover{color:var(--txt2)}
-.tab.on{color:#fff;background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 70%,var(--acc2)));
-  box-shadow:var(--emb),0 8px 20px -10px var(--acc)}
-:root[data-theme="light"] .tab.on{color:#fff}
+.view{display:none;min-height:0}
+.view.on{display:grid;animation:vfade .35s var(--ez)}
+@keyframes vfade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#v-mask{grid-template-columns:292px minmax(0,1fr) 344px;gap:14px;padding:14px}
+.pane{min-height:0;display:flex;flex-direction:column;gap:12px;overflow:auto;padding:2px 3px 14px}
+.pane.mid{overflow:hidden;padding:2px}
 
-main{width:min(1180px,94vw);margin:0 auto;padding:22px 0 90px}
-.pane{display:none;animation:fade .45s var(--ez)}
-.pane.on{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* ── 패널 카드 ── */
+.card{background:linear-gradient(165deg,var(--p1),var(--p0));border:1px solid var(--ln);border-radius:var(--r);box-shadow:var(--up);
+  padding:14px;animation:rise .45s var(--sp) backwards;transition:box-shadow .3s var(--ez),border-color .3s var(--ez)}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+.ch{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.ch h3{margin:0;font-size:13.5px;font-weight:780;letter-spacing:-.25px}
+.ch .n{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;flex:0 0 auto;color:#fff;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--up),0 4px 10px -5px var(--acc)}
+.ch .sp{flex:1}
+.sub{font-size:11.5px;color:var(--t3);margin:-4px 0 10px;line-height:1.55}
 
-/* ── 카드 ── */
-.card{background:linear-gradient(160deg,var(--surface2),var(--surface));border:1px solid var(--line);
-  border-radius:var(--r);box-shadow:var(--emb);padding:20px;margin-bottom:16px;
-  animation:rise .5s var(--sp) backwards;transition:box-shadow .3s var(--ez),border-color .3s var(--ez)}
-.card:hover{box-shadow:var(--emb-hi)}
-@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-.card.dim{opacity:.42;pointer-events:none;filter:saturate(.35)}
-.card.dim .hd .n{background:var(--surface3);color:var(--txt3);box-shadow:var(--ing)}
-.hd{display:flex;align-items:center;gap:11px;margin-bottom:4px}
-.hd .n{width:27px;height:27px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;font-size:12.5px;font-weight:800;
-  background:linear-gradient(145deg,var(--acc),var(--acc2));color:#fff;box-shadow:var(--emb),0 5px 13px -6px var(--acc)}
-.hd h3{margin:0;font-size:15.5px;font-weight:750;letter-spacing:-.3px}
-.hd .sp{flex:1}
-.sub{color:var(--txt3);font-size:12.5px;margin:0 0 15px 38px}
-
-/* ── 드롭존 ── */
-.drop{position:relative;border:2px dashed var(--line2);border-radius:var(--r2);padding:34px 20px;text-align:center;
-  cursor:pointer;background:var(--surface);box-shadow:var(--ing);transition:.3s var(--sp);overflow:hidden}
-.drop:hover{border-color:var(--acc);background:var(--acc-soft)}
-.drop.over{border-color:var(--acc);background:var(--acc-soft);transform:scale(1.012)}
-.drop.over .di{transform:translateY(-5px) scale(1.12) rotate(-6deg)}
-.drop.has{border-style:solid;border-color:color-mix(in srgb,var(--ok) 55%,var(--line));background:color-mix(in srgb,var(--ok) 7%,var(--surface))}
-.di{width:52px;height:52px;margin:0 auto 12px;border-radius:15px;display:grid;place-items:center;
-  background:linear-gradient(145deg,var(--surface3),var(--surface2));box-shadow:var(--emb);transition:.4s var(--sp)}
-.di svg{width:24px;height:24px;stroke:var(--acc);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.drop.has .di svg{stroke:var(--ok)}
-.drop b{font-size:14.5px;display:block;margin-bottom:3px}
-.drop span{font-size:12px;color:var(--txt3)}
-.drop.small{padding:22px 16px}
-.drop.small .di{width:42px;height:42px;margin-bottom:9px}
-.drop.small .di svg{width:19px;height:19px}
-
-/* ── 폼 ── */
-.row{display:flex;flex-wrap:wrap;gap:13px;align-items:flex-end}
-.fld{display:flex;flex-direction:column;gap:6px;min-width:140px}
-.fld label{font-size:11.5px;font-weight:650;color:var(--txt3);letter-spacing:.2px;padding-left:2px}
-select,input[type=text],input[type=number]{
-  font-family:inherit;font-size:13px;color:var(--txt);background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r3);padding:9px 11px;box-shadow:var(--ing);outline:none;transition:.22s var(--ez);width:100%}
-select:focus,input:focus{border-color:var(--acc);box-shadow:var(--ing),0 0 0 3px var(--acc-soft)}
-select:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.2)}
-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b769a' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
-  background-repeat:no-repeat;background-position:right 8px center;background-size:15px;padding-right:29px}
-
-/* ── 버튼 ── */
-.btn{position:relative;overflow:hidden;font-family:inherit;font-size:13.5px;font-weight:700;letter-spacing:-.2px;
-  padding:11px 19px;border-radius:var(--r3);border:1px solid var(--line);background:linear-gradient(160deg,var(--surface3),var(--surface2));
-  color:var(--txt);cursor:pointer;box-shadow:var(--emb);transition:.24s var(--sp);display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
-.btn:hover{transform:translateY(-2px);box-shadow:var(--emb-hi)}
-.btn:active{transform:translateY(1px) scale(.985);box-shadow:var(--ing)}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:var(--ing);filter:saturate(.3)}
-.btn.pri{background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 62%,var(--acc2)));color:#fff;border-color:transparent;
-  box-shadow:var(--emb),0 9px 24px -11px var(--acc)}
-.btn.pri:hover{box-shadow:var(--emb-hi),0 14px 32px -12px var(--acc)}
-.btn.ok{background:linear-gradient(145deg,var(--ok),color-mix(in srgb,var(--ok) 60%,var(--acc2)));color:#04241a;border-color:transparent;
-  box-shadow:var(--emb),0 9px 24px -11px var(--ok)}
-.btn.lg{padding:14px 26px;font-size:14.5px;border-radius:var(--r2)}
-.btn.sm{padding:7px 12px;font-size:12px;border-radius:8px}
-.btn .rip{position:absolute;border-radius:99px;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .6s var(--ez);pointer-events:none}
+/* ── 버튼 · 입력 ── */
+.btn{position:relative;overflow:hidden;font:inherit;font-size:12.5px;font-weight:700;letter-spacing:-.2px;padding:8px 13px;border-radius:var(--r3);
+  border:1px solid var(--ln);background:linear-gradient(165deg,var(--p3),var(--p2));color:var(--t1);cursor:pointer;box-shadow:var(--up);
+  transition:.22s var(--sp);display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+.btn:hover{transform:translateY(-1.5px);box-shadow:var(--up2)}
+.btn:active{transform:translateY(1px) scale(.98);box-shadow:var(--in)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:var(--in);filter:saturate(.3)}
+.btn.pri{background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 60%,var(--acc2)));color:#fff;border-color:transparent;
+  box-shadow:var(--up),0 9px 22px -12px var(--acc)}
+.btn.ghost{background:transparent;box-shadow:none;border-color:transparent;color:var(--t2)}
+.btn.ghost:hover{background:var(--p2);color:var(--t1);box-shadow:none;transform:none}
+.btn.xs{padding:5px 9px;font-size:11.5px;border-radius:7px}
+.btn.lg{padding:13px 18px;font-size:14.5px;border-radius:var(--r2);width:100%}
+.btn .rip{position:absolute;border-radius:99px;background:rgba(255,255,255,.38);transform:scale(0);animation:rip .6s var(--ez);pointer-events:none}
 @keyframes rip{to{transform:scale(3.6);opacity:0}}
+.kbd{font-size:10px;font-weight:700;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,.18);margin-left:4px}
+select,input[type=text],input[type=date],input[type=number]{font:inherit;font-size:12.5px;color:var(--t1);background:var(--p0);
+  border:1px solid var(--ln);border-radius:8px;padding:6px 9px;box-shadow:var(--in);outline:none;transition:.2s var(--ez);min-width:0}
+select:focus,input:focus{border-color:var(--acc);box-shadow:var(--in),0 0 0 3px var(--accs)}
+select{cursor:pointer;appearance:none;padding-right:26px;background-repeat:no-repeat;background-position:right 7px center;background-size:13px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b769a' stroke-width='2.6' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>")}
+select:disabled,input:disabled{opacity:.42;cursor:not-allowed}
+input[type=date]{color-scheme:dark;padding:6px 5px;font-size:12px}
+:root[data-theme="light"] input[type=date]{color-scheme:light}
 
-/* ── 스위치 ── */
-.sw{position:relative;width:40px;height:23px;border-radius:99px;background:var(--surface3);box-shadow:var(--ing);
-  cursor:pointer;flex:0 0 auto;border:1px solid var(--line);transition:.3s var(--sp)}
-.sw::after{content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:99px;
-  background:linear-gradient(160deg,#fff,#c8cee2);box-shadow:0 2px 5px rgba(0,0,0,.45);transition:.32s var(--sp)}
-.sw.on{background:linear-gradient(145deg,var(--acc),var(--acc2));border-color:transparent;box-shadow:var(--ing),0 3px 11px -3px var(--acc)}
-.sw.on::after{left:19px;background:#fff}
+/* ── 스위치 · 체크 ── */
+.sw{position:relative;width:34px;height:20px;border-radius:99px;background:var(--p3);box-shadow:var(--in);cursor:pointer;flex:0 0 auto;
+  border:1px solid var(--ln);transition:.3s var(--sp)}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:99px;background:linear-gradient(160deg,#fff,#c6cde3);
+  box-shadow:0 2px 4px rgba(0,0,0,.45);transition:.3s var(--sp)}
+.sw.on{background:linear-gradient(145deg,var(--acc),var(--acc2));border-color:transparent}
+.sw.on::after{left:16px;background:#fff}
+.sw.mix{background:linear-gradient(90deg,var(--acc) 50%,var(--p3) 50%);border-color:transparent}
+.sw.mix::after{left:9px}
+.ck{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--ln2);background:var(--p0);box-shadow:var(--in);cursor:pointer;
+  flex:0 0 auto;display:grid;place-items:center;transition:.2s var(--sp)}
+.ck::after{content:'';width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) scale(0);
+  margin-top:-2px;transition:.22s var(--sp)}
+.ck.on{background:linear-gradient(145deg,var(--acc),var(--acc2));border-color:transparent;box-shadow:0 2px 8px -2px var(--acc)}
+.ck.on::after{transform:rotate(-45deg) scale(1)}
+.ck.mix{background:var(--acc);border-color:transparent}
+.ck.mix::after{width:8px;height:0;border-left:0;border-bottom:2px solid #fff;transform:none;margin:0}
+.lbl{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--t2);font-weight:600;user-select:none}
+
+/* ── 세그먼트 ── */
+.seg{display:flex;gap:2px;padding:3px;background:var(--p0);border:1px solid var(--ln);border-radius:9px;box-shadow:var(--in)}
+.seg button{flex:1;border:0;background:transparent;color:var(--t3);font:inherit;font-size:11.5px;font-weight:700;padding:5px 7px;border-radius:6px;
+  cursor:pointer;transition:.22s var(--sp);white-space:nowrap}
+.seg button:hover{color:var(--t1)}
+.seg button.on{background:linear-gradient(150deg,var(--acc),color-mix(in srgb,var(--acc) 65%,var(--acc2)));color:#fff;box-shadow:var(--up)}
+.mseg button.on[data-v=shape]{background:var(--m-shape)}
+.mseg button.on[data-v=token]{background:var(--m-token)}
+.mseg button.on[data-v=safe]{background:var(--m-safe);color:#05261a}
+.mseg button.on[data-v=calc]{background:var(--m-calc);color:#2c1a00}
+.mseg button.on[data-v=del]{background:var(--m-del)}
 
 /* ── 배지 ── */
-.badge{font-size:10.5px;font-weight:750;padding:3px 8px;border-radius:99px;letter-spacing:.2px;
-  background:var(--surface3);color:var(--txt2);border:1px solid var(--line);box-shadow:var(--emb);white-space:nowrap}
-.badge.a{background:var(--acc-soft);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 34%,transparent)}
-.badge.g{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 34%,transparent)}
-.badge.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 34%,transparent)}
+.bd{font-size:10.5px;font-weight:750;padding:2px 7px;border-radius:99px;background:var(--p3);color:var(--t2);border:1px solid var(--ln);white-space:nowrap}
+.bd.a{background:var(--accs);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 30%,transparent)}
+.bd.g{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.bd.w{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+.bd.r{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
 
-/* ── 열 설정 그리드 ── */
-.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:11px}
-.col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:12px;
-  box-shadow:var(--emb);transition:.28s var(--sp);animation:rise .4s var(--sp) backwards}
-.col:hover{transform:translateY(-2px);box-shadow:var(--emb-hi)}
-.col.on{border-color:color-mix(in srgb,var(--acc) 52%,transparent);
-  background:linear-gradient(160deg,var(--acc-soft),var(--surface));box-shadow:var(--emb),0 0 0 1px var(--acc-soft)}
-.col .ct{display:flex;align-items:center;gap:9px;margin-bottom:2px}
-.col .cn{font-weight:700;font-size:13.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.col .cs{font-size:11px;color:var(--txt3);margin:0 0 9px 0;height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
-.col .cfg{display:grid;gap:7px;max-height:0;opacity:0;overflow:hidden;transition:max-height .4s var(--ez),opacity .3s var(--ez),margin .3s var(--ez)}
-.col.on .cfg{max-height:190px;opacity:1;margin-top:3px}
-.col.on .cfg{max-height:260px}
-.col.on.del{border-color:color-mix(in srgb,var(--bad) 50%,transparent);
-  background:linear-gradient(160deg,color-mix(in srgb,var(--bad) 10%,transparent),var(--surface));
-  box-shadow:var(--emb),0 0 0 1px color-mix(in srgb,var(--bad) 12%,transparent)}
-.col.on.del .badge.a{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
-.seg{display:flex;gap:3px;padding:3px;background:var(--surface2);border:1px solid var(--line);border-radius:9px;box-shadow:var(--ing)}
-.seg button{flex:1;border:0;background:transparent;color:var(--txt3);font-family:inherit;font-size:11.5px;font-weight:700;
-  padding:6px 4px;border-radius:7px;cursor:pointer;transition:.25s var(--sp)}
-.seg button.on{background:linear-gradient(150deg,var(--acc),color-mix(in srgb,var(--acc) 65%,var(--acc2)));color:#fff;box-shadow:var(--emb)}
-.seg button.on.dl{background:linear-gradient(150deg,var(--bad),color-mix(in srgb,var(--bad) 55%,var(--warn)))}
-.seg.quad{display:grid;grid-template-columns:1fr 1fr;gap:3px}
-.seg.quad button{font-size:11.5px;padding:6px 3px}
-.seg button.on.sf{background:linear-gradient(150deg,var(--ok),color-mix(in srgb,var(--ok) 55%,var(--acc2)));color:#04241a}
+/* ── 왼쪽: 드롭 · 파일 목록 ── */
+.drop{border:1.5px dashed var(--ln2);border-radius:var(--r2);padding:16px 12px;text-align:center;cursor:pointer;background:var(--p0);
+  box-shadow:var(--in);transition:.28s var(--sp)}
+.drop:hover,.drop.over{border-color:var(--acc);background:var(--accs)}
+.drop.over{transform:scale(1.015)}
+.drop .di{width:38px;height:38px;margin:0 auto 7px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,var(--p3),var(--p2));
+  box-shadow:var(--up);color:var(--acc);transition:.35s var(--sp)}
+.drop.over .di{transform:translateY(-4px) rotate(-6deg) scale(1.1)}
+.drop b{display:block;font-size:12.5px}
+.drop span{font-size:11px;color:var(--t3)}
+.book{border-radius:var(--r2);padding:11px;border:1px solid var(--ln);background:var(--p0);box-shadow:var(--in);transition:.3s var(--ez)}
+.book.on{border-color:color-mix(in srgb,var(--ok) 50%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--p0))}
+.book .bt{display:flex;align-items:center;gap:8px;font-weight:750;font-size:12.5px}
+.book .bs{font-size:11px;color:var(--t3);margin:4px 0 8px;line-height:1.5}
+.book.on .bs{color:var(--t2)}
+.flist{display:flex;flex-direction:column;gap:6px}
+.fgrp{border-radius:var(--r2);border:1px solid var(--ln);background:var(--p0);box-shadow:var(--in);padding:6px;animation:rise .4s var(--sp) backwards}
+.fgh{display:flex;align-items:center;gap:7px;padding:4px 6px 6px;font-size:11.5px;font-weight:750;color:var(--t2)}
+.fgh .sp{flex:1}
+.fgh .tag{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;background:var(--acc)}
+.frow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;cursor:pointer;transition:.2s var(--ez);border:1px solid transparent}
+.frow:hover{background:var(--p2)}
+.frow.sel{background:linear-gradient(160deg,var(--accs),transparent);border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.frow.focus{box-shadow:inset 3px 0 0 var(--acc)}
+.frow .fn{flex:1;min-width:0}
+.frow .fn b{display:block;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .fn span{font-size:10.5px;color:var(--t3)}
+.frow .x{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:var(--t3);opacity:0;transition:.2s}
+.frow:hover .x{opacity:1}
+.frow .x:hover{background:var(--bad);color:#fff}
+.fbar{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3)}
 
-/* ── 표 ── */
-.tw{border:1px solid var(--line);border-radius:var(--r2);overflow:auto;max-height:440px;box-shadow:var(--ing);background:var(--surface)}
-table{border-collapse:separate;border-spacing:0;font-size:12.5px;table-layout:fixed;width:max-content}
-col{width:158px}
-col.cr{width:58px}
-th,td{padding:7px 11px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis}
-thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,var(--surface3),var(--surface2));
-  font-weight:750;font-size:11.5px;color:var(--txt2);cursor:pointer;transition:.2s var(--ez);user-select:none}
-thead th:hover{color:var(--txt);background:var(--surface3)}
-thead th.sel{color:var(--acc);background:linear-gradient(180deg,var(--acc-soft),var(--surface2))}
-thead th.sel.del{color:var(--bad);background:linear-gradient(180deg,color-mix(in srgb,var(--bad) 13%,transparent),var(--surface2))}
-thead th.sel.safe{color:var(--ok);background:linear-gradient(180deg,color-mix(in srgb,var(--ok) 13%,transparent),var(--surface2))}
-th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--surface2);text-align:center;
-  color:var(--txt3);font-variant-numeric:tabular-nums;cursor:pointer}
+/* ── 가운데 ── */
+.mid .card{display:flex;flex-direction:column;min-height:0;flex:1;padding:0;overflow:hidden}
+.mhd{padding:12px 14px 10px;border-bottom:1px solid var(--ln);display:flex;flex-direction:column;gap:9px}
+.mrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.target{font-size:13px;font-weight:750;display:flex;align-items:center;gap:8px;min-width:0}
+.target small{font-weight:500;color:var(--t3);font-size:11.5px}
+.sheetctl{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);font-weight:600}
+.sheetctl input[type=number]{width:52px}
+.mbody{flex:1;min-height:0;overflow:auto;position:relative}
+.empty{height:100%;display:grid;place-items:center;text-align:center;padding:30px;color:var(--t3)}
+.empty .ill{width:74px;height:74px;margin:0 auto 14px;border-radius:22px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--p3),var(--p1));box-shadow:var(--up2);color:var(--acc);animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.empty .ill svg{width:32px;height:32px}
+.empty h4{margin:0 0 6px;color:var(--t1);font-size:15px}
+.steps{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.steps div{font-size:11.5px;padding:8px 12px;border-radius:10px;background:var(--p1);border:1px solid var(--ln);box-shadow:var(--up);color:var(--t2)}
+.steps b{color:var(--acc);margin-right:4px}
+
+/* 일괄 작업 바 */
+.bulk{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 14px;
+  background:color-mix(in srgb,var(--p1) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid color-mix(in srgb,var(--acc) 40%,var(--ln));box-shadow:0 8px 18px -14px rgba(0,0,0,.7);animation:slide .28s var(--sp)}
+@keyframes slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.bulk .cnt{font-weight:800;font-size:12.5px;color:var(--acc);margin-right:2px}
+.bulk .div{width:1px;height:20px;background:var(--ln)}
+.bulk .seg button{padding:5px 8px}
+.bulk .grp{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);font-weight:700}
+
+/* 열 목록 — 가운데 패널 폭에 맞춰 단계적으로 줄어듦 */
+#colview{container-type:inline-size}
+.chead,.crow{display:grid;grid-template-columns:26px 38px minmax(150px,1fr) 104px 276px minmax(150px,210px);
+  align-items:center;gap:8px;padding:0 12px}
+.chead{position:sticky;top:0;z-index:4;height:32px;font-size:10.5px;font-weight:750;color:var(--t3);letter-spacing:.3px;
+  background:var(--p1);border-bottom:1px solid var(--ln)}
+.bulk~.chead{top:var(--bulkh,0px)}
+.crow{min-height:52px;border-bottom:1px solid var(--ln);transition:background .18s var(--ez);cursor:pointer;animation:rowin .3s var(--ez) backwards}
+@keyframes rowin{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.crow:hover{background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.crow.sel{background:linear-gradient(90deg,var(--accs),transparent 75%)}
+.crow.on{box-shadow:inset 3px 0 0 var(--mc,var(--acc))}
+.crow.off .nm,.crow.off small{opacity:.55}
+.cn{min-width:0}
+.cn .nm{font-weight:740;font-size:12.5px;display:flex;align-items:center;gap:6px;min-width:0}
+.cn .nm span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cn small{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--t3);margin-top:2px;min-width:0}
+.cn small .ex{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cn .bd{font-size:9.5px;padding:1px 6px}
+.crow .opt{display:flex;gap:6px;align-items:center;min-width:0}
+.crow .opt>*{flex:1;min-width:0}
+.crow .opt input[type=date]{flex:1.3}
+.mseg button{padding:5px 3px}
+.mseg .s{display:none}
+.mix{font-size:11px;color:var(--warn);font-weight:700}
+.nomatch{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@container (max-width:860px){
+  .chead,.crow{grid-template-columns:26px 38px minmax(110px,1fr) 92px 200px minmax(170px,200px)}
+  .mseg .l{display:none} .mseg .s{display:inline}
+  .crow .opt input[type=date]{flex:1.6}
+}
+@container (max-width:690px){
+  .chead{display:none}
+  .crow{grid-template-columns:26px 38px 1fr;row-gap:7px;padding:9px 12px}
+  .crow>.ty,.crow>.md,.crow>.opt{grid-column:2/-1}
+}
+
+/* 미리보기 */
+.ptool{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tw{overflow:auto}
+table{border-collapse:separate;border-spacing:0;font-size:12px;table-layout:fixed;width:max-content}
+col{width:150px} col.cr{width:54px}
+th,td{padding:6px 10px;border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,var(--p3),var(--p2));font-weight:750;font-size:11px;color:var(--t2);cursor:pointer;user-select:none}
+thead th:hover{color:var(--t1)}
+thead th.on{color:var(--mc,var(--acc));box-shadow:inset 0 -2px 0 var(--mc,var(--acc))}
+th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--p2);text-align:center;color:var(--t3);cursor:pointer;font-variant-numeric:tabular-nums}
 thead th.rh{z-index:4}
 tbody tr:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
 tbody tr.rsel td{background:color-mix(in srgb,var(--warn) 11%,transparent)}
-tbody tr.rsel td.rh{background:color-mix(in srgb,var(--warn) 22%,var(--surface2));color:var(--warn);font-weight:750}
-td.csel{background:color-mix(in srgb,var(--acc) 9%,transparent)}
-td.csel.del{background:color-mix(in srgb,var(--bad) 8%,transparent)}
-td.csel.safe{background:color-mix(in srgb,var(--ok) 8%,transparent)}
-.col.on.safe{border-color:color-mix(in srgb,var(--ok) 48%,transparent);
-  background:linear-gradient(160deg,color-mix(in srgb,var(--ok) 9%,transparent),var(--surface))}
-td.gone{position:relative}
-td.gone::after{content:'삭제됨';font-size:10px;font-weight:700;color:var(--bad);opacity:.55;letter-spacing:.3px}
+tbody tr.rsel td.rh{color:var(--warn);font-weight:750}
+td.on{background:color-mix(in srgb,var(--mc,var(--acc)) 7%,transparent)}
 td.mk{color:var(--acc2);font-weight:650}
 :root[data-theme="light"] td.mk{color:var(--acc)}
+td.gone::after{content:'삭제됨';font-size:10px;font-weight:700;color:var(--bad);opacity:.6}
+td.fail::after{content:'변환 불가';font-size:10px;font-weight:700;color:var(--warn);opacity:.75}
+.pnote{font-size:11px;color:var(--t3);padding:9px 14px;border-top:1px solid var(--ln);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pnote b{color:var(--t2)}
 
-/* ── 통계 ── */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:11px;margin-bottom:15px}
-.stat{background:linear-gradient(160deg,var(--surface3),var(--surface));border:1px solid var(--line);border-radius:var(--r2);
-  padding:13px 15px;box-shadow:var(--emb);transition:.3s var(--sp)}
-.stat:hover{transform:translateY(-3px);box-shadow:var(--emb-hi)}
-.stat b{display:block;font-size:22px;font-weight:800;letter-spacing:-.8px;font-variant-numeric:tabular-nums;
+/* ── 오른쪽: 실행 ── */
+.opt-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--ln)}
+.opt-row:last-child{border-bottom:0}
+.opt-row .ot{font-size:12.5px;font-weight:700}
+.opt-row .ot small{display:block;font-size:10.5px;color:var(--t3);font-weight:500;margin-top:1px;line-height:1.45}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.st{padding:9px 10px;border-radius:10px;background:linear-gradient(165deg,var(--p2),var(--p0));border:1px solid var(--ln);box-shadow:var(--up)}
+.st b{display:block;font-size:17px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;
   background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.stat span{font-size:11px;color:var(--txt3);font-weight:600}
-
-/* ── 진행바 ── */
-.prog{height:7px;border-radius:99px;background:var(--surface);box-shadow:var(--ing);overflow:hidden;margin:13px 0 0;display:none}
+.st span{font-size:10.5px;color:var(--t3);font-weight:600}
+.prog{height:6px;border-radius:99px;background:var(--p0);box-shadow:var(--in);overflow:hidden;margin-top:10px;display:none}
 .prog.on{display:block}
-.prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));
-  transition:width .25s var(--ez);position:relative;overflow:hidden}
-.prog i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
-  animation:shim 1.1s linear infinite}
+.prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s var(--ez);position:relative;overflow:hidden}
+.prog i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:shim 1s linear infinite}
 @keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.scan{border-radius:var(--r2);padding:11px 12px;font-size:12px;border:1px solid color-mix(in srgb,var(--warn) 40%,var(--ln));
+  background:linear-gradient(165deg,color-mix(in srgb,var(--warn) 11%,transparent),var(--p0));animation:rise .4s var(--sp)}
+.scan.clean{border-color:color-mix(in srgb,var(--ok) 40%,var(--ln));background:linear-gradient(165deg,color-mix(in srgb,var(--ok) 10%,transparent),var(--p0))}
+.scan .t{display:flex;align-items:center;gap:8px;font-weight:780;margin-bottom:5px}
+.scan .t i{width:8px;height:8px;border-radius:99px;background:var(--warn);box-shadow:0 0 9px var(--warn)}
+.scan.clean .t i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+.scan ul{margin:4px 0 9px;padding-left:17px;color:var(--t2);line-height:1.75}
+.scan p{margin:0 0 4px;color:var(--t2)}
+.dlist{display:flex;flex-direction:column;gap:7px}
+.dl{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;border:1px solid var(--ln);cursor:pointer;text-align:left;width:100%;
+  background:linear-gradient(165deg,var(--p2),var(--p0));box-shadow:var(--up);transition:.22s var(--sp);font:inherit;color:var(--t1)}
+.dl:hover{transform:translateY(-2px);box-shadow:var(--up2);border-color:color-mix(in srgb,var(--acc) 40%,var(--ln))}
+.dl:active{transform:none;box-shadow:var(--in)}
+.dl:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.dl .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;color:#fff;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--up)}
+.dl.g .ic{background:linear-gradient(145deg,var(--ok),#25bfa6)}
+.dl.z .ic{background:linear-gradient(145deg,var(--vio),var(--acc))}
+.dl .tx{flex:1;min-width:0}
+.dl b{display:block;font-size:12.5px;font-weight:740;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl span{font-size:10.5px;color:var(--t3)}
+.dl .rd{font-size:10.5px;font-weight:800;color:var(--ok)}
+.warnbox{font-size:11px;color:var(--t3);padding:9px 11px;border-radius:10px;border:1px solid var(--ln);background:var(--p0);box-shadow:var(--in);line-height:1.6}
+.warnbox b{color:var(--warn)}
 
-/* ── 토스트 ── */
-#busy{position:fixed;inset:0;z-index:300;display:none;place-items:center;
-  background:color-mix(in srgb,var(--bg0) 62%,transparent);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
-#busy.on{display:grid;animation:fade .2s var(--ez)}
-#busy .bx{display:flex;flex-direction:column;align-items:center;gap:13px;padding:30px 42px;border-radius:var(--r);
-  background:linear-gradient(160deg,var(--surface2),var(--surface));border:1px solid var(--line);box-shadow:var(--emb-hi)}
-#busy b{font-size:15px;font-weight:750}
-#busy span{font-size:12px;color:var(--txt3);min-height:16px}
-.spin{width:38px;height:38px;border-radius:99px;border:3px solid var(--line);border-top-color:var(--acc);
-  border-right-color:var(--acc2);animation:sp .8s linear infinite}
+/* ── 복원 · 도움말 ── */
+#v-rest{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:14px;max-width:1200px;margin:0 auto;width:100%;align-content:start;overflow:auto}
+#v-help{padding:14px;max-width:1200px;margin:0 auto;width:100%;overflow:auto;align-content:start}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.hc{font-size:12.5px;color:var(--t2);line-height:1.7}
+.hc b{color:var(--t1)}
+.hc code{background:var(--p3);padding:1px 6px;border-radius:5px;font-size:11.5px;color:var(--t1)}
+.hc .ch h3{font-size:13.5px}
+
+/* ── 오버레이 · 토스트 ── */
+#busy{position:fixed;inset:0;z-index:300;display:none;place-items:center;background:color-mix(in srgb,var(--bg0) 60%,transparent);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#busy.on{display:grid;animation:vfade .2s var(--ez)}
+#busy .bx{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 38px;border-radius:var(--r);
+  background:linear-gradient(165deg,var(--p2),var(--p0));border:1px solid var(--ln);box-shadow:var(--up2)}
+#busy b{font-size:14.5px} #busy span{font-size:11.5px;color:var(--t3);min-height:15px}
+.spin{width:36px;height:36px;border-radius:99px;border:3px solid var(--ln);border-top-color:var(--acc);border-right-color:var(--acc2);animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.more{margin-top:11px;display:flex;justify-content:center}
-#toasts{position:fixed;bottom:22px;right:22px;z-index:200;display:flex;flex-direction:column;gap:9px;align-items:flex-end}
-.toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r2);font-size:13px;font-weight:650;
-  background:linear-gradient(160deg,var(--surface3),var(--surface2));border:1px solid var(--line);box-shadow:var(--emb-hi);
-  animation:tin .45s var(--sp);max-width:min(400px,88vw)}
-.toast.out{animation:tout .35s var(--ez) forwards}
+#toasts{position:fixed;bottom:18px;right:18px;z-index:200;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;padding:10px 15px;border-radius:12px;font-size:12.5px;font-weight:650;max-width:min(560px,92vw);
+  background:linear-gradient(165deg,var(--p3),var(--p1));border:1px solid var(--ln);box-shadow:var(--up2);animation:tin .4s var(--sp)}
+.toast.out{animation:tout .3s var(--ez) forwards}
 .toast i{width:8px;height:8px;border-radius:99px;flex:0 0 auto;background:var(--acc);box-shadow:0 0 9px var(--acc)}
 .toast.ok i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
 .toast.bad i{background:var(--bad);box-shadow:0 0 9px var(--bad)}
 .toast.warn i{background:var(--warn);box-shadow:0 0 9px var(--warn)}
-@keyframes tin{from{opacity:0;transform:translateX(50px) scale(.92)}to{opacity:1;transform:none}}
-@keyframes tout{to{opacity:0;transform:translateX(40px) scale(.94)}}
+@keyframes tin{from{opacity:0;transform:translateX(30px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes tout{to{opacity:0;transform:translateY(10px) scale(.95)}}
 
-/* ── 다운로드 ── */
-.dls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px}
-.dl{display:flex;align-items:center;gap:13px;padding:15px;border-radius:var(--r2);cursor:pointer;text-align:left;
-  border:1px solid var(--line);background:linear-gradient(160deg,var(--surface3),var(--surface));box-shadow:var(--emb);
-  transition:.28s var(--sp);font-family:inherit;color:var(--txt)}
-.dl:hover{transform:translateY(-3px);box-shadow:var(--emb-hi);border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
-.dl:active{transform:translateY(0) scale(.985);box-shadow:var(--ing)}
-.dl:disabled{opacity:.38;cursor:not-allowed;transform:none;filter:saturate(.2)}
-.dl .ic{width:42px;height:42px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(145deg,var(--acc),var(--acc2));box-shadow:var(--emb),0 6px 16px -8px var(--acc)}
-.dl.g .ic{background:linear-gradient(145deg,var(--ok),#26c2a8);box-shadow:var(--emb),0 6px 16px -8px var(--ok)}
-.dl .ic svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
-.dl b{display:block;font-size:13.5px;font-weight:750}
-.dl span{font-size:11.5px;color:var(--txt3)}
-
-#dlp{display:none;margin-bottom:15px;border-radius:var(--r2);padding:14px 16px;box-shadow:var(--emb);
-  border:1px solid color-mix(in srgb,var(--warn) 40%,var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--warn) 12%,transparent),var(--surface))}
-#dlp.on{display:block;animation:rise .4s var(--sp)}
-#dlp.clean{border-color:color-mix(in srgb,var(--ok) 40%,var(--line));
-  background:linear-gradient(160deg,color-mix(in srgb,var(--ok) 11%,transparent),var(--surface))}
-#dlp .t{display:flex;align-items:center;gap:9px;font-weight:750;font-size:13.5px;margin-bottom:7px}
-#dlp .t i{width:9px;height:9px;border-radius:99px;background:var(--warn);box-shadow:0 0 9px var(--warn);flex:0 0 auto}
-#dlp.clean .t i{background:var(--ok);box-shadow:0 0 9px var(--ok)}
-#dlp ul{margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--txt2);line-height:1.85}
-#dlp code{background:var(--surface3);padding:1px 6px;border-radius:5px;font-size:11.5px;color:var(--txt)}
-/* 파일 탭 — 여러 파일을 한 코드 체계로 같이 처리할 때 */
-.strip{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
-.fchip{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;border-radius:10px;cursor:pointer;
-  border:1px solid var(--line);background:var(--surface);box-shadow:var(--emb);font-size:12.5px;font-weight:650;
-  transition:.25s var(--sp);max-width:280px}
-.fchip:hover{transform:translateY(-2px);box-shadow:var(--emb-hi)}
-.fchip.on{border-color:color-mix(in srgb,var(--acc) 55%,transparent);
-  background:linear-gradient(160deg,var(--acc-soft),var(--surface));color:var(--acc)}
-.fchip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fchip .sz{font-size:10.5px;color:var(--txt3);font-weight:500;flex:0 0 auto}
-.fchip .x{width:17px;height:17px;border-radius:99px;display:grid;place-items:center;flex:0 0 auto;
-  background:var(--surface3);color:var(--txt3);font-size:11px;line-height:1;transition:.2s var(--ez)}
-.fchip .x:hover{background:var(--bad);color:#fff}
-.fchip.add{border-style:dashed;color:var(--txt2);font-weight:700}
-.book{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:14px;padding:12px 15px;border-radius:var(--r2);
-  border:1px solid var(--line);background:var(--surface);box-shadow:var(--ing);transition:.3s var(--ez)}
-.book.on{border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
-.book .bi{width:34px;height:34px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;
-  background:linear-gradient(145deg,var(--surface3),var(--surface2));box-shadow:var(--emb)}
-.book .bi svg{width:17px;height:17px;stroke:var(--txt2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.book.on .bi svg{stroke:var(--ok)}
-.book b{display:block;font-size:13px;font-weight:750;margin-bottom:1px}
-.book span{font-size:11.5px;color:var(--txt3);line-height:1.55}
-.book span b{display:inline;font-size:inherit;font-weight:750;color:var(--txt2);margin:0}
-.note{font-size:12px;color:var(--txt3);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--acc);
-  border-radius:var(--r3);padding:11px 13px;box-shadow:var(--ing);line-height:1.7}
-.note b{color:var(--txt2)}
-.hide{display:none!important}
-.mt{margin-top:15px}
-.ck{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--txt2);font-weight:600}
-@media(max-width:640px){
-  .bar{padding:11px 14px}.brand small{display:none}.cols{grid-template-columns:1fr}
-  .stat b{font-size:19px}.card{padding:15px}.sub{margin-left:0}
+/* ── 반응형 ── */
+@media (max-width:1280px){
+  #v-mask{grid-template-columns:262px minmax(0,1fr) 312px}
+}
+@media (max-width:1080px){
+  .app{height:auto;min-height:100vh}
+  #v-mask{grid-template-columns:1fr}
+  .pane,.pane.mid{overflow:visible}
+  .mid .card{min-height:520px}
+  .mbody{max-height:70vh}
+  #v-rest{grid-template-columns:1fr}
+  .top .chip{display:none}
+}
+@media (max-width:720px){
+  .brand small{display:none}
+  .tab span{display:none}
 }
 </style>
 </head>
 <body>
-<header class="bar">
-  <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6z"/><path d="M8.5 12.5h7"/><path d="M8.5 9.5h7"/></svg></div>
+<div class="app">
+<header class="top">
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6z"/><path d="M8.5 12.5h7M8.5 9.5h7"/></svg></div>
   <div class="brand">마스킹 스튜디오<small>개인정보 비식별화 · 완전 오프라인</small></div>
-  <div class="sp"></div>
-  <div class="chip"><i class="dot"></i> 로컬 처리 · 전송 없음</div>
-  <button class="iconbtn" id="theme" title="테마 전환">
-    <svg id="ticon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
-  </button>
+  <nav class="tabs">
+    <button class="tab on" data-v="mask"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg><span>마스킹</span></button>
+    <button class="tab" data-v="rest"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg><span>복원</span></button>
+    <button class="tab" data-v="help"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 114 2.1c-.8.6-1.5 1-1.5 2"/><path d="M12 17h.01"/></svg><span>사용법</span></button>
+  </nav>
+  <div class="chip"><i class="dot"></i>로컬 처리 · 전송 없음</div>
+  <button class="ib" id="theme" title="테마 전환"><svg class="i" id="ticon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
 </header>
 
-<div class="tabs">
-  <button class="tab on" data-p="mask"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>마스킹</button>
-  <button class="tab" data-p="rest"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>복원</button>
-  <button class="tab" data-p="help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 114 2.1c-.8.6-1.5 1-1.5 2"/><path d="M12 17h.01"/></svg>사용법</button>
+<!-- ═════════════ 마스킹 ═════════════ -->
+<main class="view on" id="v-mask">
+  <!-- 왼쪽: 입력 -->
+  <section class="pane">
+    <div class="card">
+      <div class="ch"><div class="n">1</div><h3>파일</h3><div class="sp"></div><span class="bd" id="fcount">0개</span></div>
+      <div class="drop" id="drop">
+        <div class="di"><svg class="i" viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M12 16V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16"/></svg></div>
+        <b>끌어다 놓거나 클릭</b><span>xlsx · xls · csv — 여러 개 한 번에 가능</span>
+      </div>
+      <input type="file" id="file" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt" multiple>
+    </div>
+
+    <div class="card" style="animation-delay:.04s">
+      <div class="book" id="book">
+        <div class="bt"><svg class="i" viewBox="0 0 24 24" style="color:var(--ok)"><path d="M4 5.5A1.5 1.5 0 015.5 4H19v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M8 8h7M8 12h7"/></svg>
+          이전 매칭 파일 이어쓰기<span style="flex:1"></span><span class="bd" id="bookbd">선택</span></div>
+        <div class="bs" id="booktext">예전에 받은 매칭 파일을 넣으면, 거기 있던 값은 <b>같은 코드</b>를 그대로 받음. 추가 파일을 기존 결과와 합쳐 분석할 때 씀</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn xs" id="bookbtn" style="flex:1"><svg class="i" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16"/></svg>매칭 파일 넣기</button>
+          <button class="btn xs ghost hide" id="bookclear">빼기</button>
+        </div>
+      </div>
+      <input type="file" id="bookfile" class="hide" accept=".xlsx,.xlsm,.xls,.csv" multiple>
+    </div>
+
+    <div class="card hide" id="filecard" style="animation-delay:.08s">
+      <div class="ch"><div class="n">2</div><h3>편집할 파일 고르기</h3></div>
+      <p class="sub">체크한 파일들의 열을 <b>한 번에</b> 설정함. 같은 양식끼리는 자동으로 묶여 보임</p>
+      <div class="fbar" style="margin-bottom:8px">
+        <span class="lbl" id="fallk"><span class="ck" id="fall"></span>전체</span>
+        <span style="flex:1"></span>
+        <button class="btn xs ghost" id="addmore">+ 추가</button>
+        <button class="btn xs ghost" id="clearall">모두 빼기</button>
+      </div>
+      <div class="flist" id="flist"></div>
+    </div>
+  </section>
+
+  <!-- 가운데: 설정 · 미리보기 -->
+  <section class="pane mid">
+    <div class="card" style="animation-delay:.06s">
+      <div class="mhd">
+        <div class="mrow">
+          <div class="target" id="target">열 설정</div>
+          <span style="flex:1"></span>
+          <div class="seg" id="ctab" style="width:190px"><button data-v="cols" class="on">열 설정</button><button data-v="prev">미리보기</button></div>
+        </div>
+        <div class="mrow hide" id="ctl">
+          <div class="sheetctl">시트 <select id="sheet" style="max-width:150px"></select></div>
+          <div class="sheetctl">머리글 <input type="number" id="hrow" min="1" max="50" value="1">행</div>
+          <label class="lbl"><span class="sw" id="nohdr"></span>머리글 없음</label>
+          <span style="flex:1"></span>
+          <select id="picktype" style="width:auto" title="이 유형으로 감지된 열을 한꺼번에 고름"></select>
+          <button class="btn xs" id="autopick" title="개인정보로 보이는 열을 켬">자동 추천</button>
+          <button class="btn xs ghost" id="alloff">전부 끄기</button>
+        </div>
+      </div>
+      <div class="mbody" id="mbody">
+        <div class="empty" id="empty">
+          <div>
+            <div class="ill"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+            <h4>왼쪽에 파일을 올리면 시작함</h4>
+            <div>엑셀 / CSV 여러 개를 한 번에 올려도 됨. 같은 양식은 자동으로 묶임</div>
+            <div class="steps"><div><b>1</b>파일 올리기</div><div><b>2</b>가릴 열 고르기</div><div><b>3</b>실행 · 받기</div></div>
+          </div>
+        </div>
+        <div id="colview" class="hide"></div>
+        <div id="prevview" class="hide"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 오른쪽: 실행 -->
+  <section class="pane">
+    <div class="card" style="animation-delay:.1s">
+      <div class="ch"><div class="n">3</div><h3>실행 옵션</h3></div>
+      <div class="opt-row">
+        <div class="ot">같은 값으로 묶는 기준<small id="normtext">공백 차이·전각/반각·보이지 않는 문자를 무시하고 비교함</small></div>
+      </div>
+      <div class="seg" id="normseg" style="margin:2px 0 6px"><button data-v="0">끔</button><button data-v="1" class="on">기본</button><button data-v="2">강하게</button></div>
+      <div class="opt-row">
+        <div class="ot">문장 속 값도 치환<small>안 고른 열(비고 등)에 섞인 같은 값도 바꿈</small></div>
+        <span class="sw on" id="sweep"></span>
+      </div>
+      <button class="btn pri lg" id="run" style="margin-top:12px" disabled>
+        <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>마스킹 실행<span class="kbd">Ctrl+Enter</span></button>
+      <div class="prog" id="prog"><i></i></div>
+    </div>
+
+    <div class="card hide" id="rescard" style="animation-delay:.04s">
+      <div class="ch"><div class="n" style="background:linear-gradient(145deg,var(--ok),#25bfa6)">✓</div><h3>결과</h3></div>
+      <div class="stats" style="margin-bottom:10px">
+        <div class="st"><b id="s1">0</b><span>처리 행</span></div>
+        <div class="st"><b id="s2">0</b><span>바뀐 셀</span></div>
+        <div class="st"><b id="s3">0</b><span>매핑 값</span></div>
+        <div class="st"><b id="s4">0</b><span>기간 계산</span></div>
+        <div class="st"><b id="s5">0</b><span>삭제</span></div>
+        <div class="st"><b id="s6">0</b><span>이어쓴 코드</span></div>
+      </div>
+      <div id="scan"></div>
+      <div id="calcnote"></div>
+      <div class="dlist" id="dlist" style="margin-top:10px"></div>
+      <div class="warnbox" style="margin-top:10px"><b>매칭 파일은 원본 개인정보 그 자체임.</b> 밖으로 나가는 건 마스킹 파일만, 매칭 파일은 본인 PC에만 둘 것</div>
+    </div>
+  </section>
+</main>
+
+<!-- ═════════════ 복원 ═════════════ -->
+<main class="view" id="v-rest">
+  <section class="card">
+    <div class="ch"><div class="n">1</div><h3>되돌릴 파일 올리기</h3></div>
+    <p class="sub">마스킹된 채로 돌아온 결과 파일들과, 그때 받은 매칭 파일을 올리면 원래 값으로 되돌림</p>
+    <div class="drop" id="rdropA" style="margin-bottom:10px">
+      <div class="di"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+      <b>결과 파일 (여러 개 가능)</b><span id="rtextA">마스킹된 상태의 파일</span>
+    </div>
+    <input type="file" id="rfileA" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt" multiple>
+    <div class="drop" id="rdropB">
+      <div class="di"><svg class="i" viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg></div>
+      <b>매칭 파일</b><span id="rtextB">_mapping.xlsx / .csv</span>
+    </div>
+    <input type="file" id="rfileB" class="hide" accept=".xlsx,.xlsm,.xls,.csv">
+  </section>
+  <section class="card" style="animation-delay:.05s">
+    <div class="ch"><div class="n">2</div><h3>복원 실행</h3></div>
+    <div class="opt-row"><div class="ot">문장 속에 섞인 값도 찾아서 복원<small>“NAME_0001 님 확인” 같은 문장 안의 코드도 되돌림</small></div><span class="sw on" id="partial"></span></div>
+    <button class="btn pri lg" id="rrun" style="margin-top:12px" disabled><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>원래 값으로 되돌리기</button>
+    <div class="stats" style="margin:12px 0 10px">
+      <div class="st"><b id="r1">0</b><span>매핑 항목</span></div>
+      <div class="st"><b id="r2">0</b><span>복원된 셀</span></div>
+      <div class="st"><b id="r3">0</b><span>파일</span></div>
+    </div>
+    <div class="dlist" id="rlist"></div>
+  </section>
+</main>
+
+<!-- ═════════════ 사용법 ═════════════ -->
+<main class="view" id="v-help"><div class="hgrid" id="hgrid"></div></main>
 </div>
 
-<main>
-<!-- ══════════ 마스킹 ══════════ -->
-<section class="pane on" id="p-mask">
-
-  <div class="card" style="animation-delay:.02s">
-    <div class="hd"><div class="n">1</div><h3>파일 올리기</h3><div class="sp"></div><span class="badge" id="fbadge">대기 중</span></div>
-    <p class="sub">xlsx · xlsm · xls · csv 지원함. 파일은 브라우저 안에서만 처리되고 어디로도 안 나감</p>
-    <div class="drop" id="drop">
-      <div class="di"><svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V16"/></svg></div>
-      <b>여기로 파일 끌어다 놓거나 클릭</b>
-      <span id="dtext">엑셀 / CSV 파일 선택하면 자동으로 구조 읽음</span>
-    </div>
-    <input type="file" id="file" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt" multiple>
-    <div class="strip hide" id="strip"></div>
-    <div class="note mt hide" id="multinote">파일 <b id="mcount">2</b>개를 <b>하나의 코드 체계</b>로 같이 마스킹함 — 파일이 달라도 같은 값이면 같은 코드라 합쳐서 분석할 수 있음</div>
-  </div>
-
-  <div class="card dim" id="c2" style="animation-delay:.06s">
-    <div class="hd"><div class="n">2</div><h3>시트 · 헤더 설정</h3></div>
-    <p class="sub">헤더가 몇 번째 줄인지만 맞춰주면 됨. 나머지는 자동 인식함</p>
-    <div class="row">
-      <div class="fld" style="flex:2"><label>시트</label><select id="sheet"></select></div>
-      <div class="fld"><label>헤더 행 번호</label><input type="number" id="hrow" value="1" min="0" max="50"></div>
-      <div class="fld"><label>&nbsp;</label><label class="ck" style="padding:9px 0"><span class="sw" id="nohdr"></span> 헤더 없음</label></div>
-      <div class="fld" style="flex:1;min-width:auto"><label>&nbsp;</label><button class="btn" id="reload"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>다시 읽기</button></div>
-    </div>
-  </div>
-
-  <div class="card dim" id="c3" style="animation-delay:.1s">
-    <div class="hd"><div class="n">3</div><h3>마스킹할 열 고르기</h3><div class="sp"></div>
-      <button class="btn sm" id="autopick">자동 추천</button>
-      <button class="btn sm" id="clearpick" style="margin-left:6px">전체 해제</button>
-    </div>
-    <p class="sub"><b>형태유지</b>는 진짜 데이터처럼 · <b>토큰</b>은 NAME_0001 · <b>비식별형</b>은 숫자·@ 없이 문자만 써서 결과값이 개인정보 형식으로 보이지 않게 함 · <b>삭제</b>는 아예 없앰</p>
-    <div class="cols" id="cols"></div>
-  </div>
-
-  <div class="card dim" id="c4" style="animation-delay:.14s">
-    <div class="hd"><div class="n">4</div><h3>미리보기 · 행 선택</h3><div class="sp"></div>
-      <span class="badge" id="rowbadge">행 선택 0개</span>
-      <button class="btn sm" id="clearrow" style="margin-left:6px">행 해제</button>
-    </div>
-    <p class="sub">열 머리글 누르면 그 열 켜고 끔. 왼쪽 행 번호 누르면 그 행 <b>전체</b>가 마스킹 대상이 됨</p>
-    <div class="tw" id="tw"></div>
-    <div class="more" id="more"></div>
-    <div class="note mt" id="pnote"></div>
-  </div>
-
-  <div class="card dim" id="c5" style="animation-delay:.18s">
-    <div class="hd"><div class="n">5</div><h3>실행 · 내려받기</h3></div>
-    <p class="sub">같은 값은 <b>행이 달라도 열이 달라도 파일이 달라도</b> 항상 같은 코드로 바뀜 → 그대로 집계·조인 가능. <b>삭제</b>한 열은 매칭표에 안 들어감(복원 불가)</p>
-    <div id="dlp"></div>
-    <div class="stats" id="stats">
-      <div class="stat"><b id="s1">0</b><span>전체 행</span></div>
-      <div class="stat"><b id="s2">0</b><span>마스킹 대상 열</span></div>
-      <div class="stat"><b id="s3">0</b><span>바뀐 셀</span></div>
-      <div class="stat"><b id="s4">0</b><span>고유 매핑 값</span></div>
-      <div class="stat"><b id="s5">0</b><span>삭제된 셀</span></div>
-    </div>
-    <div class="book" id="normrow">
-      <div class="bi"><svg viewBox="0 0 24 24"><path d="M7 7h10M7 12h10M7 17h6"/><circle cx="19" cy="17" r="2.5"/></svg></div>
-      <div style="flex:1;min-width:190px">
-        <b>같은 값으로 묶는 기준</b>
-        <span id="normtext">표기가 조금 다른 값을 같은 값으로 볼지 정함</span>
-      </div>
-      <div class="seg" id="normseg" style="flex:0 0 auto;width:230px">
-        <button data-v="0">끔</button><button data-v="1" class="on">기본</button><button data-v="2">강하게</button>
-      </div>
-    </div>
-    <div class="book" id="bookrow">
-      <div class="bi"><svg viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 015.5 4H19v16H5.5A1.5 1.5 0 014 18.5z"/><path d="M8 8h7M8 12h7"/></svg></div>
-      <div style="flex:1;min-width:180px">
-        <b>코드북 이어쓰기 <span style="font-weight:500;color:var(--txt3)">(선택)</span></b>
-        <span id="booktext">이전에 받은 매칭 파일을 올리면 같은 값에 <b>같은 코드</b>를 다시 부여함 — 파일이 달라도 집계가 이어짐</span>
-      </div>
-      <button class="btn sm" id="bookbtn">매칭 파일 선택</button>
-      <button class="btn sm hide" id="bookclear">해제</button>
-    </div>
-    <input type="file" id="bookfile" class="hide" accept=".xlsx,.xlsm,.xls,.csv">
-    <div class="row" style="margin-bottom:14px">
-      <button class="btn pri lg" id="run"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>마스킹 실행</button>
-      <label class="ck" style="margin-left:6px"><span class="sw on" id="showmask"></span> 결과 미리보기로 보기</label>
-      <label class="ck" style="margin-left:6px" title="예: 비고 칸의 '홍길동 담당자 연락요' 같은 문장 속 이름도 같이 바꿈"><span class="sw on" id="sweep"></span> 안 고른 열의 문장 속에 섞인 값도 같이 치환</label>
-    </div>
-    <div class="prog" id="prog"><i></i></div>
-    <div class="dls mt" id="dls">
-      <button class="dl" id="dl1" disabled>
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
-        <div><b>마스킹 파일</b><span id="dl1n">업무용으로 쓸 파일</span></div>
-      </button>
-      <button class="dl g" id="dl2" disabled>
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg></div>
-        <div><b>매칭 파일 (매핑표)</b><span id="dl2n">원본 ↔ 마스킹 대응표</span></div>
-      </button>
-    </div>
-    <div class="note mt">⚠️ <b>매칭 파일은 원본 개인정보 그 자체임.</b> 외부로 나가는 건 마스킹 파일만, 매칭 파일은 본인 PC에만 두는 걸 권장함</div>
-  </div>
-</section>
-
-<!-- ══════════ 복원 ══════════ -->
-<section class="pane" id="p-rest">
-  <div class="card" style="animation-delay:.02s">
-    <div class="hd"><div class="n">1</div><h3>결과 파일 + 매칭 파일 올리기</h3></div>
-    <p class="sub">마스킹된 채로 돌아온 결과 파일에, 아까 받은 매칭 파일을 물려주면 원래 값으로 되돌림</p>
-    <div class="dls">
-      <div class="drop small" id="rdropA">
-        <div class="di"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
-        <b>결과 파일</b><span id="rtextA">마스킹된 상태의 파일</span>
-      </div>
-      <div class="drop small" id="rdropB">
-        <div class="di"><svg viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg></div>
-        <b>매칭 파일</b><span id="rtextB">_mapping.xlsx</span>
-      </div>
-    </div>
-    <input type="file" id="rfileA" class="hide" accept=".xlsx,.xlsm,.xls,.csv,.txt">
-    <input type="file" id="rfileB" class="hide" accept=".xlsx,.xlsm,.xls,.csv">
-  </div>
-
-  <div class="card" style="animation-delay:.06s">
-    <div class="hd"><div class="n">2</div><h3>복원 실행</h3></div>
-    <div class="row" style="margin-bottom:13px">
-      <button class="btn pri lg" id="rrun" disabled><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>원래 값으로 되돌리기</button>
-      <label class="ck" style="margin-left:6px"><span class="sw on" id="partial"></span> 문장 속에 섞인 값도 찾아서 복원</label>
-    </div>
-    <div class="stats">
-      <div class="stat"><b id="r1">0</b><span>매핑 항목</span></div>
-      <div class="stat"><b id="r2">0</b><span>복원된 셀</span></div>
-      <div class="stat"><b id="r3">0</b><span>처리한 시트</span></div>
-    </div>
-    <div class="tw hide mt" id="rtw"></div>
-    <div class="dls mt">
-      <button class="dl" id="rdl" disabled>
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
-        <div><b>복원 파일 내려받기</b><span>원래 값으로 되돌린 파일</span></div>
-      </button>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════ 사용법 ══════════ -->
-<section class="pane" id="p-help">
-  <div class="card">
-    <div class="hd"><div class="n">?</div><h3>3분 사용법</h3></div>
-    <div class="note" style="border-left-color:var(--acc2)">
-      <b>1.</b> 엑셀 올림 → <b>2.</b> 가릴 열 체크 (자동 추천 눌러도 됨) → <b>3.</b> 마스킹 실행 → <b>4.</b> 파일 2개 받음<br>
-      <b>5.</b> 마스킹 파일만 외부에 보냄 → <b>6.</b> 결과 돌아오면 [복원] 탭에서 매칭 파일 물려서 원복
-    </div>
-    <div class="note mt">
-      <b>◆ 형태유지 모드</b><br>
-      겉보기엔 진짜 데이터처럼 보이게 바꿈. 홍길동 → 서지우, 010-1234-5678 → 010-8471-2093, hong@abc.com → k7x2mq@abc.com<br>
-      자릿수·구분자·글자종류(한글/영문/숫자)를 그대로 유지해서, 받는 쪽 시스템이 형식 검증을 해도 안 걸림
-    </div>
-    <div class="note mt">
-      <b>◆ 토큰 모드</b><br>
-      NAME_0001, PHONE_0007 처럼 일련번호로 바꿈. 한눈에 가짜인 게 보여야 할 때 씀. 접두어는 열마다 직접 고칠 수 있음
-    </div>
-    <div class="note mt" style="border-left-color:var(--ok)">
-      <b>◆ 비식별형 모드 — 전화·주민·카드·계좌·이메일 기본값</b><br>
-      <code>PHONE-JTENHQ</code>, <code>RRN-DGILHR</code> 처럼 <b>숫자와 @ 를 하나도 쓰지 않음</b><br><br>
-      왜 필요하냐면, 형태유지로 바꾼 <code>010-8471-2093</code> 은 값만 가짜지 <b>형식은 여전히 전화번호</b>임.
-      개인정보를 형식으로 판별하는 시스템(사내 DLP, 업로드 검증, 외부 반출 심사 등)은 그 값이 진짜인지 가짜인지 알 방법이 없어서
-      가짜여도 똑같이 막음. 비식별형은 어떤 개인정보 형식과도 겹치지 않아서,
-      <b>결과 파일에 개인정보 형식이 없다는 걸 형식만으로 보일 수 있음</b><br><br>
-      일관성과 복원은 다른 모드와 완전히 동일함
-    </div>
-    <div class="note mt">
-      <b>◆ 개인정보 형식 점검</b><br>
-      마스킹 실행하면 결과 파일 전체를 훑어서 전화·주민·카드·계좌·이메일 <b>형식</b>으로 읽힐 수 있는 값이 남았는지 알려줌<br>
-      마스킹 대상으로 고르지 않은 열까지 전부 검사하므로, <b>가릴 열을 빠뜨린 경우를 잡아냄</b><br>
-      걸린 열은 [위 열 전부 비식별형으로 바꾸고 다시 실행] 버튼 한 번으로 정리됨
-    </div>
-    <div class="note mt" style="border-left-color:var(--bad)">
-      <b>◆ 삭제 모드</b><br>
-      값을 바꾸는 게 아니라 아예 없앰. 애초에 안 넘겨도 되는 열(주민번호·계좌번호·내부 메모 같은 것)에 씀<br>
-      기본은 완전 공란이고, 대체 문자 칸에 <b>●●●</b>나 <b>[삭제]</b>를 적으면 그 값으로 채움<br>
-      원본이 남지 않으므로 <b>매칭 파일에 기록되지 않고, 복원도 안 됨</b>. 정말 안 쓸 열에만 쓰는 게 맞음<br>
-      다른 열 문장 속에 섞여 있던 같은 값도 같이 지워짐
-    </div>
-    <div class="note mt">
-      <b>◆ 일관성 보장 — 통계가 되는 이유</b><br>
-      코드는 <b>값에만</b> 달려 있음. 같은 조직명이 [소속조직] 열에 있든 [발령조직] 열에 있든,
-      그 열이 '이름'으로 감지됐든 '일반 텍스트'로 감지됐든 <b>항상 같은 코드</b>를 받음<br>
-      그래서 마스킹 후에도 집계·피벗·중복제거·조인 결과가 원본과 똑같이 나옴<br>
-      반대로 서로 다른 원본값이 같은 코드로 겹치는 일은 절대 없음 → 복원이 100% 정확함<br><br>
-      한 값이 모드가 다른 여러 열에 걸쳐 있으면 <b>형식이 가장 강한 모드</b>를 따름 (비식별형 &gt; 토큰 &gt; 형태유지).
-      어느 한 열에서라도 개인정보 형식이 새어나가지 않게 하기 위함
-    </div>
-    <div class="note mt" style="border-left-color:var(--acc2)">
-      <b>◆ 파일 여러 개를 한 번에 — 합쳐서 분석하려면</b><br>
-      업로드할 때 파일을 <b>여러 개 선택</b>하거나, 올린 뒤 [+ 파일 추가]를 누르면 됨<br>
-      파일들은 <b>하나의 코드 체계</b>로 같이 마스킹됨 → 1월 파일의 <code>강북차량보상부</code>와
-      2월 파일의 <code>강북차량보상부</code>가 같은 코드를 받음<br>
-      결과는 <b>파일별 마스킹 파일 + 공통 매칭 파일 1개</b>로 나옴.
-      마스킹된 파일들을 그대로 합치거나 조인해서 분석에 넣으면 됨<br>
-      파일 탭의 ✕ 로 뺄 수 있고, 전부 빼면 처음 상태로 돌아감
-    </div>
-    <div class="note mt">
-      <b>◆ 같은 값으로 묶는 기준</b><br>
-      실무 데이터는 같은 대상인데 표기가 흔들림. 묶는 기준을 3단계로 고를 수 있음<br>
-      <b>끔</b> — 글자가 완전히 같아야 같은 값<br>
-      <b>기본</b>(권장) — 공백 차이와 전각/반각, 보이지 않는 문자를 무시.
-      <code>강북차량보상부</code> / <code>강북차량보상부␣</code> / <code>강북␣␣차량보상부</code> → 같은 코드<br>
-      <b>강하게</b> — 기본 + 괄호·점·하이픈 같은 기호와 영문 대소문자를 무시하고
-      <code>(주)가온</code> / <code>㈜가온</code> / <code>주식회사 가온</code> 도 같게 봄<br>
-      묶인 경우 실행 후 "표기 다른 값 N건 묶음"으로 알려줌. 복원하면 처음 만난 표기로 되돌아감
-    </div>
-    <div class="note mt" style="border-left-color:var(--ok)">
-      <b>◆ 코드북 이어쓰기 — 파일이 달라도 집계가 이어짐</b><br>
-      파일을 같이 올리지 못하고 <b>따로따로, 다른 날</b> 마스킹해야 할 때 씀.
-      코드는 실행할 때마다 새로 뽑히므로 그냥 하면 같은 조직이 다른 코드를 받음<br>
-      [실행·내려받기]의 <b>코드북 이어쓰기</b>에 <b>지난번 매칭 파일</b>을 올리면,
-      거기 있던 값은 같은 코드를 그대로 다시 씀. 새로 등장한 값만 새 코드를 받음<br>
-      새로 받는 매칭 파일에는 이번 파일 내용 + 이어쓴 코드북이 <b>합쳐져서</b> 나오므로,
-      매달 마지막 매칭 파일만 들고 다니면 코드가 계속 누적됨
-    </div>
-    <div class="note mt">
-      <b>◆ 행 마스킹</b><br>
-      특정 응답자 한 줄을 통째로 가려야 할 때 씀. 미리보기 표 왼쪽 행 번호를 누르면 그 행의 모든 셀이 대상이 됨
-    </div>
-    <div class="note mt">
-      <b>◆ 지원 유형</b><br>
-      이름 · 전화번호 · 이메일 · 주민등록번호 · 카드번호 · 계좌번호 · 주소 · 사번/ID · 숫자 · 날짜 · 일반 텍스트
-    </div>
-    <div class="note mt">
-      <b>◆ 오프라인</b><br>
-      이 HTML 파일 하나에 모든 게 들어있음. 인터넷 끊고 써도 되고, 파일을 USB에 넣어 다녀도 됨.
-      업로드한 파일은 브라우저 메모리에서만 처리되고 서버로 전송되는 코드 자체가 없음
-    </div>
-  </div>
-</section>
-</main>
 <div id="busy"><div class="bx"><div class="spin"></div><b id="busyt">처리 중</b><span id="busys"></span></div></div>
 <div id="toasts"></div>
 
@@ -607,7 +553,7 @@ const pick = a => a[rnd(a.length)];
 const pad = (n,w) => String(n).padStart(w,'0');
 const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const yieldNow = () => new Promise(r=>setTimeout(r,0));
-const nf = n => n.toLocaleString('ko-KR');
+const nf = n => Number(n).toLocaleString('ko-KR');
 
 /* ── 토스트 ── */
 function toast(msg,kind){
@@ -615,10 +561,10 @@ function toast(msg,kind){
   el.className='toast '+(kind||'');
   el.innerHTML='<i></i><span>'+esc(msg)+'</span>';
   $('#toasts').appendChild(el);
-  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350);},kind==='bad'?4600:2900);
+  while($('#toasts').children.length>2) $('#toasts').firstChild.remove();
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),320);},kind==='bad'?4800:3000);
 }
-
-/* ── 처리 중 오버레이 ── 화면에 실제로 그려진 뒤 무거운 작업을 시작해야 멈춘 것처럼 안 보임 */
+/* ── 처리 중 오버레이 — 화면에 그려진 다음 무거운 일을 시작해야 멈춘 것처럼 안 보임 ── */
 function busy(title,sub){
   $('#busyt').textContent=title; $('#busys').textContent=sub||'';
   $('#busy').classList.add('on');
@@ -630,18 +576,17 @@ function idle(){ $('#busy').classList.remove('on'); }
 const SUN='<path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M6.3 6.3L4.9 4.9M19.1 19.1l-1.4-1.4M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/><circle cx="12" cy="12" r="4"/>';
 const MOON='<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>';
 $('#theme').onclick=()=>{
-  const r=document.documentElement;
-  const light = r.getAttribute('data-theme')==='light';
-  r.setAttribute('data-theme', light?'dark':'light');
-  $('#ticon').innerHTML = light?MOON:SUN;
+  const r=document.documentElement, light=r.getAttribute('data-theme')==='light';
+  r.setAttribute('data-theme',light?'dark':'light');
+  $('#ticon').innerHTML=light?MOON:SUN;
+  try{ localStorage.setItem('ms-theme',light?'dark':'light'); }catch(e){}
 };
+try{ if(localStorage.getItem('ms-theme')==='light') $('#theme').click(); }catch(e){}
 
-/* ── 탭 ── */
+/* ── 상단 탭 ── */
 $$('.tab').forEach(t=>t.onclick=()=>{
-  $$('.tab').forEach(x=>x.classList.remove('on'));
-  $$('.pane').forEach(x=>x.classList.remove('on'));
-  t.classList.add('on'); $('#p-'+t.dataset.p).classList.add('on');
-  window.scrollTo({top:0,behavior:'smooth'});
+  $$('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  $$('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+t.dataset.v));
 });
 
 /* ── 버튼 물결 ── */
@@ -652,8 +597,121 @@ document.addEventListener('pointerdown',e=>{
   i.style.cssText='width:'+d+'px;height:'+d+'px;left:'+(e.clientX-r.left-d/2)+'px;top:'+(e.clientY-r.top-d/2)+'px';
   b.appendChild(i); setTimeout(()=>i.remove(),620);
 });
-/* ── 스위치 ── */
 function swBind(sel,fn){ const el=$(sel); el.onclick=()=>{ el.classList.toggle('on'); fn(el.classList.contains('on')); }; }
+
+/* ── 숫자 올라가는 애니메이션 ── */
+function countUp(el,to){
+  if(!el) return;
+  to=Math.max(0,Math.round(to)||0);
+  if(el._raf){ cancelAnimationFrame(el._raf); el._raf=0; }
+  const from=Math.max(0,parseInt(String(el.textContent).replace(/[^\d]/g,''),10)||0);
+  if(from===to){ el.textContent=nf(to); return; }
+  const t0=performance.now(), dur=480;
+  /* 무거운 작업 직후엔 rAF 시각이 t0보다 이를 수 있어 0~1로 묶어둠 */
+  const step=t=>{
+    const p=Math.min(1,Math.max(0,(t-t0)/dur)), e=1-Math.pow(1-p,3);
+    el.textContent=nf(Math.round(from+(to-from)*e));
+    el._raf=p<1?requestAnimationFrame(step):0;
+  };
+  el._raf=requestAnimationFrame(step);
+}
+
+/* ══════════ 기간 계산 ══════════
+   생년월일 같은 날짜는 그 자체가 개인정보임. 기준일과의 차이(만 나이·연령대·년·개월·일)로
+   바꾸면 분석에 필요한 정보는 남고 날짜는 사라짐. 결과는 숫자이므로 매칭표에 남지 않고 복원도 안 됨 */
+const TODAY=(()=>{ const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2); })();
+const UNITS={
+  age  :{label:'만 나이', tag:'만나이'},
+  band :{label:'연령대',  tag:'연령대'},
+  year :{label:'년',      tag:'경과 연수'},
+  month:{label:'개월',    tag:'경과 개월'},
+  day  :{label:'일',      tag:'경과 일수'}
+};
+function ymd(y,m,d){
+  if(!(m>=1&&m<=12&&d>=1&&d<=31)) return null;
+  const t=new Date(Date.UTC(y,m-1,d));
+  return t.getUTCMonth()===m-1 ? {y,m,d} : null;
+}
+/* 받는 형식: 2021-01-10 · 2021.1.10 · 2021/01/10 · 2021년 1월 10일 · 20210110 · 2021-01(1일로 봄)
+   · 900101(앞 두 자리로 세기 추정) · 주민등록번호 900101-1234567(뒷자리 첫 숫자로 세기 판별)
+   · 엑셀 날짜 일련번호 */
+function parseDateAny(v,refY){
+  if(v==null||v==='') return null;
+  if(typeof v==='number'){
+    if(Number.isInteger(v)&&v>=10000101&&v<=21001231) return ymd(Math.floor(v/10000),Math.floor(v/100)%100,v%100);
+    if(v>0&&v<80000){ const t=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);
+      return {y:t.getUTCFullYear(),m:t.getUTCMonth()+1,d:t.getUTCDate()}; }
+    return null;
+  }
+  const s=String(v).normalize('NFKC').trim();
+  let m;
+  if(s.replace(/\D/g,'').length===13 && (m=s.match(/^(\d{2})(\d{2})(\d{2})\s*-?\s*(\d)\d{6}$/))){
+    const g=+m[4], c=(g===1||g===2||g===5||g===6)?1900:(g===3||g===4||g===7||g===8)?2000:1800;
+    return ymd(c+(+m[1]),+m[2],+m[3]);
+  }
+  if((m=s.match(/^(\d{4})\s*[-./년]\s*(\d{1,2})\s*(?:[-./월]\s*(\d{1,2}))?/))) return ymd(+m[1],+m[2],m[3]?+m[3]:1);
+  if((m=s.match(/^(\d{4})(\d{2})(\d{2})$/))) return ymd(+m[1],+m[2],+m[3]);
+  if((m=s.match(/^(\d{2})(\d{2})(\d{2})$/))){ const yy=+m[1]; return ymd((yy<=refY%100?2000:1900)+yy,+m[2],+m[3]); }
+  return null;
+}
+const dcmp=(a,b)=>a.y-b.y||a.m-b.m||a.d-b.d;
+function fullYears(a,b){ let y=b.y-a.y; if(b.m<a.m||(b.m===a.m&&b.d<a.d)) y--; return y; }
+function fullMonths(a,b){ let n=(b.y-a.y)*12+(b.m-a.m); if(b.d<a.d) n--; return n; }
+/* 기준일 − 날짜. 날짜가 기준일보다 뒤면 음수 (예: 남은 기간) */
+function calcValue(D,R,unit){
+  if(unit==='day') return Math.round((Date.UTC(R.y,R.m-1,R.d)-Date.UTC(D.y,D.m-1,D.d))/86400000);
+  const neg=dcmp(D,R)>0, a=neg?R:D, b=neg?D:R, sg=neg?-1:1;
+  if(unit==='month') return sg*fullMonths(a,b);
+  const y=sg*fullYears(a,b);
+  if(unit==='band') return y<0?'':(y<10?'10세 미만':(Math.floor(y/10)*10)+'대');
+  return y;
+}
+function refDate(s){ const p=parseDateAny(s||TODAY,2000); return p||parseDateAny(TODAY,2000); }
+
+/* ══════════ ZIP 만들기 ══════════
+   여러 파일을 한 번에 받게 묶음. 내장 라이브러리의 ZIP은 한글 파일명을 깨뜨려서
+   파일명이 UTF-8임을 알리는 표시(0x0800)를 세운 ZIP을 직접 만듦.
+   압축은 브라우저 내장 기능(deflate-raw)을 쓰고, 없으면 무압축으로 담음 */
+const CRC_T=(()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(u8){ let c=0xFFFFFFFF; for(let i=0;i<u8.length;i++) c=CRC_T[(c^u8[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+async function deflateRaw(u8){
+  if(typeof CompressionStream==='undefined') return null;
+  try{ return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); }
+  catch(e){ return null; }
+}
+async function makeZip(files){
+  const enc=new TextEncoder(), now=new Date();
+  const dt=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF;
+  const dd=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+  const parts=[], cent=[]; let off=0;
+  for(const f of files){
+    const nm=enc.encode(f.name), data=f.data, crc=crc32(data);
+    let body=await deflateRaw(data), method=8;
+    if(!body||body.length>=data.length){ body=data; method=0; }
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true); lh.setUint16(8,method,true);
+    lh.setUint16(10,dt,true); lh.setUint16(12,dd,true); lh.setUint32(14,crc,true);
+    lh.setUint32(18,body.length,true); lh.setUint32(22,data.length,true); lh.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(lh.buffer),nm,body);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(8,0x0800,true);
+    ch.setUint16(10,method,true); ch.setUint16(12,dt,true); ch.setUint16(14,dd,true); ch.setUint32(16,crc,true);
+    ch.setUint32(20,body.length,true); ch.setUint32(24,data.length,true); ch.setUint16(28,nm.length,true); ch.setUint32(42,off,true);
+    cent.push(new Uint8Array(ch.buffer),nm);
+    off+=30+nm.length+body.length;
+  }
+  const csz=cent.reduce((n,p)=>n+p.length,0), end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true); end.setUint16(8,files.length,true); end.setUint16(10,files.length,true);
+  end.setUint32(12,csz,true); end.setUint32(16,off,true);
+  return new Blob(parts.concat(cent,[new Uint8Array(end.buffer)]),{type:'application/zip'});
+}
+function saveBlob(blob,name){
+  const u=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=u; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(u); },3000);
+}
+function stamp(){ const d=new Date(); return d.getFullYear()+pad(d.getMonth()+1,2)+pad(d.getDate(),2)+'_'+pad(d.getHours(),2)+pad(d.getMinutes(),2); }
 
 /* ══════════ 유형 정의 ══════════ */
 const TYPES={
@@ -672,7 +730,7 @@ const TYPES={
 const SENSITIVE=['name','phone','email','rrn','card','account','address','id'];
 /* 값 자체가 정해진 형식을 갖는 유형 — 형식 검사 시스템이 패턴으로 잡아내는 것들 */
 const PATTERNED=['phone','rrn','card','account','email'];
-const MODE_LABEL={shape:'형태유지',token:'토큰',safe:'비식별형',del:'삭제'};
+const MODE_LABEL={shape:'형태유지',token:'토큰',safe:'비식별형',calc:'기간 계산',del:'삭제'};
 
 /* ══════════ 값 묶기(정규화) ══════════
    실무 데이터는 같은 대상인데 표기가 조금씩 다름.
@@ -749,14 +807,6 @@ function csvToAoa(text){
   return {rows,w};
 }
 
-/* ══════════ 미리보기 상한 ══════════
-   미리보기는 어디까지나 "샘플"임. 수십·수백만 행짜리 파일을 화면에 다 그리면
-   DOM 노드만 수백만 개가 되어 브라우저가 멈춤. 행·열 양쪽에 상한을 둠.
-   화면에 몇 줄이 보이든 마스킹은 항상 전체 행에 적용됨 */
-const PREVIEW_ROWS0=20;    // 기본 샘플 행 수
-const PREVIEW_STEP=100;    // [더 보기] 한 번에 늘리는 행 수
-const PREVIEW_MAX=500;     // 아무리 늘려도 이 이상은 안 그림
-const PREVIEW_COLS=60;     // 열이 아주 많은 파일 대비 (설정 카드에는 전체 열이 다 나옴)
 
 /* ══════════ 한국 성씨 사전 (이름 판별 + 생성 양쪽에 씀) ══════════ */
 const SUR=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','전','홍','고','문','양','손','배','백','허','유','남','심','노','하','곽','성','차','주','우','구','민','유','진','지','엄','채','원','천','방','공','현','함','변','염','여','추','도','소','석','선','설','마','길','연','위','표','명','기','반','왕','금','옥','육','인','맹','제','모','남궁','선우','황보'];
@@ -1006,457 +1056,572 @@ function sheetToGrid(ws){
 }
 const colLetter = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=(i-m-1)/26; } return s; };
 
-/* ══════════ 상태 ══════════
-   S 의 문서 관련 필드는 "지금 보고 있는 파일"의 것이고, 전체 목록은 S.docs 에 있음.
-   파일을 바꿀 때 현재 값을 docs 에 저장하고(docSave) 다른 파일 값을 꺼내옴(docLoad).
-   마스킹은 docs 전체를 하나의 코드 체계로 한 번에 처리함 */
-const DOCF=['wb','raw','fname','isCsv','sheet','grid','cols','rows','headerRow','noHeader',
-            'previewRows','masked','size','file1'];
-const S={ docs:[], di:0,
-          wb:null, raw:null, fname:'', isCsv:false, sheet:'', grid:[], headerRow:0, noHeader:false,
-          cols:[], rows:new Set(), masked:null, previewRows:PREVIEW_ROWS0, size:0, file1:null,
-          records:[], showMask:true, sweep:true, dirty:false, norm:1,
-          file2:null, book:null, bookName:'' };
-function docSave(){ const d=S.docs[S.di]; if(d) for(const k of DOCF) d[k]=S[k]; }
-function docLoad(i){
-  const d=S.docs[i]; if(!d) return;
-  S.di=i; for(const k of DOCF) S[k]=d[k];
-  $('#sheet').innerHTML=d.wb.SheetNames.map(n=>'<option'+(n===d.sheet?' selected':'')+'>'+esc(n)+'</option>').join('');
-  $('#hrow').value=d.headerRow+1; $('#hrow').disabled=d.noHeader;
-  $('#nohdr').classList.toggle('on',d.noHeader);
-  renderStrip(); renderCols(); renderTable(); updateStats();
-}
-/* ── 파일 탭 ── */
-function renderStrip(){
-  const el=$('#strip');
-  if(S.docs.length<1){ el.classList.add('hide'); el.innerHTML=''; return; }
-  el.classList.remove('hide');
-  el.innerHTML=S.docs.map((d,i)=>
-      '<div class="fchip'+(i===S.di?' on':'')+'" data-i="'+i+'" title="'+esc(d.fname)+'">'
-      +'<span class="nm">'+esc(d.fname)+'</span>'
-      +'<span class="sz">'+Math.max(1,Math.round(d.size/1024))+'KB</span>'
-      +(S.docs.length>1?'<span class="x" data-x="'+i+'" title="이 파일 빼기">✕</span>':'')
-      +'</div>').join('')
-    +'<div class="fchip add" id="addfile">+ 파일 추가</div>';
-}
-$('#strip').addEventListener('click',e=>{
-  const x=e.target.closest('[data-x]');
-  if(x){ removeDoc(+x.dataset.x); return; }
-  if(e.target.closest('#addfile')){ $('#file').click(); return; }
-  const c=e.target.closest('.fchip[data-i]');
-  if(c){ const i=+c.dataset.i; if(i!==S.di){ docSave(); docLoad(i); } }
-});
-function multiNote(){
-  $('#multinote').classList.toggle('hide',S.docs.length<2);
-  $('#mcount').textContent=S.docs.length;
-}
-function removeDoc(i){
-  docSave(); S.docs.splice(i,1);
-  if(S.di>=i) S.di=Math.max(0,S.di-1);
-  lockDownloads();
-  if(!S.docs.length){ resetAll(); return toast('처음 상태로 돌아감','ok'); }
-  markDirty(); docLoad(S.di); multiNote();
-  toast('파일 뺌 · 남은 '+S.docs.length+'개','ok');
-}
-/* 파일을 전부 빼면 처음 화면으로 */
-function resetAll(){
-  S.docs=[]; S.di=0; S.grid=[]; S.cols=[]; S.rows=new Set(); S.masked=null; S.records=[];
-  S.wb=null; S.fname=''; S.sheet='';
-  $('#drop').classList.remove('has');
-  $('#dtext').textContent='엑셀 / CSV 파일 선택하면 자동으로 구조 읽음';
-  $('#fbadge').textContent='대기 중'; $('#fbadge').className='badge';
-  $('#cols').innerHTML=''; $('#tw').innerHTML=''; $('#more').innerHTML=''; $('#pnote').innerHTML='';
-  ['#c2','#c3','#c4','#c5'].forEach(x=>$(x).classList.add('dim'));
-  renderStrip(); multiNote(); updateStats(); renderDls(false);
+/* ══════════════════════════════════════════════════════════════
+   상태
+   · 파일(doc)마다 열 설정을 따로 가짐
+   · 왼쪽에서 체크한 파일들(S.sel)이 "편집 대상" — 가운데 목록은 그 파일들의 열을
+     이름으로 합쳐 보여주고, 바꾸면 같은 이름의 열에 전부 적용됨
+   · 마스킹은 올린 파일 전체를 하나의 코드 체계로 한 번에 처리
+   ══════════════════════════════════════════════════════════════ */
+const MIXED={};
+const BIRTH=/(생년월일|생일|출생일|출생년월일|birth|dob)/i;
+const MODES=['shape','token','safe','calc','del'];
+const MODE_SHORT={shape:'형태유지',token:'토큰',safe:'비식별',calc:'기간',del:'삭제'};
+const MODE_TINY={shape:'형태',token:'토큰',safe:'비식별',calc:'기간',del:'삭제'};
+const mlabel=m=>'<span class="l">'+MODE_SHORT[m]+'</span><span class="s">'+MODE_TINY[m]+'</span>';
+const MODE_TIP={shape:'진짜처럼 보이는 값으로 바꿈 (자릿수·형식 유지)',token:'NAME_0001 같은 일련번호',
+  safe:'숫자·@ 없이 문자만 → 개인정보 형식으로 안 읽힘',calc:'날짜 → 기준일까지의 만 나이·연령대·년·개월·일',del:'값을 아예 없앰'};
+const SHAPE_HINT={name:'홍길동 → 서지우',phone:'형식 유지 — 형식 검사엔 걸림',email:'형식 유지 — 형식 검사엔 걸림',
+  rrn:'형식 유지 — 형식 검사엔 걸림',card:'형식 유지 — 형식 검사엔 걸림',account:'형식 유지 — 형식 검사엔 걸림',
+  address:'다른 실제 주소 꼴로',id:'A1234 → K8302',number:'자릿수 유지',date:'연도 두고 월·일만 바꿈',text:'글자 종류 유지'};
+const PREV0=20, PREV_STEP=100, PREV_MAX=500, PREV_COLS=60;
+
+const S={ docs:[], sel:new Set(), focus:null, csel:new Set(), lastKey:null, view:'cols',
+  norm:1, sweep:true, book:null, bookNames:[], res:null, mapFile:null,
+  showMask:true, prevRows:PREV0, nextId:1, bulkUnit:'age', bulkRef:TODAY, _entries:[], _groups:[] };
+const byId=id=>S.docs.find(d=>d.id===id);
+const selDocs=()=>S.docs.filter(d=>S.sel.has(d.id));
+const startOf=d=>(d.noHeader?-1:d.headerRow)+1;
+
+/* ── 시트 읽기 (다시 읽어도 같은 이름 열의 설정은 유지) ── */
+function loadDocSheet(d){
+  const keep=new Map((d.cols||[]).map(c=>[c.key,c]));
+  const ws=d.wb.Sheets[d.sheet];
+  d.grid=ws?sheetToGrid(ws):[];
+  d.rows=new Set(); d.masked=null; d.fail=null; d.file=null;
+  const hr=d.noHeader?-1:d.headerRow, W=d.grid.length?d.grid[0].length:0, st=hr+1, seen={};
+  d.cols=[];
+  for(let c=0;c<W;c++){
+    const raw=hr>=0&&d.grid[hr]?String(d.grid[hr][c]==null?'':d.grid[hr][c]).trim():'';
+    const base=raw||(colLetter(c)+' 열');
+    seen[base]=(seen[base]||0)+1;
+    const key=seen[base]>1?base+' ('+seen[base]+')':base;
+    const vals=[];
+    for(let r=st;r<d.grid.length&&vals.length<260;r++){ const v=d.grid[r][c]; if(v!==''&&v!=null) vals.push(v); }
+    const t=detectType(hr>=0?raw:'',vals), birth=hr>=0&&BIRTH.test(raw);
+    /* 전화·주민·카드·계좌·이메일은 형태유지로 바꿔도 결과가 여전히 개인정보 "형식"이라 기본을 비식별로.
+       생년월일은 날짜 자체가 개인정보라 기본을 만 나이 계산으로 */
+    const col={key,idx:c,detected:t,type:t,birth,
+      mode:birth?'calc':(PATTERNED.includes(t)?'safe':'shape'),
+      on:birth||SENSITIVE.includes(t),
+      prefix:TYPES[t].prefix,blank:'',unit:'age',ref:TODAY,
+      sample:vals.slice(0,3).map(v=>String(v)).join(' · ')};
+    const k=keep.get(key);
+    if(k) for(const f of ['type','mode','on','prefix','blank','unit','ref']) col[f]=k[f];
+    d.cols.push(col);
+  }
+  d.sig=d.cols.map(c=>c.key).join('\u0001');
+  d.dataRows=Math.max(0,d.grid.length-st);
 }
 
-/* ══════════ 드롭존 ══════════ */
-function bindDrop(dropSel, inputSel, onFiles){
+/* ── 결과 무효화 — 설정이 바뀌면 이전 결과는 버림 ── */
+function invalidate(){
+  if(!S.res) return;
+  S.res=null; S.mapFile=null;
+  S.docs.forEach(d=>{ d.masked=null; d.file=null; d.fail=null; });
+  $('#rescard').classList.add('hide');
+}
+function changed(){ invalidate(); renderFiles(); renderTarget(); if(S.view==='cols') renderCols(); else renderPrev(); }
+
+/* ══════════ 파일 ══════════ */
+function bindDrop(dropSel,inputSel,onFiles){
   const d=$(dropSel), i=$(inputSel);
   d.onclick=()=>i.click();
   i.onchange=()=>{ if(i.files.length){ onFiles(i.files); i.value=''; } };
-  ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('over');}));
-  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('over');}));
+  ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{ e.preventDefault(); d.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{ e.preventDefault(); d.classList.remove('over'); }));
   d.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) onFiles(e.dataTransfer.files); });
 }
+bindDrop('#drop','#file',addFiles);
+$('#addmore').onclick=()=>$('#file').click();
 
-/* ══════════ 1) 업로드 ══════════ */
-bindDrop('#drop','#file',async list=>{
-  const files=Array.prototype.slice.call(list);
-  if(S.docs.length) docSave();
-  let added=0;
-  for(const file of files){
-    await busy('파일 읽는 중…', file.name+' · '+(file.size/1048576).toFixed(1)+'MB');
+async function addFiles(list){
+  const files=Array.prototype.slice.call(list), added=[];
+  for(const f of files){
+    await busy('파일 읽는 중…', f.name+' · '+(f.size/1048576).toFixed(1)+'MB');
     try{
-      const {wb,raw}=await readWorkbook(file);
-      if(!wb.SheetNames.length){ toast(file.name+' — 시트가 없음','bad'); continue; }
-      const doc={wb,raw,fname:file.name.replace(/\.[^.]+$/,''),isCsv:isCsvName(file.name),
-                 sheet:wb.SheetNames[0],headerRow:0,noHeader:false,grid:[],cols:[],rows:new Set(),
-                 previewRows:PREVIEW_ROWS0,masked:null,size:file.size,file1:null};
-      S.docs.push(doc); S.di=S.docs.length-1;
-      for(const k of DOCF) S[k]=doc[k];
-      loadSheet(true); docSave(); added++;
-    }catch(e){ console.error(e); toast(file.name+' — 열지 못함: '+e.message,'bad'); }
+      const {wb,raw}=await readWorkbook(f);
+      if(!wb.SheetNames.length){ toast(f.name+' — 시트가 없음','bad'); continue; }
+      const d={id:S.nextId++,name:f.name.replace(/\.[^.]+$/,''),isCsv:isCsvName(f.name),size:f.size,
+               wb,sheet:wb.SheetNames[0],headerRow:0,noHeader:false,cols:[]};
+      loadDocSheet(d);
+      S.docs.push(d); added.push(d);
+      if(raw) WK.preload(d.id,raw);   /* 다른 시트를 원본 그대로 보존하려고 저장용 빌더에도 올려둠 */
+    }catch(e){ console.error(e); toast(f.name+' — 열지 못함: '+e.message,'bad'); }
   }
   idle();
-  if(!added||!S.docs.length) return;
-  /* 다른 시트 보존이 필요한 xlsx만 저장용 빌더에 원본을 올려둠 */
-  S.docs.forEach((d,i)=>{ if(d.raw) WK.preload(i,d.raw); d.raw=null; });
-  $('#drop').classList.add('has');
-  $('#fbadge').textContent=S.docs.length>1?(S.docs.length+'개 불러옴'):'불러옴';
-  $('#fbadge').className='badge g';
-  $('#dtext').textContent=S.docs.map(d=>d.fname).join(' · ').slice(0,100);
-  ['#c2','#c3','#c4','#c5'].forEach(x=>$(x).classList.remove('dim'));
-  markDirty(); lockDownloads(); multiNote();
-  docLoad(S.docs.length-1);
-  toast(S.docs.length>1?('파일 '+S.docs.length+'개 · 같은 코드 체계로 함께 처리함'):'파일 읽음','ok');
-});
-
-/* ══════════ 2) 시트 / 헤더 ══════════ */
-function loadSheet(autoPick){
-  const ws=S.wb.Sheets[S.sheet];
-  S.grid=sheetToGrid(ws);
-  if(!S.grid.length){ toast('시트가 비어 있음','warn'); return; }
-  S.rows.clear(); S.masked=null; S.records=[]; S.dirty=false; S.previewRows=PREVIEW_ROWS0;
-  const hr=S.noHeader?-1:S.headerRow;
-  const width=S.grid[0].length;
-  const hdr=[];
-  for(let c=0;c<width;c++){
-    const raw = hr>=0 && S.grid[hr] ? String(S.grid[hr][c]||'').trim() : '';
-    hdr.push(raw || (colLetter(c)+' 열'));
-  }
-  const start=hr+1;
-  S.cols=hdr.map((name,c)=>{
-    const vals=[]; for(let r=start;r<S.grid.length&&vals.length<260;r++){ const v=S.grid[r][c]; if(v!==''&&v!=null) vals.push(v); }
-    const t=detectType(hr>=0?name:'', vals);
-    /* 전화·주민·카드·계좌·이메일은 형태유지로 바꿔도 결과가 여전히 개인정보 "형식"이라
-       형식 검사에 그대로 걸림 → 기본값을 비식별형으로 둠 */
-    return { idx:c, name, detected:t, type:t, mode:PATTERNED.includes(t)?'safe':'shape',
-             prefix:TYPES[t].prefix, blank:'', on:false,
-             sample:vals.slice(0,3).map(v=>String(v)).join(' · ') };
-  });
-  if(autoPick) S.cols.forEach(c=>{ if(SENSITIVE.includes(c.detected)) c.on=true; });
-  renderCols(); renderTable(); updateStats();
+  if(!added.length) return;
+  invalidate();
+  /* 새로 올린 파일 중 첫 파일과 같은 양식인 것들을 편집 대상으로 */
+  const sig=added[0].sig;
+  S.sel=new Set(added.filter(d=>d.sig===sig).map(d=>d.id));
+  S.focus=added[0].id; S.csel.clear(); S.prevRows=PREV0;
+  renderAll();
+  const kinds=new Set(added.map(d=>d.sig)).size;
+  toast(added.length>1
+    ? '파일 '+added.length+'개 · 양식 '+kinds+'종'+(kinds>1?' — 같은 양식끼리 묶여 있음':' — 전부 같은 양식이라 한 번에 설정됨')
+    : added[0].name+' 읽음 · '+nf(added[0].dataRows)+'행','ok');
 }
-async function reload(autoPick){ await busy('시트 읽는 중…',S.sheet); loadSheet(autoPick); docSave(); markDirty(); lockDownloads(); idle(); }
-$('#sheet').onchange=e=>{ S.sheet=e.target.value; reload(true); };
-$('#hrow').onchange=e=>{ S.headerRow=Math.max(0,(parseInt(e.target.value,10)||1)-1); reload(true); };
-swBind('#nohdr',v=>{ S.noHeader=v; $('#hrow').disabled=v; reload(true); });
-$('#reload').onclick=async()=>{ await reload(true); toast('다시 읽음','ok'); };
-
-/* ══════════ 3) 열 설정 UI ══════════ */
-function cardHTML(c,i){
-  const del=c.mode==='del', safe=c.mode==='safe';
-  const opts=Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(k===c.type?' selected':'')+'>'+TYPES[k].label+'</option>').join('');
-  const extra = (c.mode==='token'||safe)
-    ? '<input type="text" data-act="prefix" value="'+esc(c.prefix)+'" placeholder="'+(safe?'접두어 (문자만)':'토큰 접두어')+'">'
-    : del
-    ? '<input type="text" data-act="blank" value="'+esc(c.blank)+'" placeholder="대체 문자 — 비워두면 완전 공란">'
-    : '';
-  return '<div class="col'+(c.on?' on':'')+(del?' del':'')+(safe?' safe':'')+'" data-i="'+i+'">'
-    +'<div class="ct"><span class="sw'+(c.on?' on':'')+'" data-act="tog"></span>'
-    +'<span class="cn" title="'+esc(c.name)+'">'+esc(c.name)+'</span>'
-    +'<span class="badge'+(SENSITIVE.includes(c.detected)?' w':'')+'">'+TYPES[c.detected].label+'</span></div>'
-    +'<p class="cs">'+(c.sample?esc(c.sample):'<span style="opacity:.5">값 없음</span>')+'</p>'
-    +'<div class="cfg">'
-      +'<select data-act="type"'+(del?' disabled title="삭제 모드에선 유형이 필요 없음"':'')+'>'+opts+'</select>'
-      +'<div class="seg quad">'
-        +'<button data-act="mode" data-v="shape" class="'+(c.mode==='shape'?'on':'')+'" title="진짜 데이터처럼 보이는 값으로 치환">형태유지</button>'
-        +'<button data-act="mode" data-v="token" class="'+(c.mode==='token'?'on':'')+'" title="NAME_0001 식 일련번호">토큰</button>'
-        +'<button data-act="mode" data-v="safe" class="'+(safe?'on sf':'')+'" title="숫자·@ 를 쓰지 않아 결과값이 개인정보 형식과 겹치지 않음">비식별형</button>'
-        +'<button data-act="mode" data-v="del" class="'+(del?'on dl':'')+'" title="값을 아예 없앰">삭제</button>'
-      +'</div>'+extra
-    +'</div></div>';
+function removeDoc(id){
+  S.docs=S.docs.filter(d=>d.id!==id); S.sel.delete(id);
+  if(S.focus===id) S.focus=null;
+  if(!S.sel.size&&S.docs.length) S.sel.add(S.docs[0].id);
+  invalidate(); renderAll();
 }
-function renderCols(){ $('#cols').innerHTML=S.cols.map(cardHTML).join(''); }
-/* 카드 하나만 교체 — 전체를 다시 그리지 않음 */
-function renderCard(i){
-  const el=$('.col[data-i="'+i+'"]'); if(!el) return;
-  const t=document.createElement('template'); t.innerHTML=cardHTML(S.cols[i],i);
-  el.replaceWith(t.content.firstChild);
-}
-/* 켜고 끄기는 클래스만 바꿈 — 레이아웃 재계산 없음 */
-function paintCard(i){
-  const c=S.cols[i], el=$('.col[data-i="'+i+'"]'); if(!el) return;
-  el.classList.toggle('on',c.on);
-  el.classList.toggle('del',c.mode==='del');
-  el.classList.toggle('safe',c.mode==='safe');
-  el.querySelector('.sw').classList.toggle('on',c.on);
-}
-$('#cols').addEventListener('click',e=>{
-  const card=e.target.closest('.col'); if(!card) return;
-  const i=+card.dataset.i, c=S.cols[i], act=e.target.dataset.act;
-  if(act==='tog'||(!act&&e.target.closest('.ct'))){ c.on=!c.on; markDirty(); paintCard(i); paintCol(i); updateStats(); }
-  else if(act==='mode'){ c.mode=e.target.dataset.v; markDirty(); renderCard(i); paintCol(i); }
-});
-$('#cols').addEventListener('change',e=>{
-  const card=e.target.closest('.col'); if(!card) return;
-  const i=+card.dataset.i, c=S.cols[i], act=e.target.dataset.act;
-  if(act==='type'){ c.type=e.target.value; c.prefix=TYPES[c.type].prefix; markDirty(); renderCard(i); }
-  else if(act==='prefix'){ c.prefix=e.target.value.trim()||TYPES[c.type].prefix; markDirty(); }
-  else if(act==='blank'){ c.blank=e.target.value; markDirty(); }
-});
-$('#autopick').onclick=()=>{
-  let n=0; S.cols.forEach(c=>{ if(SENSITIVE.includes(c.detected)&&!c.on){c.on=true;n++;} });
-  markDirty(); renderCols(); repaintAllCols(); updateStats();
-  toast(n?('개인정보로 보이는 열 '+n+'개 켬'):'추가로 켤 만한 열이 없음', n?'ok':'warn');
+$('#clearall').onclick=()=>{
+  if(!S.docs.length) return;
+  if(!confirm('올린 파일 '+S.docs.length+'개를 모두 뺄까요?')) return;
+  S.docs=[]; S.sel.clear(); S.focus=null; S.csel.clear(); invalidate(); renderAll();
 };
-$('#clearpick').onclick=()=>{ S.cols.forEach(c=>c.on=false); markDirty(); renderCols(); repaintAllCols(); updateStats(); };
-$('#clearrow').onclick=()=>{ S.rows.clear(); markDirty(); $$('#tw tbody tr.rsel').forEach(t=>t.classList.remove('rsel')); rowBadge(); updateStats(); };
 
-/* ══════════ 4) 미리보기 표 ══════════
-   표는 파일/시트/마스킹 결과가 바뀔 때만 다시 그림.
-   열·행 켜고 끄기는 클래스만 갈아끼워서 레이아웃 재계산을 피함 */
-const MODE_CLS={del:' del',safe:' safe'};
-function colClass(c){ return c.on?('csel'+(MODE_CLS[c.mode]||'')):''; }
-function thClass(c){ return c.on?('sel'+(MODE_CLS[c.mode]||'')):''; }
-function thMark(c){ return c.on?(c.mode==='del'?' ✕':(c.mode==='safe'?' ✓':'')):''; }
-function rowBadge(){
-  $('#rowbadge').textContent='행 선택 '+S.rows.size+'개';
-  $('#rowbadge').className='badge'+(S.rows.size?' w':'');
+/* ── 같은 양식 묶음 ── */
+function groups(){
+  const m=new Map();
+  S.docs.forEach(d=>{ let g=m.get(d.sig); if(!g){ g=[]; m.set(d.sig,g); } g.push(d); });
+  return Array.from(m.values());
 }
-function renderTable(){
-  if(!S.grid.length){ $('#tw').innerHTML=''; $('#more').innerHTML=''; return; }
-  const hr=S.noHeader?-1:S.headerRow, start=hr+1;
-  const src=(S.showMask&&S.masked)?S.masked:S.grid;
-  const total=S.grid.length-start;
-  const shown=Math.min(total,S.previewRows,PREVIEW_MAX);
-  const end=start+shown;
-  const nc=Math.min(S.cols.length,PREVIEW_COLS);   // 화면에 그릴 열 수
+const letter=i=>String.fromCharCode(65+i%26)+(i>=26?Math.floor(i/26):'');
+function groupOf(d){ const gs=S._groups; for(let i=0;i<gs.length;i++) if(gs[i].includes(d)) return i; return 0; }
+
+function renderFiles(){
+  const has=S.docs.length>0;
+  $('#filecard').classList.toggle('hide',!has);
+  $('#fcount').textContent=S.docs.length+'개';
+  $('#run').disabled=!has;
+  const gs=S._groups=groups();
+  let h='';
+  gs.forEach((g,gi)=>{
+    const allSel=g.every(d=>S.sel.has(d.id)), L=letter(gi);
+    h+='<div class="fgrp" style="animation-delay:'+Math.min(gi*35,280)+'ms">';
+    if(g.length>1) h+='<div class="fgh"><span class="tag">'+L+'</span>같은 양식 '+g.length+'개 · 열 '+g[0].cols.length+'개'
+      +'<span class="sp"></span><button class="btn xs'+(allSel&&S.sel.size===g.length?' ghost':'')+'" data-g="'+gi+'">'
+      +(allSel&&S.sel.size===g.length?'편집 중':'묶어서 설정')+'</button></div>';
+    g.forEach(d=>{
+      const on=d.cols.filter(c=>c.on).length, s=S.sel.has(d.id);
+      h+='<div class="frow'+(s?' sel':'')+(S.focus===d.id?' focus':'')+'" data-id="'+d.id+'">'
+        +'<span class="ck'+(s?' on':'')+'" data-a="ck" title="편집 대상에 넣기/빼기"></span>'
+        +'<div class="fn"><b title="'+esc(d.name)+'">'+esc(d.name)+'</b>'
+        +'<span>'+(g.length>1?'':'양식 '+L+' · ')+nf(d.dataRows)+'행 · '+d.cols.length+'열 · 켠 열 '+on+'</span></div>'
+        +(d.masked?'<span class="bd g">완료</span>':'')
+        +'<span class="x" data-a="x" title="이 파일 빼기">✕</span></div>';
+    });
+    h+='</div>';
+  });
+  $('#flist').innerHTML=h;
+  const all=has&&S.docs.every(d=>S.sel.has(d.id));
+  $('#fall').className='ck'+(all?' on':(S.sel.size?' mix':''));
+}
+$('#flist').addEventListener('click',e=>{
+  const g=e.target.closest('[data-g]');
+  if(g){ const grp=S._groups[+g.dataset.g]; S.sel=new Set(grp.map(d=>d.id)); S.focus=grp[0].id; S.prevRows=PREV0; renderAll(); return; }
+  const row=e.target.closest('.frow'); if(!row) return;
+  const id=+row.dataset.id, a=e.target.closest('[data-a]'), act=a&&a.dataset.a;
+  if(act==='x'){ removeDoc(id); return; }
+  if(act==='ck'){
+    S.sel.has(id)?S.sel.delete(id):S.sel.add(id);
+    if(S.sel.has(id)) S.focus=id; else if(S.focus===id) S.focus=selDocs()[0]?selDocs()[0].id:null;
+  }else{ S.sel=new Set([id]); S.focus=id; }
+  S.prevRows=PREV0; renderAll();
+});
+$('#fallk').onclick=()=>{
+  const all=S.docs.length&&S.docs.every(d=>S.sel.has(d.id));
+  S.sel=all?new Set():new Set(S.docs.map(d=>d.id));
+  if(!all&&!S.focus&&S.docs[0]) S.focus=S.docs[0].id;
+  renderAll();
+};
+
+/* ══════════ 가운데 머리 ══════════ */
+function renderTarget(){
+  const ds=selDocs(), el=$('#target');
+  if(!S.docs.length){ el.innerHTML='열 설정'; return; }
+  if(!ds.length){ el.innerHTML='편집할 파일을 왼쪽에서 고르세요'; return; }
+  const kinds=new Set(ds.map(d=>d.sig)).size;
+  if(ds.length===1) el.innerHTML='<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ds[0].name)+'</span>'
+    +'<small>양식 '+letter(groupOf(ds[0]))+' · '+nf(ds[0].dataRows)+'행</small>';
+  else el.innerHTML='파일 '+ds.length+'개 함께 설정<small>'+(kinds===1?'같은 양식 — 한 번 바꾸면 전부 적용'
+    :'양식 '+kinds+'종 섞임 — 같은 이름 열끼리 함께 바뀜')+'</small>';
+}
+function renderCtl(){
+  const ds=selDocs(), on=ds.length>0;
+  $('#ctl').classList.toggle('hide',!on);
+  if(!on) return;
+  const f=byId(S.focus)&&S.sel.has(S.focus)?byId(S.focus):ds[0];
+  $('#sheet').innerHTML=f.wb.SheetNames.map(n=>'<option'+(n===f.sheet?' selected':'')+'>'+esc(n)+'</option>').join('');
+  $('#hrow').value=f.headerRow+1; $('#hrow').disabled=f.noHeader;
+  $('#nohdr').classList.toggle('on',f.noHeader);
+  const types=new Set(); (S._entries.length?S._entries:[]).forEach(e=>types.add(e.refs[0].c.detected));
+  $('#picktype').innerHTML='<option value="">유형으로 고르기…</option>'
+    +Object.keys(TYPES).filter(k=>types.has(k)).map(k=>'<option value="'+k+'">'+TYPES[k].label+'</option>').join('');
+}
+async function reloadSel(fn,msg){
+  const ds=selDocs(); if(!ds.length) return;
+  await busy('다시 읽는 중…',ds.length>1?'파일 '+ds.length+'개':ds[0].name);
+  let n=0; ds.forEach(d=>{ if(fn(d)!==false){ loadDocSheet(d); n++; } });
+  idle(); invalidate(); renderAll();
+  if(msg) toast(msg(n,ds.length),'ok');
+}
+$('#sheet').onchange=e=>{ const v=e.target.value;
+  reloadSel(d=>{ if(!d.wb.Sheets[v]) return false; d.sheet=v; },(n,t)=>n<t?('시트 "'+v+'"가 있는 파일 '+n+'/'+t+'개만 바꿈'):'시트 바꿈'); };
+$('#hrow').onchange=e=>{ const v=Math.max(0,(parseInt(e.target.value,10)||1)-1); reloadSel(d=>{ d.headerRow=v; }); };
+$('#nohdr').onclick=()=>{ const v=!$('#nohdr').classList.contains('on'); reloadSel(d=>{ d.noHeader=v; }); };
+$('#autopick').onclick=()=>{
+  let n=0; selDocs().forEach(d=>d.cols.forEach(c=>{ if((SENSITIVE.includes(c.detected)||c.birth)&&!c.on){ c.on=true; n++; } }));
+  changed(); toast(n?('개인정보로 보이는 열 '+n+'개 켬'):'더 켤 만한 열이 없음',n?'ok':'warn');
+};
+$('#alloff').onclick=()=>{ selDocs().forEach(d=>d.cols.forEach(c=>c.on=false)); changed(); };
+$('#picktype').onchange=e=>{
+  const t=e.target.value; if(!t) return;
+  S._entries.forEach(x=>{ if(x.refs[0].c.detected===t) S.csel.add(x.key); });
+  e.target.value=''; setView('cols'); renderCols();
+};
+
+/* ── 열 설정 / 미리보기 전환 ── */
+function setView(v){
+  S.view=v;
+  $$('#ctab button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('#colview').classList.toggle('hide',v!=='cols'||!S.docs.length);
+  $('#prevview').classList.toggle('hide',v!=='prev'||!S.docs.length);
+  if(v==='cols') renderCols(); else renderPrev();
+}
+$('#ctab').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setView(b.dataset.v); });
+
+/* ══════════ 열 목록 (여러 파일을 이름으로 합쳐서) ══════════ */
+function entries(){
+  const ds=selDocs().slice().sort((a,b)=>(a.id===S.focus?-1:0)-(b.id===S.focus?-1:0));
+  const map=new Map(), out=[];
+  ds.forEach(d=>d.cols.forEach(c=>{
+    let e=map.get(c.key); if(!e){ e={key:c.key,refs:[]}; map.set(c.key,e); out.push(e); }
+    e.refs.push({d,c});
+  }));
+  return out;
+}
+const pv=(e,f)=>{ const v=e.refs[0].c[f]; for(const r of e.refs) if(r.c[f]!==v) return MIXED; return v; };
+
+function optHTML(e,mode){
+  if(mode===MIXED) return '<span class="mix">파일마다 방식이 다름</span>';
+  const val=f=>{ const x=pv(e,f); return x===MIXED?'':x; };
+  const mixed=f=>pv(e,f)===MIXED;
+  if(mode==='token'||mode==='safe')
+    return '<input type="text" data-a="prefix" value="'+esc(val('prefix'))+'" placeholder="'+(mixed('prefix')?'혼합':'접두어')+'" title="'+(mode==='safe'?'접두어 — 숫자는 빼고 문자만 씀':'토큰 접두어')+'">';
+  if(mode==='del')
+    return '<input type="text" data-a="blank" value="'+esc(val('blank'))+'" placeholder="'+(mixed('blank')?'혼합':'비우면 공란 · 예: ●●●')+'">';
+  if(mode==='calc'){
+    const u=pv(e,'unit');
+    return '<select data-a="unit" title="계산 단위">'+(u===MIXED?'<option value="" selected>혼합</option>':'')
+      +Object.keys(UNITS).map(k=>'<option value="'+k+'"'+(k===u?' selected':'')+'>'+UNITS[k].label+'</option>').join('')+'</select>'
+      +'<input type="date" data-a="ref" value="'+esc(val('ref'))+'" title="기준일 — 이 날짜까지의 기간을 계산함">';
+  }
+  const t=pv(e,'type');
+  return '<span class="nomatch">'+esc(t===MIXED?'진짜처럼 보이는 값으로':(SHAPE_HINT[t]||''))+'</span>';
+}
+function rowHTML(e,n,i){
+  const c0=e.refs[0].c, mode=pv(e,'mode'), type=pv(e,'type');
+  const allOn=e.refs.every(r=>r.c.on), anyOn=e.refs.some(r=>r.c.on), sel=S.csel.has(e.key);
+  const mc=mode===MIXED?'var(--warn)':'var(--m-'+mode+')';
+  const tOpts=(type===MIXED?'<option value="" selected>혼합</option>':'')
+    +Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(k===type?' selected':'')+'>'+TYPES[k].label+'</option>').join('');
+  const where=e.refs.length<n?e.refs.length+'/'+n+'개 파일에 있음':(n>1?n+'개 파일 공통':'');
+  return '<div class="crow'+(sel?' sel':'')+(anyOn?' on':' off')+'" data-k="'+esc(e.key)+'" style="--mc:'+mc+';animation-delay:'+Math.min(i*10,260)+'ms">'
+    +'<span class="ck'+(sel?' on':'')+'" data-a="sel" title="여러 열 고르기 (Shift = 범위)"></span>'
+    +'<span class="sw'+(allOn?' on':(anyOn?' mix':''))+'" data-a="on" title="마스킹 켜기/끄기"></span>'
+    +'<div class="cn" title="'+esc(e.key)+(where?' — '+where:'')+'"><div class="nm"><span>'+esc(e.key)+'</span>'
+      +(e.refs.length<n?'<span class="bd w">'+e.refs.length+'/'+n+'</span>':'')+'</div>'
+      +'<small><span class="bd'+(SENSITIVE.includes(c0.detected)||c0.birth?' w':'')+'">'+(c0.birth?'생년월일':TYPES[c0.detected].label)+'</span>'
+      +'<span class="ex">'+esc(c0.sample||'값 없음')+'</span></small></div>'
+    +'<select class="ty" data-a="type"'+(mode==='del'||mode==='calc'?' disabled':'')+' title="유형 — 형태유지·토큰이 어떤 값을 만들지 정함">'+tOpts+'</select>'
+    +'<div class="seg mseg md">'+MODES.map(m=>'<button data-a="mode" data-v="'+m+'"'+(mode===m?' class="on"':'')
+      +' title="'+MODE_TIP[m]+'">'+mlabel(m)+'</button>').join('')+'</div>'
+    +'<div class="opt">'+optHTML(e,mode)+'</div></div>';
+}
+function bulkHTML(n){
+  const tOpts=Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k].label+'</option>').join('');
+  const uOpts=Object.keys(UNITS).map(k=>'<option value="'+k+'"'+(k===S.bulkUnit?' selected':'')+'>'+UNITS[k].label+'</option>').join('');
+  return '<div class="bulk"><span class="cnt">'+n+'개 선택</span>'
+    +'<button class="btn xs" data-b="on">켜기</button><button class="btn xs" data-b="off">끄기</button><span class="div"></span>'
+    +'<div class="seg mseg">'+MODES.map(m=>'<button data-b="mode" data-v="'+m+'" title="'+MODE_TIP[m]+'">'+mlabel(m)+'</button>').join('')+'</div>'
+    +'<span class="div"></span><select data-b="type" style="width:auto"><option value="">유형 바꾸기…</option>'+tOpts+'</select>'
+    +'<span class="grp">기간 <select data-b="unit" style="width:auto" title="기간 계산 단위">'+uOpts+'</select>'
+    +'기준일 <input type="date" data-b="ref" value="'+esc(S.bulkRef)+'" title="기간 계산 기준일"></span>'
+    +'<span style="flex:1"></span><button class="btn xs ghost" data-b="clear">선택 해제 <span style="opacity:.6">Esc</span></button></div>';
+}
+function renderCols(){
+  const el=$('#colview'), ds=selDocs();
+  if(!S.docs.length){ el.innerHTML=''; return; }
+  if(!ds.length){ S._entries=[];
+    el.innerHTML='<div class="empty"><div><h4>편집할 파일을 고르세요</h4><div>왼쪽 목록에서 파일을 누르거나 체크하면 됨</div></div></div>'; return; }
+  const es=S._entries=entries();
+  const keys=new Set(es.map(e=>e.key));
+  Array.from(S.csel).forEach(k=>{ if(!keys.has(k)) S.csel.delete(k); });
+  const all=es.length&&es.every(e=>S.csel.has(e.key));
+  let h=S.csel.size?bulkHTML(S.csel.size):'';
+  h+='<div class="chead"><span class="ck'+(all?' on':(S.csel.size?' mix':''))+'" data-a="selall" title="전체 선택"></span>'
+    +'<span>사용</span><span>열 이름 · 감지 · 예시</span><span>유형</span><span>방식</span><span>세부 설정</span></div>';
+  es.forEach((e,i)=>{ h+=rowHTML(e,ds.length,i); });
+  el.innerHTML=h;
+  const b=el.querySelector('.bulk');
+  el.style.setProperty('--bulkh',(b?b.offsetHeight:0)+'px');
+  renderCtl();
+}
+function setMode(refs,m){
+  refs.forEach(r=>{ r.c.mode=m; r.c.on=true;
+    if(m==='calc'){ r.c.unit=r.c.unit||S.bulkUnit; r.c.ref=r.c.ref||S.bulkRef; } });
+}
+const entryOf=k=>S._entries.find(x=>x.key===k);
+const selRefs=()=>S._entries.filter(e=>S.csel.has(e.key)).reduce((a,e)=>a.concat(e.refs),[]);
+function toggleSel(key,shift){
+  const keys=S._entries.map(e=>e.key);
+  if(shift&&S.lastKey!=null&&keys.includes(S.lastKey)){
+    const a=keys.indexOf(S.lastKey), b=keys.indexOf(key);
+    for(let i=Math.min(a,b);i<=Math.max(a,b);i++) S.csel.add(keys[i]);
+  }else S.csel.has(key)?S.csel.delete(key):S.csel.add(key);
+  S.lastKey=key; renderCols();
+}
+$('#colview').addEventListener('mousedown',e=>{ if(e.shiftKey&&e.target.closest('.crow')) e.preventDefault(); });
+$('#colview').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('[data-a="selall"]')){
+    const all=S._entries.every(x=>S.csel.has(x.key));
+    S.csel=all?new Set():new Set(S._entries.map(x=>x.key)); renderCols(); return;
+  }
+  const bb=t.closest('button[data-b]');
+  if(bb){
+    const b=bb.dataset.b, refs=selRefs();
+    if(b==='clear'){ S.csel.clear(); renderCols(); return; }
+    if(b==='on'||b==='off') refs.forEach(r=>r.c.on=b==='on');
+    if(b==='mode'){
+      setMode(refs,bb.dataset.v);
+      if(bb.dataset.v==='calc') refs.forEach(r=>{ r.c.unit=S.bulkUnit; r.c.ref=S.bulkRef; });
+    }
+    changed(); toast('열 '+S.csel.size+'개에 적용함','ok'); return;
+  }
+  if(t.closest('.bulk')) return;
+  const row=t.closest('.crow'); if(!row) return;
+  const ent=entryOf(row.dataset.k); if(!ent) return;
+  const a=t.closest('[data-a]'), act=a&&a.dataset.a;
+  if(act==='sel'){ toggleSel(ent.key,e.shiftKey); return; }
+  if(act==='on'){ const all=ent.refs.every(r=>r.c.on); ent.refs.forEach(r=>r.c.on=!all); changed(); return; }
+  if(act==='mode'){ setMode(ent.refs,a.dataset.v); changed(); return; }
+  if(t.closest('select,input,button')) return;
+  toggleSel(ent.key,e.shiftKey);               /* 빈 곳을 눌러도 선택됨 */
+});
+$('#colview').addEventListener('change',e=>{
+  const t=e.target, b=t.dataset.b, a=t.dataset.a;
+  if(b){
+    const refs=selRefs();
+    if(b==='type'){ if(!t.value) return; refs.forEach(r=>{ r.c.type=t.value; r.c.prefix=TYPES[t.value].prefix; }); }
+    else if(b==='unit'){ S.bulkUnit=t.value; refs.forEach(r=>{ if(r.c.mode==='calc') r.c.unit=t.value; }); }
+    else if(b==='ref'){ if(!t.value) return; S.bulkRef=t.value; refs.forEach(r=>{ if(r.c.mode==='calc') r.c.ref=t.value; }); }
+    changed(); return;
+  }
+  const row=t.closest('.crow'); if(!row||!a) return;
+  const ent=entryOf(row.dataset.k); if(!ent) return;
+  if(a==='type'){ if(!t.value) return; ent.refs.forEach(r=>{ r.c.type=t.value; r.c.prefix=TYPES[t.value].prefix; }); }
+  else if(a==='prefix'){ const v=t.value.trim(); ent.refs.forEach(r=>{ r.c.prefix=v||TYPES[r.c.type].prefix; }); }
+  else if(a==='blank') ent.refs.forEach(r=>{ r.c.blank=t.value; });
+  else if(a==='unit'){ if(!t.value) return; ent.refs.forEach(r=>{ r.c.unit=t.value; }); }
+  else if(a==='ref'){ if(!t.value) return; ent.refs.forEach(r=>{ r.c.ref=t.value; }); }
+  changed();
+});
+
+/* ══════════ 미리보기 (샘플 20행) ══════════
+   수십·수백만 행을 다 그리면 브라우저가 멈추므로 화면엔 샘플만. 처리는 항상 전체 행 */
+function renderPrev(){
+  const el=$('#prevview');
+  const pool=selDocs().length?selDocs():S.docs;
+  let d=byId(S.focus); if(!d||!pool.includes(d)) d=pool[0];
+  if(!d){ el.innerHTML=''; return; }
+  S.focus=d.id;
+  const st=startOf(d), total=Math.max(0,d.grid.length-st);
+  const shown=Math.min(total,S.prevRows,PREV_MAX), nc=Math.min(d.cols.length,PREV_COLS);
+  const showM=S.showMask&&d.masked, src=showM?d.masked:d.grid;
   const h=[];
-  h.push('<table><colgroup><col class="cr">');
+  h.push('<div class="ptool" style="padding:10px 14px;border-bottom:1px solid var(--ln)">');
+  h.push('<select id="pfile" style="max-width:240px">'+pool.map(x=>'<option value="'+x.id+'"'+(x===d?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>');
+  h.push('<div class="seg" id="pmode" style="width:150px"><button data-v="0"'+(!showM?' class="on"':'')+'>원본</button>'
+    +'<button data-v="1"'+(showM?' class="on"':'')+(d.masked?'':' disabled title="마스킹 실행 후 볼 수 있음"')+'>결과</button></div>');
+  h.push('<span style="flex:1"></span><span class="bd'+(d.rows.size?' w':'')+'">행 통째 마스킹 '+d.rows.size+'개</span>');
+  if(d.rows.size) h.push('<button class="btn xs ghost" id="prowclear">행 선택 해제</button>');
+  h.push('</div><div class="tw"><table><colgroup><col class="cr">');
   for(let i=0;i<nc;i++) h.push('<col>');
   h.push('</colgroup><thead><tr><th class="rh">#</th>');
-  for(let i=0;i<nc;i++){ const c=S.cols[i];
-    h.push('<th class="'+thClass(c)+'" data-c="'+i+'" title="'+esc(c.name)+' — 눌러서 켜고 끔">'+esc(c.name)+thMark(c)+'</th>'); }
+  for(let i=0;i<nc;i++){ const c=d.cols[i];
+    h.push('<th data-c="'+i+'"'+(c.on?' class="on" style="--mc:var(--m-'+c.mode+')"':'')+' title="'+esc(c.key)+' — 눌러서 켜고 끔">'+esc(c.key)+'</th>'); }
   h.push('</tr></thead><tbody>');
-  const cls=[]; for(let i=0;i<nc;i++) cls.push(colClass(S.cols[i]));
-  for(let r=start;r<end;r++){
-    h.push('<tr data-r="'+r+'"'+(S.rows.has(r)?' class="rsel"':'')+'><td class="rh" data-r="'+r+'" title="눌러서 이 행 전체 마스킹">'+(r+1)+'</td>');
-    const orow=S.grid[r], mrow=src[r];
+  const fail=d.fail;
+  for(let r=st;r<st+shown;r++){
+    h.push('<tr data-r="'+r+'"'+(d.rows.has(r)?' class="rsel"':'')+'><td class="rh" data-r="'+r+'" title="이 행 전체를 마스킹">'+(r+1)+'</td>');
+    const orow=d.grid[r], mrow=src[r];
     for(let c=0;c<nc;c++){
-      const v=mrow?mrow[c]:'';
-      const changed = S.masked && S.showMask && String(orow[c])!==String(S.masked[r][c]);
-      const k=cls[c]+(changed?(String(v)===''?' gone':' mk'):'');
-      h.push(k?'<td class="'+k.trim()+'">':'<td>', esc(v),'</td>');
+      const col=d.cols[c], v=mrow?mrow[c]:'';
+      let k=col.on||d.rows.has(r)?'on':'';
+      if(showM&&String(orow[c])!==String(d.masked[r][c])){
+        const isFail=fail&&fail.has(r*65536+c);
+        k+=String(v)===''?(isFail?' fail':' gone'):' mk';
+      }
+      h.push(k?'<td class="'+k.trim()+'"'+(k.indexOf('on')>=0?' style="--mc:var(--m-'+col.mode+')"':'')+'>':'<td>',esc(v),'</td>');
     }
     h.push('</tr>');
   }
-  h.push('</tbody></table>');
-  $('#tw').innerHTML=h.join('');
-
-  const canMore=shown<total && shown<PREVIEW_MAX;
-  $('#more').innerHTML = canMore
-    ? '<button class="btn sm" id="morebtn">+'+nf(Math.min(PREVIEW_STEP,total-shown,PREVIEW_MAX-shown))+'행 더 보기</button>'
-    : (shown<total ? '<span style="font-size:11.5px;color:var(--txt3)">미리보기는 '+nf(PREVIEW_MAX)+'행까지만 그림 — 나머지는 결과 파일에서 확인</span>' : '');
-  $('#pnote').innerHTML='<b>샘플 '+nf(shown)+'행</b>만 화면에 띄움 (전체 '+nf(total)+'행) · '
-    + '<b>마스킹은 화면에 안 보이는 행까지 전체에 적용됨</b>'
-    + (nc<S.cols.length?' · 열은 앞 '+nc+'개만 표시, 나머지 '+(S.cols.length-nc)+'개는 위 [마스킹할 열 고르기]에서 설정':'')
-    + (S.wb&&S.wb.SheetNames.length>1?' · 다른 시트 '+(S.wb.SheetNames.length-1)+'개는 원본 그대로 같이 저장됨':'');
-  rowBadge();
+  h.push('</tbody></table></div><div class="pnote"><span><b>샘플 '+nf(shown)+'행</b> / 전체 '+nf(total)+'행 · 마스킹은 전체 행에 적용됨'
+    +(nc<d.cols.length?' · 열은 앞 '+nc+'개만 표시':'')
+    +(d.wb.SheetNames.length>1?' · 다른 시트 '+(d.wb.SheetNames.length-1)+'개는 원본 그대로 저장됨':'')+'</span><span style="flex:1"></span>');
+  if(shown<total&&shown<PREV_MAX) h.push('<button class="btn xs" id="pmore">+'+nf(Math.min(PREV_STEP,total-shown,PREV_MAX-shown))+'행 더 보기</button>');
+  else if(shown<total) h.push('<span>미리보기는 '+nf(PREV_MAX)+'행까지</span>');
+  h.push('</div>');
+  el.innerHTML=h.join('');
 }
-/* 열 하나의 머리글 + 해당 열 셀만 클래스 교체 */
-function paintCol(i){
-  const c=S.cols[i];
-  const th=$('#tw thead th[data-c="'+i+'"]');
-  if(!th) return;
-  th.className=thClass(c);
-  th.textContent=c.name+thMark(c);
-  const base=colClass(c), rows=$('#tw tbody').children;
-  for(let r=0;r<rows.length;r++){
-    const td=rows[r].children[i+1]; if(!td) continue;
-    const keep=td.classList.contains('gone')?' gone':(td.classList.contains('mk')?' mk':'');
-    td.className=(base+keep).trim();
-  }
-}
-function repaintAllCols(){ for(let i=0;i<S.cols.length;i++) paintCol(i); }
-function paintRow(r){
-  const tr=$('#tw tbody tr[data-r="'+r+'"]');
-  if(tr) tr.classList.toggle('rsel',S.rows.has(r));
-}
-$('#tw').addEventListener('click',e=>{
-  const th=e.target.closest('th[data-c]');
-  if(th){ const i=+th.dataset.c; S.cols[i].on=!S.cols[i].on; markDirty(); paintCard(i); paintCol(i); updateStats(); return; }
-  const td=e.target.closest('td.rh');
-  if(td){ const r=+td.dataset.r; S.rows.has(r)?S.rows.delete(r):S.rows.add(r); markDirty(); paintRow(r); rowBadge(); updateStats(); }
+$('#prevview').addEventListener('change',e=>{
+  if(e.target.id==='pfile'){ S.focus=+e.target.value; S.prevRows=PREV0; renderFiles(); renderPrev(); }
 });
-$('#more').addEventListener('click',e=>{
-  if(!e.target.closest('#morebtn')) return;
-  S.previewRows=Math.min(S.previewRows+PREVIEW_STEP,PREVIEW_MAX); renderTable();
+$('#prevview').addEventListener('click',e=>{
+  const t=e.target, d=byId(S.focus); if(!d) return;
+  const pm=t.closest('#pmode button'); if(pm&&!pm.disabled){ S.showMask=pm.dataset.v==='1'; renderPrev(); return; }
+  if(t.closest('#pmore')){ S.prevRows=Math.min(S.prevRows+PREV_STEP,PREV_MAX); renderPrev(); return; }
+  if(t.closest('#prowclear')){ d.rows.clear(); changed(); return; }
+  const th=t.closest('th[data-c]');
+  if(th){ const key=d.cols[+th.dataset.c].key, ent=S.sel.has(d.id)?entries().find(x=>x.key===key):null;
+    const refs=ent?ent.refs:[{d,c:d.cols[+th.dataset.c]}], all=refs.every(r=>r.c.on);
+    refs.forEach(r=>r.c.on=!all); changed(); return; }
+  const td=t.closest('td.rh');
+  if(td){ const r=+td.dataset.r; d.rows.has(r)?d.rows.delete(r):d.rows.add(r); changed(); }
 });
-swBind('#showmask',v=>{ S.showMask=v; renderTable(); });
-swBind('#sweep',v=>{ S.sweep=v; markDirty(); });
 
-/* 마스킹 결과가 살아 있던 경우에만 표를 다시 그림 (그 외에는 클래스만 갈아끼움) */
-function markDirty(){
-  if(!S.records.length && !S.masked) return false;
-  S.dirty=true; lockDownloads(); renderTable(); return true;
-}
-function lockDownloads(){
-  S.file2=null; S.records=[];
-  S.docs.forEach(d=>{ d.file1=null; d.masked=null; });
-  S.masked=null;
-  renderDls(false);
-  $('#dlp').className='';
+function renderAll(){
+  const has=S.docs.length>0;
+  $('#empty').classList.toggle('hide',has);
+  renderFiles(); renderTarget();
+  if(S.view==='cols'){ $('#colview').classList.toggle('hide',!has); $('#prevview').classList.add('hide'); renderCols(); }
+  else { $('#prevview').classList.toggle('hide',!has); $('#colview').classList.add('hide'); renderPrev(); }
+  renderCtl();
 }
 
-/* ══════════ 통계 ══════════ */
-function countUp(el,to){
-  to=Math.max(0,Math.round(to)||0);
-  if(el._raf){ cancelAnimationFrame(el._raf); el._raf=0; }
-  const from=Math.max(0,parseInt(String(el.textContent).replace(/[^\d-]/g,''),10)||0);
-  if(from===to){ el.textContent=nf(to); return; }
-  const t0=performance.now(), dur=520;
-  /* 무거운 작업 직후엔 rAF 타임스탬프가 t0보다 이를 수 있어 p를 0~1로 묶어둬야 함 */
-  const step=t=>{
-    const p=Math.min(1,Math.max(0,(t-t0)/dur)), e=1-Math.pow(1-p,3);
-    el.textContent=nf(Math.round(from+(to-from)*e));
-    el._raf = p<1 ? requestAnimationFrame(step) : 0;
-  };
-  el._raf=requestAnimationFrame(step);
-}
-function updateStats(){
-  const start=(S.noHeader?-1:S.headerRow)+1;
-  countUp($('#s1'),Math.max(0,S.grid.length-start));
-  countUp($('#s2'),S.cols.filter(c=>c.on).length);
-}
+/* ══════════ 실행 옵션 ══════════ */
+const NORM_DESC=['글자가 완전히 같아야 같은 값으로 봄',
+  '공백 차이·전각/반각·보이지 않는 문자를 무시하고 비교함',
+  '기본 + 괄호·점·하이픈·영문 대소문자 무시, (주)/㈜/주식회사도 같게 봄'];
+$('#normseg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  S.norm=+b.dataset.v;
+  $$('#normseg button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#normtext').textContent=NORM_DESC[S.norm];
+  invalidate();
+});
+swBind('#sweep',v=>{ S.sweep=v; invalidate(); });
 
 /* ══════════ 마스킹 엔진 ══════════
-   · 같은 유형 + 같은 원본값 → 항상 같은 마스킹값 (일관성)
-   · 마스킹값은 파일 전체에서 유일 + 원본값과 절대 겹치지 않음 (복원 정확성)
-   ════════════════════════════════ */
-function progress(p){ const b=$('#prog'); b.classList.toggle('on',p>=0&&p<1); b.firstElementChild.style.width=(p*100)+'%'; }
+   · 코드는 "값"에만 달림 — 행·열·파일이 달라도 같은 값이면 같은 코드 (집계·조인 가능)
+   · 코드는 전체에서 유일하고 원본값과도 겹치지 않음 (복원이 정확함)
+   · 한 값이 모드가 다른 여러 열에 걸치면 형식이 가장 강한 모드를 따름 (비식별 > 토큰 > 형태유지)
+   · 기간 계산·삭제는 코드를 만들지 않음 (매칭표에 안 남고 복원 안 됨) */
+function progress(p){ const b=$('#prog'); b.classList.toggle('on',p>=0&&p<1); b.firstElementChild.style.width=(Math.max(0,p)*100)+'%'; }
 
 async function runMask(){
-  docSave();
   const docs=S.docs;
   if(!docs.length) return toast('파일부터 올려야 함','warn');
-  if(!docs.some(d=>d.cols.some(c=>c.on)||d.rows.size))
-    return toast('마스킹할 열이나 행을 하나는 골라야 함','warn');
-
-  const NL=S.norm;                                   // 값 묶기 단계 (0 끔 / 1 기본 / 2 강하게)
-  const startOf=d=>(d.noHeader?-1:d.headerRow)+1;
-  const targetOf=d=>((r,c)=>d.rows.has(r)||d.cols[c].on);
-
-  /* 1차: 값 단위 처리 계획 (파일 전체를 통틀어 한 번)
-     코드는 "값"에만 달림 — 행·열·파일이 달라도 같은 값이면 같은 코드.
-     한 값이 모드가 다른 여러 열에 걸쳐 있으면 형식이 가장 강한 모드를 따름 */
+  if(!docs.some(d=>d.cols.some(c=>c.on)||d.rows.size)) return toast('마스킹할 열을 하나는 켜야 함','warn');
+  const NL=S.norm, tgtOf=d=>((r,c)=>d.rows.has(r)||d.cols[c].on);
   const RANK={safe:2,token:1,shape:0};
-  const plan=new Map();        // 묶음키 -> {mode,type,prefix,col,rep}
-  const origSet=new Set();     // 원본값 전체 (코드가 원본과 겹치지 않게)
-  const variants=new Map();    // 묶음키 -> 표기 변형 개수
+  const plan=new Map(), origSet=new Set(), variants=new Map();
+  let totalRows=0;
+
+  /* 1차: 값 단위 계획 */
   for(const d of docs){
-    const st=startOf(d), tgt=targetOf(d);
+    const st=startOf(d), tgt=tgtOf(d); totalRows+=Math.max(0,d.grid.length-st);
     for(let r=st;r<d.grid.length;r++){
+      const row=d.grid[r];
       for(let c=0;c<d.cols.length;c++){
-        const v=d.grid[r][c];
-        if(v===''||v==null||!tgt(r,c)) continue;
+        const v=row[c]; if(v===''||v==null||!tgt(r,c)) continue;
         const raw=String(v); origSet.add(raw);
         const col=d.cols[c];
-        if(col.mode==='del') continue;            // 삭제는 코드를 만들지 않음
+        if(col.mode==='del'||col.mode==='calc') continue;
         const k=normKey(raw,NL);
         let vs=variants.get(k); if(!vs){ vs=new Set(); variants.set(k,vs); } vs.add(raw);
-        const cur=plan.get(k);
-        if(!cur) plan.set(k,{mode:col.mode,type:col.type,prefix:col.prefix,col:col.name,rep:raw});
-        else if(RANK[col.mode]>RANK[cur.mode]){
-          cur.mode=col.mode; cur.type=col.type; cur.prefix=col.prefix; cur.col=col.name;
-        }
+        const p=plan.get(k);
+        if(!p) plan.set(k,{mode:col.mode,type:col.type,prefix:col.prefix,col:col.key,file:d.name,rep:raw});
+        else if(RANK[col.mode]>RANK[p.mode]){ p.mode=col.mode; p.type=col.type; p.prefix=col.prefix; p.col=col.key; }
       }
       if((r-st)%6000===5999) await yieldNow();
     }
   }
 
-  const dict=new Map();        // 묶음키 -> 코드
-  const rawCode=new Map();     // 실제 등장한 원본값 -> 코드 (문장 속 치환용)
-  const used=new Set();
-  const seq={};
-  const recs=[];
-  const delRep=new Map();
-  let cells=0, dels=0, reused=0, swept=0;
-
-  /* 코드북을 이어쓰면 그 코드를 먼저 선점하고, 같은 기준으로 묶어서 찾음 */
+  const dict=new Map(), rawCode=new Map(), used=new Set(), seq={}, recs=[], delRep=new Map(), calcRep=new Map();
+  let cells=0, dels=0, reused=0, swept=0, calcN=0, calcFail=0; const failSamples=[];
   let bookN=null;
-  if(S.book){
-    bookN=new Map();
-    S.book.forEach((m,o)=>{ used.add(m); const k=normKey(o,NL); if(!bookN.has(k)) bookN.set(k,m); });
-  }
+  if(S.book){ bookN=new Map(); S.book.forEach((m,o)=>{ used.add(m); const k=normKey(o,NL); if(!bookN.has(k)) bookN.set(k,m); }); }
 
-  function makeByKey(k){
-    let v=dict.get(k);
-    if(v!==undefined) return v;
-    const d=plan.get(k)||{mode:'shape',type:'text',prefix:'TXT',col:'',rep:k};
+  function code(k){
+    let v=dict.get(k); if(v!==undefined) return v;
+    const p=plan.get(k)||{mode:'shape',type:'text',prefix:'TXT',col:'',file:'',rep:k};
     const carried=bookN?bookN.get(k):undefined;
-    if(carried!==undefined){ v=carried; reused++; }
-    else if(d.mode==='safe'){
-      const p=safePrefix(d.prefix,d.type);
-      do{ v=p+'-'+genSafeBody(); }while(used.has(v)||origSet.has(v));
-    }else if(d.mode==='token'){
-      const p=d.prefix||TYPES[d.type].prefix;
-      seq[p]=(seq[p]||0)+1;
-      v=p+'_'+pad(seq[p],4);
-      while(used.has(v)||origSet.has(v)){ seq[p]++; v=p+'_'+pad(seq[p],4); }
-    }else{
-      const g=GEN[d.type]||genShape, src=d.rep;
-      let n=0; do{ v=g(src); n++; }while((used.has(v)||origSet.has(v)||v===src)&&n<60);
-      if(used.has(v)||origSet.has(v)||v===src){
-        let j=2, base=v; do{ v=base+'#'+j++; }while(used.has(v)||origSet.has(v));
-      }
-    }
+    if(carried!==undefined){ v=carried; reused++; }               /* 이전 매칭 파일에 있던 값 — 같은 코드 그대로 */
+    else if(p.mode==='safe'){ const pre=safePrefix(p.prefix,p.type); do{ v=pre+'-'+genSafeBody(); }while(used.has(v)||origSet.has(v)); }
+    else if(p.mode==='token'){ const pre=p.prefix||TYPES[p.type].prefix; seq[pre]=(seq[pre]||0)+1; v=pre+'_'+pad(seq[pre],4);
+      while(used.has(v)||origSet.has(v)){ seq[pre]++; v=pre+'_'+pad(seq[pre],4); } }
+    else{ const g=GEN[p.type]||genShape, src=p.rep; let n=0;
+      do{ v=g(src); n++; }while((used.has(v)||origSet.has(v)||v===src)&&n<60);
+      if(used.has(v)||origSet.has(v)||v===src){ let j=2; const base=v; do{ v=base+'#'+j++; }while(used.has(v)||origSet.has(v)); } }
     used.add(v); dict.set(k,v);
-    recs.push({orig:d.rep, masked:v, type:TYPES[d.type].label, col:d.col});
+    recs.push({orig:p.rep,masked:v,type:TYPES[p.type].label,col:p.col,file:p.file});
     return v;
   }
 
-  const t0=performance.now();
-  let doneRows=0, totalRows=0;
-  docs.forEach(d=>{ totalRows+=Math.max(0,d.grid.length-startOf(d)); });
-
   /* 2차: 치환 */
+  const t0=performance.now(); let done=0;
+  const refCache=new Map(), REF=s=>{ let R=refCache.get(s); if(!R){ R=refDate(s); refCache.set(s,R); } return R; };
   for(const d of docs){
-    const st=startOf(d), tgt=targetOf(d);
-    const masked=d.grid.map(row=>row.slice());
+    const st=startOf(d), tgt=tgtOf(d), masked=d.grid.map(row=>row.slice());
+    d.fail=new Set();
+    /* 기간 계산 열은 머리글에 무엇으로 바꿨는지 적어둠 (분석할 때 헷갈리지 않게) */
+    if(!d.noHeader&&masked[d.headerRow]) d.cols.forEach((col,c)=>{
+      if(col.on&&col.mode==='calc') masked[d.headerRow][c]=col.key+'('+UNITS[col.unit].tag+'·기준 '+col.ref+')'; });
     for(let r=st;r<d.grid.length;r++){
+      const row=d.grid[r], out=masked[r];
       for(let c=0;c<d.cols.length;c++){
-        const v=d.grid[r][c];
-        if(v===''||v==null||!tgt(r,c)) continue;
+        const v=row[c]; if(v===''||v==null||!tgt(r,c)) continue;
         const col=d.cols[c], raw=String(v);
-        if(col.mode==='del'){                      // 삭제 — 대체 문자로 없앰
-          const b=col.blank||'';
-          if(raw!==b){ masked[r][c]=b; cells++; dels++; }
-          if(raw.length>=2) delRep.set(raw,b);
+        /* 문장 속 치환은 "열 단위로 켠" 값만 퍼뜨림. 행 통째 마스킹으로 잡힌 평범한 값(부서명 등)이
+           다른 행까지 번지면 안 되므로 */
+        const spread=col.on;
+        if(col.mode==='calc'){
+          const R=REF(col.ref), D=parseDateAny(v,R.y);
+          if(!D){ out[c]=''; d.fail.add(r*65536+c); calcFail++; if(failSamples.length<4) failSamples.push(raw); continue; }
+          const x=calcValue(D,R,col.unit); out[c]=x; calcN++; cells++;
+          if(spread&&raw.length>=6&&!/^-?[\d,.]+$/.test(raw)) calcRep.set(raw,String(x));
           continue;
         }
-        const k=normKey(raw,NL), mv=makeByKey(k), pd=plan.get(k);
-        rawCode.set(raw,mv);
-        masked[r][c]=(pd && pd.type==='number' && typeof v==='number' && /^-?[\d.]+$/.test(mv)) ? Number(mv) : mv;
+        if(col.mode==='del'){
+          const b=col.blank||''; if(raw!==b){ out[c]=b; cells++; dels++; }
+          if(spread&&raw.length>=2) delRep.set(raw,b); continue;
+        }
+        const k=normKey(raw,NL), mv=code(k), p=plan.get(k);
+        if(spread) rawCode.set(raw,mv);
+        out[c]=(p&&p.type==='number'&&typeof v==='number'&&/^-?[\d.]+$/.test(mv))?Number(mv):mv;
         cells++;
       }
-      if(++doneRows%3000===0){ progress(doneRows/totalRows); await yieldNow(); }
+      if(++done%3000===0){ progress(done/totalRows); await yieldNow(); }
     }
     d.masked=masked;
   }
 
-  /* 3차: 고르지 않은 열의 문장 속에 섞인 값도 함께 치환 */
-  if(S.sweep && (rawCode.size || delRep.size)){
+  /* 3차: 고르지 않은 열(비고 등) 문장 속에 섞인 값도 함께 치환 */
+  if(S.sweep&&(rawCode.size||delRep.size||calcRep.size)){
     const rep=new Map();
-    rawCode.forEach((code,raw)=>{ if(raw.length>=2 && !/^-?[\d,.]+$/.test(raw)) rep.set(raw,code); });
-    delRep.forEach((b,o)=>{ if(o.length>=2 && !/^-?[\d,.]+$/.test(o) && !rep.has(o)) rep.set(o,b); });
-    if(rep.size>8000){ toast('매핑이 너무 많아서 문장 속 치환은 건너뜀','warn'); }
+    rawCode.forEach((m,raw)=>{ if(raw.length>=2&&!/^-?[\d,.]+$/.test(raw)) rep.set(raw,m); });
+    [delRep,calcRep].forEach(src=>src.forEach((b,o)=>{ if(o.length>=2&&!/^-?[\d,.]+$/.test(o)&&!rep.has(o)) rep.set(o,b); }));
+    if(rep.size>8000) toast('바꿀 값이 너무 많아 문장 속 치환은 건너뜀','warn');
     else if(rep.size){
-      const keys=Array.from(rep.keys()).sort((a,b)=>b.length-a.length);
       let re=null;
-      try{ re=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){ re=null; }
+      try{ re=new RegExp(Array.from(rep.keys()).sort((a,b)=>b.length-a.length)
+        .map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){ re=null; }
       if(re) for(const d of docs){
-        const st=startOf(d), tgt=targetOf(d), masked=d.masked;
+        const st=startOf(d), tgt=tgtOf(d);
         for(let r=st;r<d.grid.length;r++){
           for(let c=0;c<d.cols.length;c++){
             if(tgt(r,c)) continue;
-            const v=d.grid[r][c];
-            if(typeof v!=='string'||v.length<2) continue;
-            re.lastIndex=0; if(!re.test(v)) continue;
-            re.lastIndex=0;
-            const nv=v.replace(re,x=>rep.get(x)||x);
-            if(nv!==v){ masked[r][c]=nv; swept++; }
+            const v=d.grid[r][c]; if(typeof v!=='string'||v.length<2) continue;
+            re.lastIndex=0; if(!re.test(v)) continue; re.lastIndex=0;
+            const nv=v.replace(re,x=>rep.has(x)?rep.get(x):x);
+            if(nv!==v){ d.masked[r][c]=nv; swept++; }
           }
           if((r-st)%4000===3999) await yieldNow();
         }
@@ -1465,279 +1630,237 @@ async function runMask(){
   }
   cells+=swept;
 
-  /* 4차: 결과에 개인정보 형식이 남았는지 점검 (고르지 않은 열까지 전부) */
-  const piiCnt=new Array(PII.length).fill(0);
-  const piiByCol=new Map();          // 'di|ci' -> {n,kinds,di,ci}
-  let piiTotal=0;
+  /* 4차: 결과에 개인정보 "형식"이 남았는지 점검 (고르지 않은 열까지 전부) */
+  const piiCnt=new Array(PII.length).fill(0), piiBy=new Map(); let piiTotal=0;
   piiCacheReset();
-  for(let di=0;di<docs.length;di++){
-    const d=docs[di], st=startOf(d);
+  for(const d of docs){
+    const st=startOf(d);
     for(let r=st;r<d.grid.length;r++){
-      const mrow=d.masked[r];
+      const row=d.masked[r];
       for(let c=0;c<d.cols.length;c++){
-        const v=mrow[c]; let str;
-        if(typeof v==='string') str=v;
-        else if(typeof v==='number' && Math.abs(v)>=1e9) str=String(v);
-        else continue;
-        const k=piiHit(str);
-        if(k<0) continue;
+        const v=row[c]; let s;
+        if(typeof v==='string') s=v; else if(typeof v==='number'&&Math.abs(v)>=1e9) s=String(v); else continue;
+        const k=piiHit(s); if(k<0) continue;
         piiCnt[k]++; piiTotal++;
-        const key=di+'|'+c;
-        let e=piiByCol.get(key);
-        if(!e){ e={n:0,kinds:new Set(),di:di,ci:c}; piiByCol.set(key,e); }
+        const key=d.id+'|'+c; let e=piiBy.get(key);
+        if(!e){ e={n:0,kinds:new Set(),d,c}; piiBy.set(key,e); }
         e.n++; e.kinds.add(k);
       }
       if((r-st)%6000===5999) await yieldNow();
     }
   }
-  renderPII(piiCnt,piiByCol,piiTotal);
 
   let merged=0; variants.forEach(vs=>{ if(vs.size>1) merged++; });
   progress(1); setTimeout(()=>progress(-1),400);
-
-  S.records=recs; S.dirty=false;
-  docLoad(S.di);                      // 지금 보고 있는 파일 화면 갱신
-  countUp($('#s1'),totalRows);
-  countUp($('#s2'),docs.reduce((n,d)=>n+d.cols.filter(c=>c.on).length,0));
-  countUp($('#s3'),cells); countUp($('#s4'),recs.length); countUp($('#s5'),dels);
-  renderDls(true);
-  prebuild();
-  toast('완료 · 셀 '+nf(cells)+'개'
-    +(docs.length>1?' · 파일 '+docs.length+'개 공통 코드':'')
-    +(merged?' · 표기 다른 값 '+nf(merged)+'건 묶음':'')
-    +(dels?' · 삭제 '+nf(dels):'')
-    +(reused?' · 코드북 '+nf(reused):'')
-    +' · '+Math.round(performance.now()-t0)+'ms','ok');
+  S.res={records:recs,totalRows,cells,dels,reused,swept,calcN,calcFail,failSamples,merged,
+         pii:{cnt:piiCnt,by:piiBy,total:piiTotal},ms:Math.round(performance.now()-t0)};
+  renderResult(); prebuild(); renderFiles();
+  if(S.view==='prev'){ S.showMask=true; renderPrev(); }
+  toast('완료 · 셀 '+nf(cells)+'개'+(docs.length>1?' · 파일 '+docs.length+'개 공통 코드':'')
+    +(merged?' · 표기 다른 값 '+nf(merged)+'건 묶음':'')+(calcN?' · 기간 계산 '+nf(calcN):'')
+    +(reused?' · 이어쓴 코드 '+nf(reused):'')+' · '+S.res.ms+'ms','ok');
 }
-/* ══════════ 개인정보 형식 점검 결과 ══════════ */
-let PII_FLAGS=[];
-function renderPII(cnt,byCol,total){
-  const el=$('#dlp'), multi=S.docs.length>1;
-  PII_FLAGS=[];
-  if(!total){
-    el.className='on clean';
-    el.innerHTML='<div class="t"><i></i>결과 파일에 개인정보 형식의 값이 남아 있지 않음</div>'
-      +'<div style="font-size:12.5px;color:var(--txt2)">전화번호·주민등록번호·카드번호·계좌번호·이메일 형식으로 읽힐 수 있는 값이 하나도 없음. '
-      +'형식만 보고 판단하는 검사에는 걸리지 않음</div>';
-    return;
-  }
-  const kinds=cnt.map((n,i)=>n?PII[i][0]+' '+nf(n):'').filter(Boolean).join(' · ');
-  const list=Array.from(byCol.values()).sort((x,y)=>y.n-x.n).slice(0,10);
-  const rows=list.map(e=>{
-    const d=S.docs[e.di], col=d.cols[e.ci];
-    PII_FLAGS.push({di:e.di,ci:e.ci});
-    return '<li>'+(multi?'<span style="color:var(--txt3)">'+esc(d.fname)+'</span> · ':'')
-      +'<b>'+esc(col.name)+'</b> — '+nf(e.n)+'셀 · '+Array.from(e.kinds).map(k=>PII[k][0]).join(', ')
-      +(col.on?' <span style="color:var(--txt3)">(현재 '+MODE_LABEL[col.mode]+')</span>'
-             :' <span style="color:var(--warn)">(마스킹 안 함)</span>')+'</li>';
-  }).join('');
-  el.className='on';
-  el.innerHTML='<div class="t"><i></i>결과 파일에 개인정보 형식의 값이 '+nf(total)+'셀 남아 있음</div>'
-    +'<div style="font-size:12.5px;color:var(--txt2);margin-bottom:8px">'+esc(kinds)+'</div>'
-    +'<ul>'+rows+'</ul>'
-    +'<div style="font-size:12px;color:var(--txt3);margin-bottom:10px">형태유지 모드는 값만 바꾸고 <b>형식은 그대로 두기 때문에</b>, '
-    +'형식으로 개인정보를 판별하는 시스템에는 가짜여도 똑같이 걸림. '
-    +'<code>비식별형</code>으로 바꾸면 숫자와 @ 를 쓰지 않아 어떤 개인정보 형식과도 겹치지 않음</div>'
-    +'<button class="btn sm" id="fixsafe">위 열 전부 비식별형으로 바꾸고 다시 실행</button>';
-}
-$('#dlp').addEventListener('click',async e=>{
-  if(!e.target.closest('#fixsafe')||!PII_FLAGS.length) return;
-  docSave();
-  let n=0;
-  PII_FLAGS.forEach(f=>{
-    const col=S.docs[f.di] && S.docs[f.di].cols[f.ci];
-    if(col && col.mode!=='del'){ col.on=true; col.mode='safe'; n++; }
-  });
-  if(!n) return;
-  docLoad(S.di); markDirty(); updateStats();
-  toast('열 '+n+'개를 비식별형으로 바꿈 · 다시 실행함','ok');
-  await busy('다시 마스킹하는 중…'); await runMask(); idle();
-});
-
-/* ══════════ 값 묶는 기준 ══════════ */
-const NORM_DESC=[
-  '글자가 완전히 같아야 같은 값으로 봄',
-  '공백 차이(앞뒤·중간·개수)와 전각/반각, 보이지 않는 문자를 무시하고 비교함',
-  '기본 + 괄호·점·하이픈 같은 기호와 영문 대소문자를 무시하고, (주)/㈜/주식회사 표기도 같게 봄'
-];
-$('#normseg').addEventListener('click',e=>{
-  const b=e.target.closest('button[data-v]'); if(!b) return;
-  S.norm=+b.dataset.v;
-  $$('#normseg button').forEach(x=>x.classList.toggle('on',x===b));
-  $('#normtext').textContent=NORM_DESC[S.norm];
-  $('#normrow').classList.toggle('on',S.norm>0);
-  markDirty();
-});
-
 $('#run').onclick=async()=>{
-  if(!S.docs.length) return toast('파일부터 올려야 함','warn');
-  docSave();
-  const rows=S.docs.reduce((n,d)=>n+Math.max(0,d.grid.length-((d.noHeader?-1:d.headerRow)+1)),0);
-  await busy('마스킹 처리 중…', nf(rows)+'행'+(S.docs.length>1?' · 파일 '+S.docs.length+'개':''));
-  await runMask(); idle();
+  if(!S.docs.length) return;
+  const rows=S.docs.reduce((n,d)=>n+d.dataRows,0);
+  await busy('마스킹 처리 중…',nf(rows)+'행'+(S.docs.length>1?' · 파일 '+S.docs.length+'개':''));
+  try{ await runMask(); }catch(e){ console.error(e); toast('처리 중 오류: '+e.message,'bad'); }
+  idle();
 };
 
-/* ══════════ 저장 ══════════ */
-/* 매핑 건수가 이 이상이면 xlsx 대신 CSV로 저장함.
-   내용은 동일하고 복원 탭에서 그대로 읽히는데, 저장 속도가 10배 가까이 빠름 */
+/* ══════════ 결과 ══════════ */
+let PII_FLAGS=[];
+function renderResult(){
+  const r=S.res; $('#rescard').classList.remove('hide');
+  countUp($('#s1'),r.totalRows); countUp($('#s2'),r.cells); countUp($('#s3'),r.records.length);
+  countUp($('#s4'),r.calcN); countUp($('#s5'),r.dels); countUp($('#s6'),r.reused);
+  const P=r.pii, multi=S.docs.length>1; PII_FLAGS=[];
+  if(!P.total) $('#scan').innerHTML='<div class="scan clean"><div class="t"><i></i>개인정보 형식이 남아 있지 않음</div>'
+    +'<p>전화·주민·카드·계좌·이메일 형식으로 읽힐 값이 결과 전체에 하나도 없음</p></div>';
+  else{
+    const list=Array.from(P.by.values()).sort((a,b)=>b.n-a.n).slice(0,8);
+    list.forEach(e=>PII_FLAGS.push(e));
+    $('#scan').innerHTML='<div class="scan"><div class="t"><i></i>개인정보 형식이 '+nf(P.total)+'셀 남아 있음</div>'
+      +'<p>'+P.cnt.map((n,i)=>n?PII[i][0]+' '+nf(n):'').filter(Boolean).join(' · ')+'</p><ul>'
+      +list.map(e=>{ const col=e.d.cols[e.c];
+        return '<li>'+(multi?esc(e.d.name)+' · ':'')+'<b>'+esc(col.key)+'</b> '+nf(e.n)+'셀 '
+          +(col.on?'<span style="color:var(--t3)">('+MODE_LABEL[col.mode]+')</span>':'<span style="color:var(--warn)">(마스킹 안 함)</span>')+'</li>'; }).join('')
+      +'</ul><p style="font-size:11px;color:var(--t3)">형태유지는 값만 바꾸고 형식은 그대로라 형식 검사에 걸림. 비식별로 바꾸면 숫자·@ 를 안 씀</p>'
+      +'<button class="btn xs" id="fixsafe" style="margin-top:6px">위 열 전부 비식별로 바꾸고 다시 실행</button></div>';
+  }
+  $('#calcnote').innerHTML=r.calcFail?'<div class="scan" style="margin-top:8px"><div class="t"><i></i>기간 계산 못한 값 '+nf(r.calcFail)+'개 — 빈칸 처리함</div>'
+    +'<p>날짜로 읽을 수 없는 값: '+r.failSamples.map(s=>'<code>'+esc(s)+'</code>').join(' ')+'</p></div>':'';
+  renderDls();
+}
+$('#scan').addEventListener('click',async e=>{
+  if(!e.target.closest('#fixsafe')||!PII_FLAGS.length) return;
+  PII_FLAGS.forEach(f=>{ const c=f.d.cols[f.c]; if(c.mode!=='del'&&c.mode!=='calc'){ c.mode='safe'; c.on=true; } });
+  invalidate(); renderAll();
+  await busy('다시 마스킹하는 중…'); try{ await runMask(); }catch(err){ toast(err.message,'bad'); } idle();
+});
+
+/* ══════════ 파일 만들기 · 내려받기 ══════════
+   엑셀 직렬화는 통째로 멈추는 작업이라 별도 스레드(워커)에서 만들고,
+   마스킹이 끝나자마자 미리 만들어 둠 → 누르면 바로 받아짐 */
 const MAP_CSV_OVER=20000;
-function saveBlob(blob,name){
-  const u=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=u; a.download=name; document.body.appendChild(a); a.click();
-  setTimeout(()=>{a.remove();URL.revokeObjectURL(u);},2500);
-}
-function aoaToCsvBlob(aoa){
-  const ws=XLSX.utils.aoa_to_sheet(aoa);
-  return new Blob(['﻿'+XLSX.utils.sheet_to_csv(ws)],{type:'text/csv;charset=utf-8'});
-}
-function wbToBlob(wb){
-  return new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'});
-}
-/* 마스킹한 시트만 교체하고 나머지 시트는 원본 그대로 보존 */
-function buildMaskedWorkbook(d){
+const DL_ICON='<svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>';
+const MAP_ICON='<svg class="i" viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg>';
+const ZIP_ICON='<svg class="i" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 3v4M12 9v2M12 13v2"/></svg>';
+function aoaToCsvBlob(aoa){ return new Blob(['﻿'+csvFromAoa(aoa)],{type:'text/csv;charset=utf-8'}); }
+function wbToBlob(wb){ return new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'}); }
+function toBlob(r){ return r.text!=null?new Blob(['﻿'+r.text],{type:'text/csv;charset=utf-8'}):new Blob([r.buf],{type:'application/octet-stream'}); }
+const outName=d=>d.name+(d.isCsv?'_masked.csv':'_masked.xlsx');
+function mapName(csv){ const base=S.docs.length===1?S.docs[0].name+'_mapping':'매칭파일_'+stamp();
+  return base+'.'+(csv??(S.res&&(S.res.records.length+(S.book?S.book.size:0))>MAP_CSV_OVER)?'csv':'xlsx'); }
+function buildMaskedMain(d){
+  if(d.isCsv) return aoaToCsvBlob(d.masked);
   const wb=XLSX.utils.book_new();
-  d.wb.SheetNames.forEach(n=>{
-    XLSX.utils.book_append_sheet(wb, n===d.sheet ? XLSX.utils.aoa_to_sheet(d.masked) : d.wb.Sheets[n], n);
-  });
-  return wb;
+  d.wb.SheetNames.forEach(n=>XLSX.utils.book_append_sheet(wb,n===d.sheet?XLSX.utils.aoa_to_sheet(d.masked):d.wb.Sheets[n],n));
+  return wbToBlob(wb);
 }
-$('#dls').addEventListener('click',async e=>{
-  const b=e.target.closest('button[data-f]'); if(!b||b.disabled) return;
-  const f=await grabFile(+b.dataset.f); if(!f) return;
-  saveBlob(f.blob,f.name); toast('마스킹 파일 내려받음','ok');
-});
-$('#dls').addEventListener('click',async e=>{
-  if(!e.target.closest('#dl2')||$('#dl2').disabled) return;
-  const f=await grabFile('map'); if(!f) return;
-  saveBlob(f.blob,f.name); toast('매칭 파일 내려받음 · 외부 반출 주의','warn');
+function buildMappingMain(pl){
+  if(pl.asCsv) return aoaToCsvBlob(pl.map);
+  const wb=XLSX.utils.book_new(), m=XLSX.utils.aoa_to_sheet(pl.map), i=XLSX.utils.aoa_to_sheet(pl.info);
+  m['!cols']=pl.mcols; i['!cols']=pl.icols;
+  XLSX.utils.book_append_sheet(wb,m,'MAPPING'); XLSX.utils.book_append_sheet(wb,i,'INFO');
+  return wbToBlob(wb);
+}
+function mappingPayload(){
+  const map=[['원본값','마스킹값','유형','열','파일']], seen=new Set();
+  S.res.records.forEach(r=>{ seen.add(r.orig); map.push([r.orig,r.masked,r.type,r.col,r.file]); });
+  /* 이어쓴 코드북 중 이번 파일에 안 나온 것도 남겨서, 다음에 이 파일 하나만 넣으면 되게 함 */
+  if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) map.push([o,m,'(이전 코드)','','']); });
+  const asCsv=map.length-1>MAP_CSV_OVER;
+  if(asCsv) return {asCsv:true,map};
+  const info=[['마스킹 스튜디오 매칭 파일'],[],
+    ['생성 일시',new Date().toLocaleString('ko-KR')],
+    ['파일',S.docs.map(d=>d.name).join(', ')],
+    ['같은 값 묶는 기준',NORM_LABEL[S.norm]],
+    ['이어쓴 매칭 파일',S.bookNames.join(', ')||'없음'],
+    ['매핑 항목 수',map.length-1],[]];
+  groups().forEach((g,gi)=>{
+    const c=g[0].cols, f=m=>c.filter(x=>x.on&&x.mode===m);
+    info.push(['양식 '+letter(gi),g.map(d=>d.name).join(', ')]);
+    const coded=c.filter(x=>x.on&&['shape','token','safe'].includes(x.mode));
+    if(coded.length) info.push(['  마스킹 열',coded.map(x=>x.key+'('+TYPES[x.type].label+'/'+MODE_LABEL[x.mode]+')').join(', ')]);
+    if(f('calc').length) info.push(['  기간 계산 열 (복원 불가)',f('calc').map(x=>x.key+'('+UNITS[x.unit].label+'·기준 '+x.ref+')').join(', ')]);
+    if(f('del').length) info.push(['  삭제 열 (복원 불가)',f('del').map(x=>x.key+(x.blank?'→"'+x.blank+'"':'→공란')).join(', ')]);
+  });
+  info.push([],['※ 원본 개인정보를 담고 있음. 외부 반출 금지'],
+    ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌림'],
+    ['※ 다음에 다른 파일을 같은 코드로 마스킹하려면 [이전 매칭 파일 이어쓰기]에 이 파일을 넣으면 됨']);
+  return {asCsv:false,map,info,mcols:[{wch:26},{wch:26},{wch:12},{wch:20},{wch:22}],icols:[{wch:24},{wch:80}]};
+}
+function dlBtn(k,cls,icon,title,sub){
+  return '<button class="dl '+cls+'" data-dl="'+k+'"><div class="ic">'+icon+'</div><div class="tx"><b title="'+esc(title)+'">'+esc(title)+'</b><span>'+sub+'</span></div><span class="rd" id="rd-'+k+'"></span></button>';
+}
+function renderDls(){
+  const r=S.res; let h='';
+  if(S.docs.length>1) h+=dlBtn('zip','z',ZIP_ICON,'마스킹 파일 전부 (ZIP)','파일 '+S.docs.length+'개 · 매칭 파일은 안 들어감');
+  S.docs.forEach(d=>{ h+=dlBtn('f'+d.id,'',DL_ICON,outName(d),'마스킹 파일'); });
+  const seen=new Set(r.records.map(x=>x.orig)); let total=r.records.length;
+  if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) total++; });
+  if(total) h+=dlBtn('map','g',MAP_ICON,mapName(),'매칭 파일 · '+nf(total)+'건'+(S.book?' · 이전 코드 누적':''));
+  else h+='<div class="warnbox">바꾼 값이 삭제·기간 계산뿐이라 매칭 파일은 없음</div>';
+  $('#dlist').innerHTML=h;
+}
+const ready=k=>{ const el=$('#rd-'+k); if(el) el.textContent='준비됨'; };
+function prebuild(){
+  S.docs.forEach(d=>{
+    const name=outName(d);
+    d.file=(d.isCsv?Promise.resolve(true):WK.ready(d.id)).then(ok=>{
+      if(!ok) throw 0;
+      return WK.call('build',{key:d.id,name:d.sheet,aoa:d.masked,isCsv:d.isCsv}).then(r=>({blob:toBlob(r),name}));
+    }).catch(()=>({blob:buildMaskedMain(d),name}));
+    d.file.then(()=>ready('f'+d.id)).catch(()=>{});
+  });
+  if(S.res.records.length||S.book){
+    const pl=mappingPayload(), name=mapName(pl.asCsv);
+    S.mapFile=WK.call('table',pl).then(r=>({blob:toBlob(r),name})).catch(()=>({blob:buildMappingMain(pl),name}));
+    S.mapFile.then(()=>ready('map')).catch(()=>{});
+  }
+  Promise.all(S.docs.map(d=>d.file)).then(()=>ready('zip')).catch(()=>{});
+}
+async function zipAndSave(items,name){
+  const files=[];
+  for(const f of items) files.push({name:f.name,data:new Uint8Array(await f.blob.arrayBuffer())});
+  saveBlob(await makeZip(files),name);
+  return files.length;
+}
+$('#dlist').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-dl]'); if(!b||!S.res) return;
+  const k=b.dataset.dl;
+  if(k==='zip'){
+    await busy('ZIP 만드는 중…','파일 '+S.docs.length+'개');
+    try{ const n=await zipAndSave(await Promise.all(S.docs.map(d=>d.file)),'마스킹결과_'+stamp()+'.zip'); toast('ZIP 내려받음 · 파일 '+n+'개','ok'); }
+    catch(err){ toast('ZIP 실패: '+err.message,'bad'); }
+    idle(); return;
+  }
+  const p=k==='map'?S.mapFile:(byId(+k.slice(1))||{}).file; if(!p) return;
+  const t=setTimeout(()=>busy('파일 만드는 중…','거의 다 됨'),150);
+  try{ const f=await p; saveBlob(f.blob,f.name); toast(k==='map'?'매칭 파일 내려받음 · 외부 반출 금지':'내려받음 · '+f.name,k==='map'?'warn':'ok'); }
+  catch(err){ toast('파일 생성 실패','bad'); }
+  clearTimeout(t); idle();
 });
 
-/* ══════════ 복원 ══════════ */
-const R={ wbA:null, nameA:'', csvA:false, map:null, out:null, partial:true };
-swBind('#partial',v=>{R.partial=v;});
-function readyRestore(){ $('#rrun').disabled=!(R.wbA&&R.map&&R.map.size); }
-
-bindDrop('#rdropA','#rfileA',async list=>{
-  const f=list[0]; if(!f) return;
-  await busy('결과 파일 읽는 중…',f.name);
-  try{
-    R.wbA=(await readWorkbook(f)).wb; R.nameA=f.name.replace(/\.[^.]+$/,''); R.csvA=isCsvName(f.name);
-    $('#rdropA').classList.add('has'); $('#rtextA').textContent=f.name;
-    readyRestore(); toast('결과 파일 읽음','ok');
-  }catch(e){ toast('결과 파일을 열지 못함','bad'); }
-  idle();
-});
-/* 매칭 파일에서 원본↔마스킹 쌍을 읽어옴 (복원 탭과 코드북 이어쓰기가 함께 씀) */
+/* ══════════ 매칭 파일 읽기 (이어쓰기 · 복원 공용) ══════════ */
 function readMappingPairs(wb){
-  const sn = wb.SheetNames.includes('MAPPING') ? 'MAPPING' : wb.SheetNames[0];
+  const sn=wb.SheetNames.includes('MAPPING')?'MAPPING':wb.SheetNames[0];
   const aoa=sheetToGrid(wb.Sheets[sn]);
   if(!aoa.length) throw new Error('빈 파일');
-  const head=aoa[0].map(v=>String(v).trim());
+  const head=aoa[0].map(v=>String(v).replace(/^﻿/,'').trim());
   let oi=head.indexOf('원본값'), mi=head.indexOf('마스킹값');
-  if(oi<0||mi<0){ oi=0; mi=1; }
+  if(oi<0||mi<0) throw new Error('원본값/마스킹값 열이 없음 — 이 도구가 만든 매칭 파일인지 확인');
   const fwd=new Map(), rev=new Map();
   for(let i=1;i<aoa.length;i++){
     const o=aoa[i][oi], k=aoa[i][mi];
     if(k===''||k==null||o===''||o==null) continue;
     const os=String(o), ks=String(k);
-    rev.set(ks,os);
-    if(!fwd.has(os)) fwd.set(os,ks);
+    rev.set(ks,os); if(!fwd.has(os)) fwd.set(os,ks);
   }
   if(!rev.size) throw new Error('매핑 항목이 없음');
   return {fwd,rev};
 }
-bindDrop('#rdropB','#rfileB',async list=>{
-  const f=list[0]; if(!f) return;
-  await busy('매칭 파일 읽는 중…',f.name);
-  try{
-    const {rev}=readMappingPairs((await readWorkbook(f)).wb);
-    R.map=rev; $('#rdropB').classList.add('has'); $('#rtextB').textContent=f.name+' · '+nf(rev.size)+'건';
-    countUp($('#r1'),rev.size); readyRestore(); toast('매칭 파일 읽음 · '+nf(rev.size)+'건','ok');
-  }catch(e){ toast('매칭 파일을 읽지 못함: '+e.message,'bad'); }
-  idle();
-});
 
-/* ══════════ 코드북 이어쓰기 ══════════
-   이전에 받은 매칭 파일을 올려두면, 거기 있던 값은 같은 코드를 그대로 다시 씀.
-   파일이 달라도 같은 조직·같은 사람이 같은 코드로 유지되어 집계가 이어짐 */
+/* ══════════ 이전 매칭 파일 이어쓰기 ══════════
+   이미 마스킹해서 내보낸 결과가 있고 다른 파일을 추가로 마스킹해야 할 때,
+   그때 받은 매칭 파일을 넣으면 거기 있던 값은 같은 코드를 그대로 다시 씀.
+   여러 개를 넣으면 합쳐서 씀. 새로 받는 매칭 파일엔 이전 코드까지 누적됨 */
 $('#bookbtn').onclick=()=>$('#bookfile').click();
 $('#bookfile').onchange=async e=>{
-  const f=e.target.files[0]; e.target.value='';
-  if(!f) return;
-  await busy('코드북 읽는 중…',f.name);
-  try{
-    const {fwd}=readMappingPairs((await readWorkbook(f)).wb);
-    S.book=fwd; S.bookName=f.name;
-    $('#bookrow').classList.add('on');
-    $('#booktext').innerHTML='<b>'+esc(f.name)+'</b> · '+nf(fwd.size)+'건 이어씀 — 여기 있는 값은 같은 코드를 그대로 다시 부여함';
-    $('#bookclear').classList.remove('hide');
-    markDirty();
-    toast('코드북 '+nf(fwd.size)+'건 불러옴','ok');
-  }catch(err){ toast('코드북을 읽지 못함: '+err.message,'bad'); }
+  const fs=Array.prototype.slice.call(e.target.files); e.target.value='';
+  if(!fs.length) return;
+  await busy('매칭 파일 읽는 중…',fs.length>1?fs.length+'개':fs[0].name);
+  const book=S.book?new Map(S.book):new Map(), owner=new Map();
+  book.forEach((m,o)=>owner.set(m,o));
+  let ok=0, add=0, clash=0;
+  for(const f of fs){
+    try{
+      const {fwd}=readMappingPairs((await readWorkbook(f)).wb);
+      fwd.forEach((m,o)=>{
+        if(book.has(o)) return;
+        if(owner.has(m)&&owner.get(m)!==o){ clash++; return; }   /* 같은 코드가 다른 값에 쓰였으면 복원이 꼬이므로 뺌 */
+        book.set(o,m); owner.set(m,o); add++;
+      });
+      S.bookNames.push(f.name); ok++;
+    }catch(err){ toast(f.name+' — '+err.message,'bad'); }
+  }
   idle();
+  if(!ok) return;
+  S.book=book; renderBook(); invalidate();
+  toast('코드 '+nf(add)+'건 이어씀 · 총 '+nf(book.size)+'건'+(clash?' · 코드가 겹친 '+nf(clash)+'건은 뺌':''),clash?'warn':'ok');
 };
-$('#bookclear').onclick=()=>{
-  S.book=null; S.bookName='';
-  $('#bookrow').classList.remove('on');
-  $('#booktext').innerHTML='이전에 받은 매칭 파일을 올리면 같은 값에 <b>같은 코드</b>를 다시 부여함 — 파일이 달라도 집계가 이어짐';
-  $('#bookclear').classList.add('hide');
-  markDirty();
-  toast('코드북 해제함','ok');
-};
-
-$('#rrun').onclick=async ()=>{
-  const m=R.map;
-  await busy('복원 처리 중…', nf(m.size)+'건 매핑 적용');
-  let re=null;
-  if(R.partial){
-    const keys=Array.from(m.keys()).filter(k=>k.length>=3).sort((a,b)=>b.length-a.length);
-    if(keys.length && keys.length<=8000){
-      try{ re=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){ re=null; }
-    }else if(keys.length>8000){ toast('매핑이 많아서 정확 일치만 복원함','warn'); }
-  }
-  let hits=0, sheets=0, firstGrid=null;
-  const wb=XLSX.utils.book_new();
-  for(const sn of R.wbA.SheetNames){
-    const g=sheetToGrid(R.wbA.Sheets[sn]);
-    for(let r=0;r<g.length;r++){
-      for(let c=0;c<g[r].length;c++){
-        const v=g[r][c]; if(v===''||v==null) continue;
-        const s=String(v);
-        if(m.has(s)){ g[r][c]=m.get(s); hits++; continue; }
-        if(re){ re.lastIndex=0; if(re.test(s)){ re.lastIndex=0; g[r][c]=s.replace(re,x=>m.get(x)||x); hits++; } }
-      }
-      if(r%4000===3999) await yieldNow();
-    }
-    if(R.csvA) firstGrid=firstGrid||g;
-    else XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(g),sn);
-    sheets++;
-  }
-  R.out={wb,csv:R.csvA?csvFromAoa(firstGrid||[]):null};
-  countUp($('#r2'),hits); countUp($('#r3'),sheets);
-  $('#rdl').disabled=false; idle();
-  toast(hits?('복원 완료 · 셀 '+nf(hits)+'개'):'되돌릴 값을 못 찾음 (매칭 파일이 맞는지 확인)', hits?'ok':'warn');
-};
-$('#rdl').onclick=async()=>{
-  if(!R.out) return;
-  await busy('복원 파일 만드는 중…');
-  if(R.csvA) saveBlob(new Blob(['﻿'+R.out.csv],{type:'text/csv;charset=utf-8'}), R.nameA+'_restored.csv');
-  else saveBlob(wbToBlob(R.out.wb), R.nameA+'_restored.xlsx');
-  toast('복원 파일 내려받음','ok'); idle();
-};
-
-/* ── 페이지 나갈 때 경고 (작업 중 실수 방지) ── */
-window.addEventListener('beforeunload',e=>{
-  if(S.masked){ e.preventDefault(); e.returnValue=''; }
-});
-console.log('%c마스킹 스튜디오','font:700 15px sans-serif;color:#6d7cff','· 오프라인 전용 · 네트워크 전송 코드 없음');
-
-/* ══════════════════════════════════════════════════════════════
-   백그라운드 파일 빌더
-   엑셀 직렬화는 통째로 동기 작업이라 메인 스레드에서 돌리면 몇 초간 화면이 굳음.
-   내장된 라이브러리 소스를 그대로 워커에 넘겨 별도 스레드에서 만들고,
-   마스킹이 끝나는 즉시 미리 만들어 둠 → 사용자가 다운로드를 누르면 이미 준비돼 있음.
-   워커를 못 만드는 환경이면 기존처럼 메인 스레드에서 처리함(동작은 동일, 잠깐 멈춤).
-   ══════════════════════════════════════════════════════════════ */
+$('#bookclear').onclick=()=>{ S.book=null; S.bookNames=[]; renderBook(); invalidate(); toast('이어쓰기 해제함','ok'); };
+function renderBook(){
+  const on=!!S.book;
+  $('#book').classList.toggle('on',on);
+  $('#bookbd').textContent=on?nf(S.book.size)+'건':'선택';
+  $('#bookbd').className='bd'+(on?' g':'');
+  $('#bookclear').classList.toggle('hide',!on);
+  $('#booktext').innerHTML=on
+    ? '<b>'+esc(S.bookNames[0])+'</b>'+(S.bookNames.length>1?' 외 '+(S.bookNames.length-1)+'개':'')+' — 여기 있는 값은 <b>예전과 같은 코드</b>를 받고, 처음 보는 값만 새 코드를 받음'
+    : '예전에 받은 매칭 파일을 넣으면, 거기 있던 값은 <b>같은 코드</b>를 그대로 받음. 추가 파일을 기존 결과와 합쳐 분석할 때 씀';
+}
 const WORKER_BODY = [
 'var WBS={};',
 'function csvFromAoa(aoa){',
@@ -1791,153 +1914,150 @@ const WORKER_BODY = [
 '  }catch(err){ postMessage({id:id,err:String((err&&err.message)||err)}); }',
 '};'].join('\n');
 
-const WK={
-  w:undefined, seq:0, cbs:new Map(), loaded:{},
+/* ══════════ 백그라운드 빌더 (워커) ══════════
+   내장된 라이브러리 소스를 그대로 워커에 넘겨 별도 스레드에서 엑셀을 만듦.
+   워커를 못 만드는 환경이면 메인 스레드에서 만듦 (결과 같음, 잠깐 멈춤) */
+const WK={ w:undefined, seq:0, cbs:new Map(), loaded:{},
   get(){
     if(this.w!==undefined) return this.w;
     this.w=null;
     try{
-      const lib=document.getElementById('xlsxlib');
-      if(!lib||!lib.textContent) return null;
-      const url=URL.createObjectURL(new Blob([lib.textContent+'\n'+WORKER_BODY],{type:'text/javascript'}));
-      const w=new Worker(url);
-      w.onmessage=e=>{
-        const cb=this.cbs.get(e.data.id);
-        if(!cb) return;
-        this.cbs.delete(e.data.id);
-        e.data.err ? cb.rej(new Error(e.data.err)) : cb.res(e.data);
-      };
+      const lib=document.getElementById('xlsxlib'); if(!lib||!lib.textContent) return null;
+      const w=new Worker(URL.createObjectURL(new Blob([lib.textContent+'\n'+WORKER_BODY],{type:'text/javascript'})));
+      w.onmessage=e=>{ const cb=this.cbs.get(e.data.id); if(!cb) return; this.cbs.delete(e.data.id);
+        e.data.err?cb.rej(new Error(e.data.err)):cb.res(e.data); };
       w.onerror=()=>{ this.cbs.forEach(cb=>cb.rej(new Error('worker 오류'))); this.cbs.clear(); this.w=null; };
       this.w=w;
     }catch(e){ this.w=null; }
     return this.w;
   },
   call(cmd,payload,transfer){
-    const w=this.get();
-    if(!w) return Promise.reject(new Error('worker 사용 불가'));
+    const w=this.get(); if(!w) return Promise.reject(new Error('worker 사용 불가'));
     const id=++this.seq;
-    return new Promise((res,rej)=>{
-      this.cbs.set(id,{res,rej});
-      w.postMessage(Object.assign({id,cmd},payload),transfer||[]);
-    });
+    return new Promise((res,rej)=>{ this.cbs.set(id,{res,rej}); w.postMessage(Object.assign({id,cmd},payload),transfer||[]); });
   },
-  /* 원본을 미리 워커에도 올려둠 — 다른 시트를 원본 그대로 보존하려면 필요함.
-     ArrayBuffer는 복사 대신 소유권을 넘김(메인은 파싱을 이미 끝냈으므로 필요 없음).
-     첫 화면이 그려진 뒤에 시작해야 초기 렌더와 CPU를 다투지 않음 */
+  /* 원본을 워커에도 올려둠 — 다른 시트를 원본 그대로 보존하려면 필요. 버퍼는 복사 대신 넘김 */
   preload(key,raw){
-    if(!raw) return;          /* CSV는 보존할 다른 시트가 없어 원본 적재 자체가 불필요 */
-    if(!this.get()) return;
-    this.loaded[key]=new Promise(res=>{
-      setTimeout(()=>{
-        this.call('load',Object.assign({key},raw),raw.buf?[raw.buf]:[])
-          .then(()=>res(true)).catch(()=>res(false));
-      },260);
-    });
+    if(!raw||!this.get()) return;
+    this.loaded[key]=new Promise(res=>setTimeout(()=>{
+      this.call('load',Object.assign({key},raw),raw.buf?[raw.buf]:[]).then(()=>res(true)).catch(()=>res(false));
+    },260));
   },
   ready(key){ return this.loaded[key]||Promise.resolve(false); }
 };
 
-/* ══════════ 다운로드 파일 준비 ══════════ */
-const BLOB_XLSX='application/octet-stream', BLOB_CSV='text/csv;charset=utf-8';
-function toBlob(r,isCsv){
-  return r.text!=null ? new Blob(['﻿'+r.text],{type:BLOB_CSV}) : new Blob([r.buf],{type:BLOB_XLSX});
-}
-function mappingPayload(){
-  const asCsv=S.records.length>MAP_CSV_OVER;
-  const map=[['원본값','마스킹값','유형','열','시트']];
-  const seen=new Set();
-  S.records.forEach(r=>{ seen.add(r.orig); map.push([r.orig,r.masked,r.type,r.col,'']); });
-  /* 코드북을 이어쓴 경우, 이번 파일에 안 나온 코드도 남겨서 코드북이 누적되게 함 */
-  if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) map.push([o,m,'(코드북)','','']); });
-  if(asCsv) return {asCsv:true,map};
-  const info=[['마스킹 스튜디오 매칭 파일'],[],
-    ['원본 파일',S.docs.map(d=>d.fname).join(', ')],
-    ['파일 수',S.docs.length],
-    ['생성 일시',new Date().toLocaleString('ko-KR')],
-    ['값 묶는 기준',NORM_LABEL[S.norm]],
-    ['마스킹 열',S.docs.map(d=>d.cols.filter(c=>c.on&&c.mode!=='del')
-        .map(c=>(S.docs.length>1?d.fname+'/':'')+c.name+'('+TYPES[c.type].label+'/'+MODE_LABEL[c.mode]+')').join(', '))
-        .filter(Boolean).join(' | ')||'없음'],
-    ['삭제 열 (복원 불가)',S.docs.map(d=>d.cols.filter(c=>c.on&&c.mode==='del')
-        .map(c=>(S.docs.length>1?d.fname+'/':'')+c.name+(c.blank?'→"'+c.blank+'"':'→공란')).join(', '))
-        .filter(Boolean).join(' | ')||'없음'],
-    ['매핑 항목 수',S.records.length],
-    ['이어쓴 코드북',S.bookName||'없음'],[],
-    ['※ 이 파일은 원본 개인정보를 담고 있음. 외부 반출 금지'],
-    ['※ [복원] 탭에 결과 파일과 함께 올리면 원래 값으로 되돌릴 수 있음'],
-    ['※ 삭제 열은 원본이 남아있지 않아 복원되지 않음']];
-  return {asCsv:false,map,info,
-          mcols:[{wch:26},{wch:26},{wch:14},{wch:20},{wch:16}], icols:[{wch:18},{wch:70}]};
-}
-/* 메인 스레드 대체 경로 — 워커를 못 쓸 때만 탐 */
-function buildMaskedMain(d){
-  return d.isCsv ? aoaToCsvBlob(d.masked) : wbToBlob(buildMaskedWorkbook(d));
-}
-function buildMappingMain(pl){
-  if(pl.asCsv) return aoaToCsvBlob(pl.map);
-  const wsM=XLSX.utils.aoa_to_sheet(pl.map); wsM['!cols']=pl.mcols;
-  const wsI=XLSX.utils.aoa_to_sheet(pl.info); wsI['!cols']=pl.icols;
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,wsM,'MAPPING');
-  XLSX.utils.book_append_sheet(wb,wsI,'INFO');
-  return wbToBlob(wb);
-}
-
-/* ══════════ 다운로드 버튼 ══════════ */
-function dlName(d){ return d.fname+(d.isCsv?'_masked.csv':'_masked.xlsx'); }
-const DL_ICON='<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>';
-const MAP_ICON='<svg viewBox="0 0 24 24"><path d="M10 7H6a3 3 0 000 6h4"/><path d="M14 7h4a3 3 0 010 6h-4"/><path d="M9 10h6"/></svg>';
-function renderDls(ready){
-  const el=$('#dls'); if(!el) return;
-  const multi=S.docs.length>1;
+/* ══════════ 복원 ══════════ */
+const R={files:[],map:null,partial:true,outs:[]};
+function readyRestore(){ $('#rrun').disabled=!(R.files.length&&R.map&&R.map.size); }
+bindDrop('#rdropA','#rfileA',async list=>{
+  for(const f of Array.prototype.slice.call(list)){
+    await busy('결과 파일 읽는 중…',f.name);
+    try{ const {wb}=await readWorkbook(f); R.files.push({name:f.name.replace(/\.[^.]+$/,''),isCsv:isCsvName(f.name),wb}); }
+    catch(e){ toast(f.name+' — 열지 못함','bad'); }
+  }
+  idle();
+  if(R.files.length){ $('#rdropA').classList.add('has');
+    $('#rtextA').textContent=R.files.length+'개 · '+R.files.map(x=>x.name).join(', ').slice(0,80); }
+  countUp($('#r3'),R.files.length); readyRestore();
+});
+bindDrop('#rdropB','#rfileB',async list=>{
+  const f=list[0]; if(!f) return;
+  await busy('매칭 파일 읽는 중…',f.name);
+  try{ const {rev}=readMappingPairs((await readWorkbook(f)).wb); R.map=rev;
+    $('#rtextB').textContent=f.name+' · '+nf(rev.size)+'건'; countUp($('#r1'),rev.size); toast('매칭 파일 읽음 · '+nf(rev.size)+'건','ok'); }
+  catch(e){ toast('매칭 파일을 읽지 못함: '+e.message,'bad'); }
+  idle(); readyRestore();
+});
+swBind('#partial',v=>{ R.partial=v; });
+$('#rrun').onclick=async()=>{
+  const m=R.map;
+  await busy('복원 중…',nf(m.size)+'건 매핑 · 파일 '+R.files.length+'개');
+  let re=null;
+  if(R.partial){
+    const keys=Array.from(m.keys()).filter(k=>k.length>=3).sort((a,b)=>b.length-a.length);
+    if(keys.length&&keys.length<=8000){ try{ re=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g'); }catch(e){} }
+    else if(keys.length>8000) toast('매핑이 많아 문장 속 복원은 건너뛰고 칸 단위로만 복원함','warn');
+  }
+  let hits=0; R.outs=[];
+  try{
+    for(const f of R.files){
+      const wb=XLSX.utils.book_new(); let first=null;
+      for(const sn of f.wb.SheetNames){
+        const g=sheetToGrid(f.wb.Sheets[sn]);
+        for(let r=0;r<g.length;r++){
+          const row=g[r];
+          for(let c=0;c<row.length;c++){
+            const v=row[c]; if(v===''||v==null) continue;
+            const s=String(v);
+            if(m.has(s)){ row[c]=m.get(s); hits++; continue; }
+            if(re){ re.lastIndex=0; if(re.test(s)){ re.lastIndex=0; row[c]=s.replace(re,x=>m.get(x)||x); hits++; } }
+          }
+          if(r%4000===3999) await yieldNow();
+        }
+        if(f.isCsv){ first=first||g; } else XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(g),sn);
+      }
+      R.outs.push({name:f.name.replace(/_masked$/,'')+'_restored.'+(f.isCsv?'csv':'xlsx'),
+                   blob:f.isCsv?aoaToCsvBlob(first||[]):wbToBlob(wb)});
+    }
+  }catch(e){ console.error(e); toast('복원 중 오류: '+e.message,'bad'); }
+  idle();
+  countUp($('#r2'),hits);
   let h='';
-  S.docs.forEach((d,i)=>{
-    const id=i===0?'dl1':'dlf'+i, nid=i===0?'dl1n':'dlf'+i+'n';
-    h+='<button class="dl" id="'+id+'" data-f="'+i+'"'+(ready?'':' disabled')+'>'
-      +'<div class="ic">'+DL_ICON+'</div><div><b>'+(multi?esc(d.fname):'마스킹 파일')+'</b>'
-      +'<span id="'+nid+'">'+(ready?dlName(d):(multi?'마스킹 결과':'업무용으로 쓸 파일'))+'</span></div></button>';
-  });
-  if(!S.docs.length)
-    h+='<button class="dl" id="dl1" data-f="0" disabled><div class="ic">'+DL_ICON
-      +'</div><div><b>마스킹 파일</b><span id="dl1n">업무용으로 쓸 파일</span></div></button>';
-  const mapOn=ready&&S.records.length;
-  h+='<button class="dl g" id="dl2"'+(mapOn?'':' disabled')+'><div class="ic">'+MAP_ICON+'</div>'
-    +'<div><b>매칭 파일 (매핑표)</b><span id="dl2n">'
-    +(mapOn?(S.docs[0].fname+'_mapping.'+(S.records.length>MAP_CSV_OVER?'csv':'xlsx')+' · '+nf(S.records.length)+'건')
-           :(ready?'삭제만 해서 되돌릴 값이 없음':'원본 ↔ 마스킹 대응표'))+'</span></div></button>';
-  el.innerHTML=h;
-}
+  if(R.outs.length>1) h+=dlBtn('zip','z',ZIP_ICON,'복원 파일 전부 (ZIP)','파일 '+R.outs.length+'개');
+  R.outs.forEach((o,i)=>{ h+=dlBtn('r'+i,'g',DL_ICON,o.name,'복원 파일'); });
+  $('#rlist').innerHTML=h;
+  toast(hits?('복원 완료 · 셀 '+nf(hits)+'개'):'되돌릴 값을 못 찾음 — 맞는 매칭 파일인지 확인',hits?'ok':'warn');
+};
+$('#rlist').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-dl]'); if(!b) return;
+  if(b.dataset.dl==='zip'){ await busy('ZIP 만드는 중…'); try{ await zipAndSave(R.outs,'복원결과_'+stamp()+'.zip'); }catch(err){ toast(err.message,'bad'); } idle(); return; }
+  const o=R.outs[+b.dataset.dl.slice(1)]; if(o){ saveBlob(o.blob,o.name); toast('내려받음 · '+o.name,'ok'); }
+});
 
-/* 마스킹 직후 호출 — 결과를 훑어보는 동안 파일을 미리 만들어 둠 */
-function prebuild(){
-  S.docs.forEach((d,i)=>{
-    const name=dlName(d);
-    d.file1=(d.isCsv?Promise.resolve(true):WK.ready(i)).then(ok=>{
-      if(!ok) throw 0;
-      return WK.call('build',{key:i,name:d.sheet,aoa:d.masked,isCsv:d.isCsv})
-               .then(r=>({blob:toBlob(r),name}));
-    }).catch(()=>({blob:buildMaskedMain(d),name}));
-    d.file1.then(()=>markReady(i===0?'#dl1n':'#dlf'+i+'n',name)).catch(()=>{});
-  });
-  /* docSave() 를 부르면 안 됨 — S.file1 은 아직 비어 있어서 방금 만든 약속을 덮어씀 */
-  if(S.docs[S.di]) S.file1=S.docs[S.di].file1;
-  if(!S.records.length){ S.file2=null; return; }
-  const pl=mappingPayload();
-  const name2=S.docs[0].fname+'_mapping.'+(pl.asCsv?'csv':'xlsx');
-  S.file2=WK.call('table',pl).then(r=>({blob:toBlob(r),name:name2}))
-    .catch(()=>({blob:buildMappingMain(pl),name:name2}));
-  S.file2.then(()=>markReady('#dl2n',name2+' · '+nf(S.records.length)+'건')).catch(()=>{});
-}
-function markReady(sel,txt){ const el=$(sel); if(el) el.textContent='✓ 준비됨 · '+txt; }
+/* ══════════ 사용법 ══════════ */
+const HELP=[
+ ['기본 흐름','<b>① 파일 올리기</b> → <b>② 가릴 열 켜고 방식 고르기</b> → <b>③ 실행</b> → <b>④ 받기</b><br>'
+  +'마스킹 파일만 밖으로 보내고, 결과가 돌아오면 [복원] 탭에서 매칭 파일로 원래 값을 되찾음. 실행은 <code>Ctrl+Enter</code>'],
+ ['같은 양식 파일 여러 개를 한 번에','파일을 여러 개 올리면 <b>열 구성이 같은 파일끼리 자동으로 묶여</b> 왼쪽에 보임. '
+  +'[묶어서 설정]을 누르거나 체크박스로 여러 파일을 고르면, 가운데에서 한 번 바꾼 설정이 <b>고른 파일 전부에</b> 적용됨<br>'
+  +'양식이 다른 파일을 같이 고르면 <b>이름이 같은 열끼리</b> 함께 바뀜. 일부 파일에만 있는 열은 "2/3개 파일에 있음"으로 표시'],
+ ['열 여러 개를 한꺼번에','열 줄을 누르거나 왼쪽 네모를 체크하면 선택됨. <code>Shift</code>를 누른 채 누르면 범위로 선택<br>'
+  +'위에 나오는 일괄 바에서 <b>켜기·끄기·방식·유형·기간 단위·기준일</b>을 한 번에 적용함. '
+  +'[유형으로 고르기]로 예컨대 "날짜" 열만 한꺼번에 고를 수도 있음. 선택 해제는 <code>Esc</code>'],
+ ['방식 5가지','<b>형태유지</b> 진짜처럼 보이는 가짜값 (홍길동→서지우)<br><b>토큰</b> <code>NAME_0001</code> 같은 일련번호<br>'
+  +'<b>비식별</b> <code>PHONE-JTENHQ</code> — 숫자·@ 를 안 써서 개인정보 형식으로 읽히지 않음. 전화·주민·카드·계좌·이메일의 기본값<br>'
+  +'<b>기간</b> 날짜를 만 나이·연령대·년·개월·일로 바꿈<br><b>삭제</b> 값을 없앰 (대체 문자 지정 가능)'],
+ ['기간 계산 (생년월일 → 나이)','생년월일은 그 자체가 개인정보라 <b>기준일까지의 기간</b>으로 바꾸면 분석엔 쓰면서 날짜는 사라짐<br>'
+  +'단위: <b>만 나이 · 연령대(30대) · 년 · 개월 · 일</b>. 기준일은 열마다 바꿀 수 있고 기본은 오늘<br>'
+  +'읽는 날짜: <code>1990-01-05</code> <code>1990.1.5</code> <code>19900105</code> <code>1990년 1월 5일</code> <code>900105</code>, '
+  +'<b>주민등록번호</b>(뒷자리 첫 숫자로 1900/2000년대 판별), 엑셀 날짜<br>'
+  +'날짜가 기준일보다 뒤면 음수(남은 기간). 못 읽은 값은 빈칸으로 두고 개수와 예시를 알려줌. '
+  +'머리글엔 <code>생년월일(만나이·기준 2026-11-25)</code>처럼 표시됨. 결과가 숫자라 <b>매칭표에 안 남고 복원도 안 됨</b>'],
+ ['같은 값 = 같은 코드','코드는 <b>값에만</b> 달림. 행·열·파일이 달라도 같은 값이면 같은 코드라 마스킹 후에도 집계·피벗·조인이 그대로 됨. '
+  +'서로 다른 값이 같은 코드를 받는 일은 없어서 복원이 정확함<br><b>묶는 기준</b> — 끔: 글자 그대로 / <b>기본</b>: 공백·전각반각 무시 '
+  +'(<code>강북차량보상부</code>=<code>강북차량보상부␣</code>) / 강하게: 기호·대소문자 무시, <code>(주)가온</code>=<code>㈜가온</code>=<code>주식회사 가온</code>'],
+ ['이전 매칭 파일 이어쓰기','이미 마스킹해서 보낸 결과가 있고 <b>다른 파일을 추가로</b> 마스킹해야 할 때 씀. 그때 받은 매칭 파일을 왼쪽 '
+  +'[이전 매칭 파일 이어쓰기]에 넣으면, 거기 있던 값은 <b>예전과 같은 코드</b>를 받고 처음 보는 값만 새 코드를 받음<br>'
+  +'여러 개를 넣으면 합쳐서 씀. 새로 받는 매칭 파일엔 이전 코드까지 <b>누적</b>되므로 늘 마지막 매칭 파일 하나만 챙기면 됨'],
+ ['개인정보 형식 점검','실행하면 결과 전체(고르지 않은 열 포함)를 훑어 전화·주민·카드·계좌·이메일 <b>형식</b>이 남았는지 알려줌. '
+  +'빠뜨린 열을 잡아내는 용도. 걸린 열은 버튼 한 번으로 비식별로 바꿔 다시 실행함'],
+ ['받기','파일마다 마스킹 파일 + 공통 매칭 파일 1개. 파일이 여럿이면 <b>[마스킹 파일 전부 (ZIP)]</b>로 한 번에 받음 — '
+  +'ZIP엔 매칭 파일이 <b>안 들어감</b>(실수로 같이 보내지 않게). 파일은 실행 직후 미리 만들어 두므로 누르면 바로 받아짐'],
+ ['복원','[복원] 탭에 결과 파일(여러 개 가능)과 매칭 파일을 올리면 원래 값으로 되돌림. 문장 속에 섞인 코드도 찾아서 복원 가능. '
+  +'삭제·기간 계산한 열은 원본이 없어 복원되지 않음'],
+ ['오프라인 · 보안','이 HTML 하나에 모든 게 들어 있음. 인터넷 없이 동작하고 파일은 브라우저 메모리에서만 처리됨. '
+  +'<b>매칭 파일은 원본 개인정보 그 자체</b>이므로 본인 PC에만 둘 것']
+];
+$('#hgrid').innerHTML=HELP.map((x,i)=>'<div class="card hc" style="animation-delay:'+i*30+'ms"><div class="ch"><div class="n">'+(i+1)+'</div><h3>'+x[0]+'</h3></div>'+x[1]+'</div>').join('');
 
-async function grabFile(which){
-  const pending = which==='map' ? S.file2 : (S.docs[which]&&S.docs[which].file1);
-  if(!pending) return null;
-  let done=false;
-  const timer=setTimeout(()=>{ if(!done) busy('파일 만드는 중…','거의 다 됨'); },140);
-  try{ const f=await pending; done=true; clearTimeout(timer); idle(); return f; }
-  catch(e){ done=true; clearTimeout(timer); idle(); toast('파일 생성 실패: '+e.message,'bad'); return null; }
-}
+/* ══════════ 단축키 ══════════ */
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&$('#v-mask').classList.contains('on')&&!$('#run').disabled){ e.preventDefault(); $('#run').click(); }
+  if(e.key==='Escape'&&S.csel.size&&!/INPUT|SELECT/.test(document.activeElement.tagName)){ S.csel.clear(); renderCols(); }
+});
+window.addEventListener('beforeunload',e=>{ if(S.res){ e.preventDefault(); e.returnValue=''; } });
+renderAll();
+console.log('%c마스킹 스튜디오','font:700 15px sans-serif;color:#7080ff','· 오프라인 전용 · 네트워크 전송 코드 없음');
 })();
 
 </script>
