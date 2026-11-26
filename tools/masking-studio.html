@@ -200,10 +200,11 @@ input[type=date]{color-scheme:dark;padding:6px 5px;font-size:12px}
 .steps b{color:var(--acc);margin-right:4px}
 
 /* 일괄 작업 바 */
-.bulk{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 14px;
-  background:color-mix(in srgb,var(--p1) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border-bottom:1px solid color-mix(in srgb,var(--acc) 40%,var(--ln));box-shadow:0 8px 18px -14px rgba(0,0,0,.7);animation:slide .28s var(--sp)}
-@keyframes slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.bulk{position:sticky;bottom:12px;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;margin:12px 12px 12px;
+  border-radius:16px;background:color-mix(in srgb,var(--p2) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid color-mix(in srgb,var(--acc) 45%,var(--ln));
+  box-shadow:var(--up2),0 18px 36px -14px rgba(0,0,0,.65),0 0 0 4px color-mix(in srgb,var(--acc) 9%,transparent);animation:slide .32s var(--sp)}
+@keyframes slide{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 .bulk .cnt{font-weight:800;font-size:12.5px;color:var(--acc);margin-right:2px}
 .bulk .div{width:1px;height:20px;background:var(--ln)}
 .bulk .seg button{padding:5px 8px}
@@ -215,7 +216,6 @@ input[type=date]{color-scheme:dark;padding:6px 5px;font-size:12px}
   align-items:center;gap:8px;padding:0 12px}
 .chead{position:sticky;top:0;z-index:4;height:32px;font-size:10.5px;font-weight:750;color:var(--t3);letter-spacing:.3px;
   background:var(--p1);border-bottom:1px solid var(--ln)}
-.bulk~.chead{top:var(--bulkh,0px)}
 .crow{min-height:52px;border-bottom:1px solid var(--ln);transition:background .18s var(--ez);cursor:pointer;animation:rowin .3s var(--ez) backwards}
 @keyframes rowin{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
 .crow:hover{background:color-mix(in srgb,var(--acc) 5%,transparent)}
@@ -242,14 +242,23 @@ input[type=date]{color-scheme:dark;padding:6px 5px;font-size:12px}
 }
 
 /* 미리보기 */
-.ptool{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.tw{overflow:auto}
+.ptool{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none}
+/* 미리보기는 가운데 칸을 꽉 채우고 표만 스크롤 → 머릿줄·행 번호 고정, 가로 스크롤바는 늘 칸 맨 아래 */
+#prevview:not(.hide){position:absolute;inset:0;display:flex;flex-direction:column}
+.tw{overflow:auto;flex:1;min-height:0;overscroll-behavior:contain}
+#prevview .pnote{flex:none}
+.tw::-webkit-scrollbar{width:12px;height:12px}
+.tw::-webkit-scrollbar-track{background:color-mix(in srgb,var(--p0) 80%,transparent);box-shadow:var(--in)}
+.tw::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--t3) 70%,transparent);border:3px solid transparent;background-clip:padding-box;border-radius:9px}
+.tw::-webkit-scrollbar-thumb:hover{background:var(--acc);background-clip:padding-box}
+.tw::-webkit-scrollbar-corner{background:transparent}
+thead th{box-shadow:0 1px 0 var(--ln)}
 table{border-collapse:separate;border-spacing:0;font-size:12px;table-layout:fixed;width:max-content}
 col{width:150px} col.cr{width:54px}
 th,td{padding:6px 10px;border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,var(--p3),var(--p2));font-weight:750;font-size:11px;color:var(--t2);cursor:pointer;user-select:none}
 thead th:hover{color:var(--t1)}
-thead th.on{color:var(--mc,var(--acc));box-shadow:inset 0 -2px 0 var(--mc,var(--acc))}
+thead th.on{color:var(--mc,var(--acc));box-shadow:inset 0 -2px 0 var(--mc,var(--acc)),0 1px 0 var(--ln)}
 th.rh,td.rh{position:sticky;left:0;z-index:2;background:var(--p2);text-align:center;color:var(--t3);cursor:pointer;font-variant-numeric:tabular-nums}
 thead th.rh{z-index:4}
 tbody tr:hover td{background:color-mix(in srgb,var(--acc) 6%,transparent)}
@@ -600,6 +609,29 @@ function fit(){
   document.querySelector('.app').style.height=(window.innerHeight/z)+'px';
 }
 window.addEventListener('resize',fit); fit();
+
+/* ── 부분 갱신 ──
+   innerHTML 로 통째로 갈아끼우면 줄 애니메이션이 다시 돌고(깜빡임) 스크롤·포커스가 날아감.
+   새 HTML 과 지금 화면을 비교해서 달라진 속성·글자만 고침 → 스위치 전환 모션도 그대로 살아 있음 */
+function morphNode(o,n){
+  if(o.nodeType!==n.nodeType||o.nodeName!==n.nodeName){ o.replaceWith(n); return; }
+  if(o.nodeType===3||o.nodeType===8){ if(o.nodeValue!==n.nodeValue) o.nodeValue=n.nodeValue; return; }
+  if(o.nodeType!==1){ o.replaceWith(n); return; }
+  const oa=o.attributes, na=n.attributes;
+  for(let i=oa.length-1;i>=0;i--){ const a=oa[i].name; if(!n.hasAttribute(a)) o.removeAttribute(a); }
+  for(let i=0;i<na.length;i++){ const a=na[i]; if(o.getAttribute(a.name)!==a.value) o.setAttribute(a.name,a.value); }
+  const tag=o.tagName, foc=document.activeElement===o;
+  if(tag==='INPUT'){ if(!foc){ const v=n.getAttribute('value')||''; if(o.value!==v) o.value=v; } return; }
+  if(tag==='TEXTAREA') return;
+  morphKids(o,n);
+  if(tag==='SELECT'&&!foc&&o.selectedIndex!==n.selectedIndex) o.selectedIndex=n.selectedIndex;
+}
+function morphKids(from,to){
+  const nk=Array.from(to.childNodes);
+  for(let i=0;i<nk.length;i++){ const o=from.childNodes[i]; if(o) morphNode(o,nk[i]); else from.appendChild(nk[i]); }
+  while(from.childNodes.length>nk.length) from.removeChild(from.lastChild);
+}
+function morph(el,html){ const t=document.createElement('div'); t.innerHTML=html; morphKids(el,t); }
 
 /* ── 상단 탭 ── */
 $$('.tab').forEach(t=>t.onclick=()=>{
@@ -1227,7 +1259,7 @@ function renderFiles(){
     });
     h+='</div>';
   });
-  $('#flist').innerHTML=h;
+  morph($('#flist'),h);
   const all=has&&S.docs.every(d=>S.sel.has(d.id));
   $('#fall').className='ck'+(all?' on':(S.sel.size?' mix':''));
 }
@@ -1296,8 +1328,11 @@ $('#picktype').onchange=e=>{
 };
 
 /* ── 열 설정 / 미리보기 전환 ── */
+const viewScroll={};
 function setView(v){
   if(v==='res'&&!S.res) v='cols';
+  const mb=$('#mbody'), prev=S.view, sw=prev!==v;
+  if(sw) viewScroll[prev]=mb.scrollTop;
   S.view=v;
   const has=S.docs.length>0;
   $$('#ctab button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
@@ -1306,6 +1341,7 @@ function setView(v){
   $('#resview').classList.toggle('hide',v!=='res'||!has);
   $('#ctl').style.display=v==='res'?'none':'';
   if(v==='cols') renderCols(); else if(v==='prev') renderPrev();
+  if(sw) mb.scrollTop=viewScroll[v]||0;
 }
 $('#ctab').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&!b.disabled) setView(b.dataset.v); });
 
@@ -1372,18 +1408,17 @@ function renderCols(){
   const el=$('#colview'), ds=selDocs();
   if(!S.docs.length){ el.innerHTML=''; return; }
   if(!ds.length){ S._entries=[];
-    el.innerHTML='<div class="empty"><div><h4>편집할 파일을 고르세요</h4><div>왼쪽 목록에서 파일을 누르거나 체크하면 됨</div></div></div>'; return; }
+    morph(el,'<div class="empty"><div><h4>편집할 파일을 고르세요</h4><div>왼쪽 목록에서 파일을 누르거나 체크하면 됨</div></div></div>'); return; }
   const es=S._entries=entries();
   const keys=new Set(es.map(e=>e.key));
   Array.from(S.csel).forEach(k=>{ if(!keys.has(k)) S.csel.delete(k); });
   const all=es.length&&es.every(e=>S.csel.has(e.key));
-  let h=S.csel.size?bulkHTML(S.csel.size):'';
-  h+='<div class="chead"><span class="ck'+(all?' on':(S.csel.size?' mix':''))+'" data-a="selall" title="전체 선택"></span>'
+  let h='<div class="chead"><span class="ck'+(all?' on':(S.csel.size?' mix':''))+'" data-a="selall" title="전체 선택"></span>'
     +'<span>사용</span><span>열 이름 · 감지 · 예시</span><span>유형</span><span>방식</span><span>세부 설정</span></div>';
   es.forEach((e,i)=>{ h+=rowHTML(e,ds.length,i); });
-  el.innerHTML=h;
-  const b=el.querySelector('.bulk');
-  el.style.setProperty('--bulkh',(b?b.offsetHeight:0)+'px');
+  /* 일괄 바는 목록 아래에 떠 있음 — 위에 끼어들면 목록이 밀려서 스크롤이 튐 */
+  if(S.csel.size) h+=bulkHTML(S.csel.size);
+  morph(el,h);
   renderCtl();
 }
 function setMode(refs,m){
@@ -1454,6 +1489,7 @@ function renderPrev(){
   const pool=selDocs().length?selDocs():S.docs;
   let d=byId(S.focus); if(!d||!pool.includes(d)) d=pool[0];
   if(!d){ el.innerHTML=''; return; }
+  const fileChanged=el.dataset.doc!==String(d.id); el.dataset.doc=d.id;
   S.focus=d.id;
   const st=startOf(d), total=Math.max(0,d.grid.length-st);
   const shown=Math.min(total,S.prevRows,PREV_MAX), nc=Math.min(d.cols.length,PREV_COLS);
@@ -1492,7 +1528,8 @@ function renderPrev(){
   if(shown<total&&shown<PREV_MAX) h.push('<button class="btn xs" id="pmore">+'+nf(Math.min(PREV_STEP,total-shown,PREV_MAX-shown))+'행 더 보기</button>');
   else if(shown<total) h.push('<span>미리보기는 '+nf(PREV_MAX)+'행까지</span>');
   h.push('</div>');
-  el.innerHTML=h.join('');
+  morph(el,h.join(''));
+  if(fileChanged){ const tw=el.querySelector('.tw'); if(tw){ tw.scrollTop=0; tw.scrollLeft=0; } }
 }
 $('#prevview').addEventListener('change',e=>{
   if(e.target.id==='pfile'){ S.focus=+e.target.value; S.prevRows=PREV0; renderFiles(); renderPrev(); }
@@ -1505,10 +1542,32 @@ $('#prevview').addEventListener('click',e=>{
   const th=t.closest('th[data-c]');
   if(th){ const key=d.cols[+th.dataset.c].key, ent=S.sel.has(d.id)?entries().find(x=>x.key===key):null;
     const refs=ent?ent.refs:[{d,c:d.cols[+th.dataset.c]}], all=refs.every(r=>r.c.on);
-    refs.forEach(r=>r.c.on=!all); changed(); return; }
+    refs.forEach(r=>r.c.on=!all); prevChanged(d,+th.dataset.c,null); return; }
   const td=t.closest('td.rh');
-  if(td){ const r=+td.dataset.r; d.rows.has(r)?d.rows.delete(r):d.rows.add(r); changed(); }
+  if(td){ const r=+td.dataset.r; d.rows.has(r)?d.rows.delete(r):d.rows.add(r); prevChanged(d,null,r); }
 });
+/* 미리보기에서 열 머리·행 번호를 눌렀을 때 — 표 전체를 다시 만들지 않고 그 열/행 칸만 고침 (수백 행이어도 즉시) */
+function prevChanged(d,c,r){
+  const hadRes=!!S.res;
+  invalidate(); renderFiles(); renderTarget();
+  const tb=$('#prevview tbody');
+  if(hadRes||!tb){ renderPrev(); return; }
+  const paint=(td,cc,rr)=>{ const col=d.cols[cc], on=col.on||d.rows.has(rr);
+    td.className=on?'on':''; if(on) td.style.setProperty('--mc','var(--m-'+col.mode+')'); else td.removeAttribute('style'); };
+  if(c!=null){
+    const col=d.cols[c], th=$('#prevview thead th[data-c="'+c+'"]');
+    if(th){ th.classList.toggle('on',col.on); if(col.on) th.style.setProperty('--mc','var(--m-'+col.mode+')'); else th.removeAttribute('style'); }
+    for(const tr of tb.rows){ const cell=tr.cells[c+1]; if(cell) paint(cell,c,+tr.dataset.r); }
+  }
+  if(r!=null){
+    const tr=tb.querySelector('tr[data-r="'+r+'"]'); if(tr){ tr.classList.toggle('rsel',d.rows.has(r));
+      for(let i=1;i<tr.cells.length;i++) paint(tr.cells[i],i-1,r); }
+    const bd=$('#prevview .ptool .bd'), cl=$('#prowclear'), n=d.rows.size;
+    if(bd){ bd.textContent='행 통째 마스킹 '+n+'개'; bd.className='bd'+(n?' w':''); }
+    if(n&&!cl&&bd) bd.insertAdjacentHTML('afterend','<button class="btn xs ghost" id="prowclear">행 선택 해제</button>');
+    if(!n&&cl) cl.remove();
+  }
+}
 
 function renderAll(){
   $('#empty').classList.toggle('hide',S.docs.length>0);

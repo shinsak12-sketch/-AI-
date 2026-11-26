@@ -51,6 +51,29 @@ function fit(){
 }
 window.addEventListener('resize',fit); fit();
 
+/* ── 부분 갱신 ──
+   innerHTML 로 통째로 갈아끼우면 줄 애니메이션이 다시 돌고(깜빡임) 스크롤·포커스가 날아감.
+   새 HTML 과 지금 화면을 비교해서 달라진 속성·글자만 고침 → 스위치 전환 모션도 그대로 살아 있음 */
+function morphNode(o,n){
+  if(o.nodeType!==n.nodeType||o.nodeName!==n.nodeName){ o.replaceWith(n); return; }
+  if(o.nodeType===3||o.nodeType===8){ if(o.nodeValue!==n.nodeValue) o.nodeValue=n.nodeValue; return; }
+  if(o.nodeType!==1){ o.replaceWith(n); return; }
+  const oa=o.attributes, na=n.attributes;
+  for(let i=oa.length-1;i>=0;i--){ const a=oa[i].name; if(!n.hasAttribute(a)) o.removeAttribute(a); }
+  for(let i=0;i<na.length;i++){ const a=na[i]; if(o.getAttribute(a.name)!==a.value) o.setAttribute(a.name,a.value); }
+  const tag=o.tagName, foc=document.activeElement===o;
+  if(tag==='INPUT'){ if(!foc){ const v=n.getAttribute('value')||''; if(o.value!==v) o.value=v; } return; }
+  if(tag==='TEXTAREA') return;
+  morphKids(o,n);
+  if(tag==='SELECT'&&!foc&&o.selectedIndex!==n.selectedIndex) o.selectedIndex=n.selectedIndex;
+}
+function morphKids(from,to){
+  const nk=Array.from(to.childNodes);
+  for(let i=0;i<nk.length;i++){ const o=from.childNodes[i]; if(o) morphNode(o,nk[i]); else from.appendChild(nk[i]); }
+  while(from.childNodes.length>nk.length) from.removeChild(from.lastChild);
+}
+function morph(el,html){ const t=document.createElement('div'); t.innerHTML=html; morphKids(el,t); }
+
 /* ── 상단 탭 ── */
 $$('.tab').forEach(t=>t.onclick=()=>{
   $$('.tab').forEach(x=>x.classList.toggle('on',x===t));

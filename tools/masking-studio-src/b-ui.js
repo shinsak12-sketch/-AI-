@@ -152,7 +152,7 @@ function renderFiles(){
     });
     h+='</div>';
   });
-  $('#flist').innerHTML=h;
+  morph($('#flist'),h);
   const all=has&&S.docs.every(d=>S.sel.has(d.id));
   $('#fall').className='ck'+(all?' on':(S.sel.size?' mix':''));
 }
@@ -221,8 +221,11 @@ $('#picktype').onchange=e=>{
 };
 
 /* ── 열 설정 / 미리보기 전환 ── */
+const viewScroll={};
 function setView(v){
   if(v==='res'&&!S.res) v='cols';
+  const mb=$('#mbody'), prev=S.view, sw=prev!==v;
+  if(sw) viewScroll[prev]=mb.scrollTop;
   S.view=v;
   const has=S.docs.length>0;
   $$('#ctab button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
@@ -231,6 +234,7 @@ function setView(v){
   $('#resview').classList.toggle('hide',v!=='res'||!has);
   $('#ctl').style.display=v==='res'?'none':'';
   if(v==='cols') renderCols(); else if(v==='prev') renderPrev();
+  if(sw) mb.scrollTop=viewScroll[v]||0;
 }
 $('#ctab').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&!b.disabled) setView(b.dataset.v); });
 
@@ -297,18 +301,17 @@ function renderCols(){
   const el=$('#colview'), ds=selDocs();
   if(!S.docs.length){ el.innerHTML=''; return; }
   if(!ds.length){ S._entries=[];
-    el.innerHTML='<div class="empty"><div><h4>편집할 파일을 고르세요</h4><div>왼쪽 목록에서 파일을 누르거나 체크하면 됨</div></div></div>'; return; }
+    morph(el,'<div class="empty"><div><h4>편집할 파일을 고르세요</h4><div>왼쪽 목록에서 파일을 누르거나 체크하면 됨</div></div></div>'); return; }
   const es=S._entries=entries();
   const keys=new Set(es.map(e=>e.key));
   Array.from(S.csel).forEach(k=>{ if(!keys.has(k)) S.csel.delete(k); });
   const all=es.length&&es.every(e=>S.csel.has(e.key));
-  let h=S.csel.size?bulkHTML(S.csel.size):'';
-  h+='<div class="chead"><span class="ck'+(all?' on':(S.csel.size?' mix':''))+'" data-a="selall" title="전체 선택"></span>'
+  let h='<div class="chead"><span class="ck'+(all?' on':(S.csel.size?' mix':''))+'" data-a="selall" title="전체 선택"></span>'
     +'<span>사용</span><span>열 이름 · 감지 · 예시</span><span>유형</span><span>방식</span><span>세부 설정</span></div>';
   es.forEach((e,i)=>{ h+=rowHTML(e,ds.length,i); });
-  el.innerHTML=h;
-  const b=el.querySelector('.bulk');
-  el.style.setProperty('--bulkh',(b?b.offsetHeight:0)+'px');
+  /* 일괄 바는 목록 아래에 떠 있음 — 위에 끼어들면 목록이 밀려서 스크롤이 튐 */
+  if(S.csel.size) h+=bulkHTML(S.csel.size);
+  morph(el,h);
   renderCtl();
 }
 function setMode(refs,m){
@@ -379,6 +382,7 @@ function renderPrev(){
   const pool=selDocs().length?selDocs():S.docs;
   let d=byId(S.focus); if(!d||!pool.includes(d)) d=pool[0];
   if(!d){ el.innerHTML=''; return; }
+  const fileChanged=el.dataset.doc!==String(d.id); el.dataset.doc=d.id;
   S.focus=d.id;
   const st=startOf(d), total=Math.max(0,d.grid.length-st);
   const shown=Math.min(total,S.prevRows,PREV_MAX), nc=Math.min(d.cols.length,PREV_COLS);
@@ -417,7 +421,8 @@ function renderPrev(){
   if(shown<total&&shown<PREV_MAX) h.push('<button class="btn xs" id="pmore">+'+nf(Math.min(PREV_STEP,total-shown,PREV_MAX-shown))+'행 더 보기</button>');
   else if(shown<total) h.push('<span>미리보기는 '+nf(PREV_MAX)+'행까지</span>');
   h.push('</div>');
-  el.innerHTML=h.join('');
+  morph(el,h.join(''));
+  if(fileChanged){ const tw=el.querySelector('.tw'); if(tw){ tw.scrollTop=0; tw.scrollLeft=0; } }
 }
 $('#prevview').addEventListener('change',e=>{
   if(e.target.id==='pfile'){ S.focus=+e.target.value; S.prevRows=PREV0; renderFiles(); renderPrev(); }
@@ -430,10 +435,32 @@ $('#prevview').addEventListener('click',e=>{
   const th=t.closest('th[data-c]');
   if(th){ const key=d.cols[+th.dataset.c].key, ent=S.sel.has(d.id)?entries().find(x=>x.key===key):null;
     const refs=ent?ent.refs:[{d,c:d.cols[+th.dataset.c]}], all=refs.every(r=>r.c.on);
-    refs.forEach(r=>r.c.on=!all); changed(); return; }
+    refs.forEach(r=>r.c.on=!all); prevChanged(d,+th.dataset.c,null); return; }
   const td=t.closest('td.rh');
-  if(td){ const r=+td.dataset.r; d.rows.has(r)?d.rows.delete(r):d.rows.add(r); changed(); }
+  if(td){ const r=+td.dataset.r; d.rows.has(r)?d.rows.delete(r):d.rows.add(r); prevChanged(d,null,r); }
 });
+/* 미리보기에서 열 머리·행 번호를 눌렀을 때 — 표 전체를 다시 만들지 않고 그 열/행 칸만 고침 (수백 행이어도 즉시) */
+function prevChanged(d,c,r){
+  const hadRes=!!S.res;
+  invalidate(); renderFiles(); renderTarget();
+  const tb=$('#prevview tbody');
+  if(hadRes||!tb){ renderPrev(); return; }
+  const paint=(td,cc,rr)=>{ const col=d.cols[cc], on=col.on||d.rows.has(rr);
+    td.className=on?'on':''; if(on) td.style.setProperty('--mc','var(--m-'+col.mode+')'); else td.removeAttribute('style'); };
+  if(c!=null){
+    const col=d.cols[c], th=$('#prevview thead th[data-c="'+c+'"]');
+    if(th){ th.classList.toggle('on',col.on); if(col.on) th.style.setProperty('--mc','var(--m-'+col.mode+')'); else th.removeAttribute('style'); }
+    for(const tr of tb.rows){ const cell=tr.cells[c+1]; if(cell) paint(cell,c,+tr.dataset.r); }
+  }
+  if(r!=null){
+    const tr=tb.querySelector('tr[data-r="'+r+'"]'); if(tr){ tr.classList.toggle('rsel',d.rows.has(r));
+      for(let i=1;i<tr.cells.length;i++) paint(tr.cells[i],i-1,r); }
+    const bd=$('#prevview .ptool .bd'), cl=$('#prowclear'), n=d.rows.size;
+    if(bd){ bd.textContent='행 통째 마스킹 '+n+'개'; bd.className='bd'+(n?' w':''); }
+    if(n&&!cl&&bd) bd.insertAdjacentHTML('afterend','<button class="btn xs ghost" id="prowclear">행 선택 해제</button>');
+    if(!n&&cl) cl.remove();
+  }
+}
 
 function renderAll(){
   $('#empty').classList.toggle('hide',S.docs.length>0);
