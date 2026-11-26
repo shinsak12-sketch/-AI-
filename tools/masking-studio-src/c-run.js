@@ -49,23 +49,30 @@ async function runMask(){
   }
 
   const dict=new Map(), rawCode=new Map(), used=new Set(), seq={}, recs=[];
-  let cells=0, dels=0, reused=0, swept=0, calcN=0, calcFail=0; const failSamples=[];
+  let cells=0, dels=0, reused=0, kept=0, swept=0, calcN=0, calcFail=0; const failSamples=[];
   let bookN=null;
   if(S.book){ bookN=new Map(); S.book.forEach((m,o)=>{ used.add(m); const k=normKey(o,NL); if(!bookN.has(k)) bookN.set(k,m); }); }
+  /* 이번 세션에서 앞서 실행해 나온 코드 — 파일을 추가하거나 설정을 조금 바꿔 다시 돌려도
+     이미 나온 값은 같은 코드를 그대로 씀 (방식·유형·접두어가 바뀐 값만 새 코드) */
+  const sigOf=p=>p.mode==='shape'?'shape|'+p.type:p.mode+'|'+(p.mode==='safe'?safePrefix(p.prefix,p.type):(p.prefix||TYPES[p.type].prefix));
+  const memoN=new Map(), taken=new Set();
+  S.memo.forEach((e,m)=>{ used.add(m); const k=normKey(e.orig,NL)+'\u0001'+e.sig; if(!memoN.has(k)) memoN.set(k,m); });
 
   function code(k){
     let v=dict.get(k); if(v!==undefined) return v;
     const p=plan.get(k)||{mode:'shape',type:'text',prefix:'TXT',col:'',file:'',rep:k};
-    const carried=bookN?bookN.get(k):undefined;
-    if(carried!==undefined){ v=carried; reused++; }               /* 이전 매칭 파일에 있던 값 — 같은 코드 그대로 */
+    const sig=sigOf(p);
+    const carried=bookN?bookN.get(k):undefined, mem=memoN.get(k+'\u0001'+sig);
+    if(carried!==undefined&&!taken.has(carried)){ v=carried; reused++; }   /* 이전 매칭 파일에 있던 값 — 같은 코드 그대로 */
+    else if(mem!==undefined&&!taken.has(mem)){ v=mem; kept++; }           /* 앞서 실행한 코드 그대로 */
     else if(p.mode==='safe'){ const pre=safePrefix(p.prefix,p.type); do{ v=pre+'-'+genSafeBody(); }while(used.has(v)||origSet.has(v)); }
     else if(p.mode==='token'){ const pre=p.prefix||TYPES[p.type].prefix; seq[pre]=(seq[pre]||0)+1; v=pre+'_'+pad(seq[pre],4);
       while(used.has(v)||origSet.has(v)){ seq[pre]++; v=pre+'_'+pad(seq[pre],4); } }
     else{ const g=GEN[p.type]||genShape, src=p.rep; let n=0;
       do{ v=g(src); n++; }while((used.has(v)||origSet.has(v)||v===src)&&n<60);
       if(used.has(v)||origSet.has(v)||v===src){ let j=2; const base=v; do{ v=base+'#'+j++; }while(used.has(v)||origSet.has(v)); } }
-    used.add(v); dict.set(k,v);
-    recs.push({orig:p.rep,masked:v,type:TYPES[p.type].label,col:p.col,file:p.file});
+    used.add(v); taken.add(v); dict.set(k,v);
+    recs.push({orig:p.rep,masked:v,type:TYPES[p.type].label,col:p.col,file:p.file,sig});
     return v;
   }
 
@@ -158,13 +165,16 @@ async function runMask(){
 
   let merged=0; variants.forEach(vs=>{ if(vs.size>1) merged++; });
   progress(1); setTimeout(()=>progress(-1),400);
-  S.res={records:recs,totalRows,cells,dels,reused,swept,sweptBy,calcN,calcFail,failSamples,merged,
+  /* 이번에 나온 코드를 세션 기억에 쌓음 (예전 코드는 지우지 않음 — 앞서 받은 결과 파일 복원용) */
+  recs.forEach(r=>S.memo.set(r.masked,{orig:r.orig,sig:r.sig,type:r.type,col:r.col,file:r.file}));
+  renderMemo();
+  S.res={records:recs,totalRows,cells,dels,reused,kept,swept,sweptBy,calcN,calcFail,failSamples,merged,
          pii:{cnt:piiCnt,by:piiBy,total:piiTotal},ms:Math.round(performance.now()-t0)};
   S.showMask=true;
   renderResult(); prebuild(); renderFiles();
   toast('완료 · 셀 '+nf(cells)+'개'+(docs.length>1?' · 파일 '+docs.length+'개 공통 코드':'')
     +(merged?' · 표기 다른 값 '+nf(merged)+'건 묶음':'')+(calcN?' · 기간 계산 '+nf(calcN):'')
-    +(reused?' · 이어쓴 코드 '+nf(reused):'')+' · '+S.res.ms+'ms','ok');
+    +(reused?' · 이어쓴 코드 '+nf(reused):'')+(kept?' · 앞서 나온 코드 '+nf(kept)+'건 그대로':'')+' · '+S.res.ms+'ms','ok');
 }
 $('#run').onclick=async()=>{
   if(!S.docs.length) return;
@@ -182,17 +192,18 @@ function renderResult(){
   $('#ctab button[data-v="res"]').disabled=false;
   $('#rvtitle').textContent='마스킹 완료 — 파일 '+S.docs.length+'개';
   $('#rvsub').textContent=nf(r.totalRows)+'행 · 셀 '+nf(r.cells)+'개 바뀜 · '+(r.ms/1000).toFixed(1)+'초'
-    +(r.merged?' · 표기 다른 값 '+nf(r.merged)+'건 묶음':'')+(S.book?' · 이전 매칭 파일 이어씀':'');
+    +(r.merged?' · 표기 다른 값 '+nf(r.merged)+'건 묶음':'')+(S.book?' · 이전 매칭 파일 이어씀':'')
+    +(r.kept?' · 앞서 실행한 코드 '+nf(r.kept)+'건 그대로 유지':'');
   $('#rvall').querySelector('span').textContent=many?'마스킹 파일 전부 받기 (ZIP)':'마스킹 파일 받기';
   $('#qall').textContent=many?'마스킹 파일 전부 받기 (ZIP)':'마스킹 파일 받기';
-  const hasMap=r.records.length>0||!!S.book;
+  const hasMap=r.records.length>0||!!S.book||S.memo.size>0;
   $('#rvmap').disabled=!hasMap; $('#qmap').disabled=!hasMap;
   $('#rsum').innerHTML='<div><b>'+nf(r.cells)+'</b><span>바뀐 셀</span></div><div><b>'+nf(r.records.length)+'</b><span>매핑 값</span></div>'
     +'<div><b'+(r.pii.total?' style="color:var(--warn)"':'')+'>'+nf(r.pii.total)+'</b><span>형식 남음</span></div>';
   $('#rsbd').textContent=r.pii.total?'점검 필요':'완료'; $('#rsbd').className='bd '+(r.pii.total?'w':'g');
   setView('res');
   countUp($('#s1'),r.totalRows); countUp($('#s2'),r.cells); countUp($('#s3'),r.records.length);
-  countUp($('#s4'),r.calcN); countUp($('#s5'),r.dels); countUp($('#s6'),r.reused);
+  countUp($('#s4'),r.calcN); countUp($('#s5'),r.dels); countUp($('#s6'),r.reused+r.kept);
   const P=r.pii, multi=S.docs.length>1; PII_FLAGS=[];
   if(!P.total) $('#scan').innerHTML='<div class="scan clean"><div class="t"><i></i>개인정보 형식이 남아 있지 않음</div>'
     +'<p>전화·주민·카드·계좌·이메일 형식으로 읽힐 값이 결과 전체에 하나도 없음</p></div>';
@@ -255,6 +266,7 @@ function mappingPayload(){
   S.res.records.forEach(r=>{ seen.add(r.orig); map.push([r.orig,r.masked,r.type,r.col,r.file]); });
   /* 이어쓴 코드북 중 이번 파일에 안 나온 것도 남겨서, 다음에 이 파일 하나만 넣으면 되게 함 */
   if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) map.push([o,m,'(이전 코드)','','']); });
+  extraMemo().forEach(([m,e])=>map.push([e.orig,m,'(앞서 실행)',e.col,e.file]));
   const asCsv=map.length-1>MAP_CSV_OVER;
   if(asCsv) return {asCsv:true,map};
   const info=[['마스킹 스튜디오 매칭 파일'],[],
@@ -276,6 +288,11 @@ function mappingPayload(){
     ['※ 다음에 다른 파일을 같은 코드로 마스킹하려면 [이전 매칭 파일 이어쓰기]에 이 파일을 넣으면 됨']);
   return {asCsv:false,map,info,mcols:[{wch:26},{wch:26},{wch:12},{wch:20},{wch:22}],icols:[{wch:24},{wch:80}]};
 }
+/* 세션 기억 중 이번 결과·이어쓴 매칭 파일에 없는 코드 — 앞서 받은 결과 파일도 이 매칭 파일 하나로 복원되게 */
+function extraMemo(){
+  const codes=new Set(S.res.records.map(r=>r.masked)); if(S.book) S.book.forEach(m=>codes.add(m));
+  return Array.from(S.memo).filter(([m])=>!codes.has(m));
+}
 function dlBtn(k,cls,icon,title,sub){
   return '<button class="dl '+cls+'" data-dl="'+k+'"><div class="ic">'+icon+'</div><div class="tx"><b title="'+esc(title)+'">'+esc(title)+'</b><span>'+sub+'</span></div><span class="rd" id="rd-'+k+'"></span></button>';
 }
@@ -285,6 +302,7 @@ function renderDls(){
   S.docs.forEach(d=>{ h+=dlBtn('f'+d.id,'',DL_ICON,outName(d),'마스킹 파일'); });
   const seen=new Set(r.records.map(x=>x.orig)); let total=r.records.length;
   if(S.book) S.book.forEach((m,o)=>{ if(!seen.has(o)) total++; });
+  total+=extraMemo().length;
   if(total) h+=dlBtn('map','g',MAP_ICON,mapName(),'매칭 파일 · '+nf(total)+'건'+(S.book?' · 이전 코드 누적':''));
   else h+='<div class="warnbox">바꾼 값이 삭제·기간 계산뿐이라 매칭 파일은 없음</div>';
   $('#dlist').innerHTML=h;
@@ -377,6 +395,18 @@ $('#bookfile').onchange=async e=>{
   S.book=book; renderBook(); invalidate();
   toast('코드 '+nf(add)+'건 이어씀 · 총 '+nf(book.size)+'건'+(clash?' · 코드가 겹친 '+nf(clash)+'건은 뺌':''),clash?'warn':'ok');
 };
+/* ── 세션 코드 기억 ── */
+function renderMemo(){
+  const n=S.memo.size;
+  $('#memobd').textContent=n?nf(n)+'건':'비어 있음'; $('#memobd').className='bd'+(n?' g':'');
+  $('#memoreset').disabled=!n;
+}
+$('#memoreset').onclick=()=>{
+  if(!S.memo.size) return;
+  if(!confirm('기억한 코드 '+nf(S.memo.size)+'건을 지우고 다음 실행 때 코드를 새로 뽑을까?\n앞서 받은 결과 파일과는 코드가 달라짐')) return;
+  S.memo.clear(); renderMemo(); invalidate(); toast('코드 기억을 비움 — 다음 실행 때 새로 뽑음','ok');
+};
+renderMemo();
 $('#bookclear').onclick=()=>{ S.book=null; S.bookNames=[]; renderBook(); invalidate(); toast('이어쓰기 해제함','ok'); };
 function renderBook(){
   const on=!!S.book;

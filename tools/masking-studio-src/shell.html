@@ -457,7 +457,7 @@ td.fail::after{content:'변환 불가';font-size:10px;font-weight:700;color:var(
             <div class="st"><b id="s3">0</b><span>매핑 값</span></div>
             <div class="st"><b id="s4">0</b><span>기간 계산</span></div>
             <div class="st"><b id="s5">0</b><span>삭제</span></div>
-            <div class="st"><b id="s6">0</b><span>이어쓴 코드</span></div>
+            <div class="st"><b id="s6">0</b><span>유지된 코드</span></div>
           </div>
           <div class="rvgrid"><div id="scan"></div><div id="calcnote"></div></div>
           <div class="rvh">파일별로 받기</div>
@@ -479,6 +479,10 @@ td.fail::after{content:'변환 불가';font-size:10px;font-weight:700;color:var(
       <div class="opt-row">
         <div class="ot">문장 속 값도 치환<small>안 고른 열(비고 등) 문장에 섞인 이름·전화 등 개인정보만 같은 코드로 바꿈. 삭제·기간 값은 다른 열을 안 건드림</small></div>
         <span class="sw on" id="sweep"></span>
+      </div>
+      <div class="opt-row">
+        <div class="ot">앞서 나온 코드 그대로 <span class="bd" id="memobd">비어 있음</span><small>파일을 추가하거나 설정을 바꿔 다시 실행해도, 이미 나온 값은 같은 코드를 씀. 방식·유형을 바꾼 열만 새 코드</small></div>
+        <button class="btn xs" id="memoreset" disabled title="기억한 코드를 지우고 새로 뽑음" style="flex:none;white-space:nowrap;padding:6px 10px">새로 뽑기</button>
       </div>
       <button class="btn pri lg" id="run" style="margin-top:12px" disabled>
         <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>마스킹 실행<span class="kbd">Ctrl+Enter</span></button>

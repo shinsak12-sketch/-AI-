@@ -20,7 +20,7 @@ const SHAPE_HINT={name:'홍길동 → 서지우',phone:'형식 유지 — 형식
 const PREV0=20, PREV_STEP=100, PREV_MAX=500, PREV_COLS=60;
 
 const S={ docs:[], sel:new Set(), focus:null, csel:new Set(), lastKey:null, view:'cols',
-  norm:1, sweep:true, book:null, bookNames:[], res:null, mapFile:null,
+  norm:1, sweep:true, memo:new Map(), book:null, bookNames:[], res:null, mapFile:null,
   showMask:true, prevRows:PREV0, nextId:1, bulkUnit:'age', bulkRef:TODAY, _entries:[], _groups:[] };
 const byId=id=>S.docs.find(d=>d.id===id);
 const selDocs=()=>S.docs.filter(d=>S.sel.has(d.id));
