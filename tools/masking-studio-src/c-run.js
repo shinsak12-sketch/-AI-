@@ -48,7 +48,7 @@ async function runMask(){
     }
   }
 
-  const dict=new Map(), rawCode=new Map(), used=new Set(), seq={}, recs=[], delRep=new Map(), calcRep=new Map();
+  const dict=new Map(), rawCode=new Map(), used=new Set(), seq={}, recs=[];
   let cells=0, dels=0, reused=0, swept=0, calcN=0, calcFail=0; const failSamples=[];
   let bookN=null;
   if(S.book){ bookN=new Map(); S.book.forEach((m,o)=>{ used.add(m); const k=normKey(o,NL); if(!bookN.has(k)) bookN.set(k,m); }); }
@@ -83,19 +83,18 @@ async function runMask(){
       for(let c=0;c<d.cols.length;c++){
         const v=row[c]; if(v===''||v==null||!tgt(r,c)) continue;
         const col=d.cols[c], raw=String(v);
-        /* 문장 속 치환은 "열 단위로 켠" 값만 퍼뜨림. 행 통째 마스킹으로 잡힌 평범한 값(부서명 등)이
-           다른 행까지 번지면 안 되므로 */
-        const spread=col.on;
+        /* 문장 속 치환은 "열 단위로 켠 개인정보 유형(이름·전화 등)"의 코드만 퍼뜨림.
+           삭제·기간 계산 값, 부서명 같은 일반 값, 행 통째 마스킹 값은 안 고른 열을 절대 건드리지 않음 */
+        const spread=col.on&&SENSITIVE.includes(col.type);
         if(col.mode==='calc'){
           const R=REF(col.ref), D=parseDateAny(v,R.y);
           if(!D){ out[c]=''; d.fail.add(r*65536+c); calcFail++; if(failSamples.length<4) failSamples.push(raw); continue; }
           const x=calcValue(D,R,col.unit); out[c]=x; calcN++; cells++;
-          if(spread&&raw.length>=6&&!/^-?[\d,.]+$/.test(raw)) calcRep.set(raw,String(x));
           continue;
         }
         if(col.mode==='del'){
           const b=col.blank||''; if(raw!==b){ out[c]=b; cells++; dels++; }
-          if(spread&&raw.length>=2) delRep.set(raw,b); continue;
+          continue;
         }
         const k=normKey(raw,NL), mv=code(k), p=plan.get(k);
         if(spread) rawCode.set(raw,mv);
@@ -107,11 +106,12 @@ async function runMask(){
     d.masked=masked;
   }
 
-  /* 3차: 고르지 않은 열(비고 등) 문장 속에 섞인 값도 함께 치환 */
-  if(S.sweep&&(rawCode.size||delRep.size||calcRep.size)){
+  /* 3차: 고르지 않은 열(비고 등) 문장 속에 섞인 개인정보 값만 같은 코드로 치환.
+     지우거나(삭제) 기간으로 바꾼 값은 다른 열에서 절대 지우지 않음 */
+  const sweptBy=new Map();
+  if(S.sweep&&rawCode.size){
     const rep=new Map();
     rawCode.forEach((m,raw)=>{ if(raw.length>=2&&!/^-?[\d,.]+$/.test(raw)) rep.set(raw,m); });
-    [delRep,calcRep].forEach(src=>src.forEach((b,o)=>{ if(o.length>=2&&!/^-?[\d,.]+$/.test(o)&&!rep.has(o)) rep.set(o,b); }));
     if(rep.size>8000) toast('바꿀 값이 너무 많아 문장 속 치환은 건너뜀','warn');
     else if(rep.size){
       let re=null;
@@ -125,7 +125,9 @@ async function runMask(){
             const v=d.grid[r][c]; if(typeof v!=='string'||v.length<2) continue;
             re.lastIndex=0; if(!re.test(v)) continue; re.lastIndex=0;
             const nv=v.replace(re,x=>rep.has(x)?rep.get(x):x);
-            if(nv!==v){ d.masked[r][c]=nv; swept++; }
+            if(nv!==v){ d.masked[r][c]=nv; swept++;
+              const sk=(docs.length>1?d.name+' · ':'')+d.cols[c].key, se=sweptBy.get(sk);
+              if(se) se.n++; else sweptBy.set(sk,{n:1,ex:[v,nv]}); }
           }
           if((r-st)%4000===3999) await yieldNow();
         }
@@ -156,7 +158,7 @@ async function runMask(){
 
   let merged=0; variants.forEach(vs=>{ if(vs.size>1) merged++; });
   progress(1); setTimeout(()=>progress(-1),400);
-  S.res={records:recs,totalRows,cells,dels,reused,swept,calcN,calcFail,failSamples,merged,
+  S.res={records:recs,totalRows,cells,dels,reused,swept,sweptBy,calcN,calcFail,failSamples,merged,
          pii:{cnt:piiCnt,by:piiBy,total:piiTotal},ms:Math.round(performance.now()-t0)};
   S.showMask=true;
   renderResult(); prebuild(); renderFiles();
@@ -205,8 +207,14 @@ function renderResult(){
       +'</ul><p style="font-size:11px;color:var(--t3)">형태유지는 값만 바꾸고 형식은 그대로라 형식 검사에 걸림. 비식별로 바꾸면 숫자·@ 를 안 씀</p>'
       +'<button class="btn xs" id="fixsafe" style="margin-top:6px">위 열 전부 비식별로 바꾸고 다시 실행</button></div>';
   }
-  $('#calcnote').innerHTML=r.calcFail?'<div class="scan" style="margin-top:8px"><div class="t"><i></i>기간 계산 못한 값 '+nf(r.calcFail)+'개 — 빈칸 처리함</div>'
+  let note=r.calcFail?'<div class="scan" style="margin-bottom:8px"><div class="t"><i></i>기간 계산 못한 값 '+nf(r.calcFail)+'개 — 빈칸 처리함</div>'
     +'<p>날짜로 읽을 수 없는 값: '+r.failSamples.map(s=>'<code>'+esc(s)+'</code>').join(' ')+'</p></div>':'';
+  if(r.sweptBy&&r.sweptBy.size){
+    const li=[...r.sweptBy].sort((a,b)=>b[1].n-a[1].n).slice(0,6).map(([k,o])=>'<li><b>'+esc(k)+'</b> '+nf(o.n)+'칸 — <code>'+esc(String(o.ex[0]).slice(0,28))+'</code> → <code>'+esc(String(o.ex[1]).slice(0,28))+'</code></li>').join('');
+    note+='<div class="scan clean"><div class="t"><i></i>안 고른 열 문장 속 개인정보 '+nf(r.swept)+'칸 치환</div><ul>'+li+'</ul>'
+      +'<p style="font-size:11px;color:var(--t3)">이름·전화 같은 개인정보 코드만 적용함. 삭제·기간 계산한 값은 다른 열에서 안 지움</p></div>';
+  }
+  $('#calcnote').innerHTML=note;
   renderDls();
 }
 $('#scan').addEventListener('click',async e=>{
