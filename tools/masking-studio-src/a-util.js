@@ -41,6 +41,16 @@ $('#theme').onclick=()=>{
 };
 try{ if(localStorage.getItem('ms-theme')==='light') $('#theme').click(); }catch(e){}
 
+/* ── 화면 맞춤 ──
+   창이 좁아도 3분할이 풀리지 않게, 1360px 기준 화면을 비율대로 통째로 줄임 */
+const DESIGN_W=1360;
+function fit(){
+  const z=Math.min(1,window.innerWidth/DESIGN_W);
+  document.documentElement.style.zoom=z<1?String(z):'';
+  document.querySelector('.app').style.height=(window.innerHeight/z)+'px';
+}
+window.addEventListener('resize',fit); fit();
+
 /* ── 상단 탭 ── */
 $$('.tab').forEach(t=>t.onclick=()=>{
   $$('.tab').forEach(x=>x.classList.toggle('on',x===t));

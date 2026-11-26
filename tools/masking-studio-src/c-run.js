@@ -158,8 +158,8 @@ async function runMask(){
   progress(1); setTimeout(()=>progress(-1),400);
   S.res={records:recs,totalRows,cells,dels,reused,swept,calcN,calcFail,failSamples,merged,
          pii:{cnt:piiCnt,by:piiBy,total:piiTotal},ms:Math.round(performance.now()-t0)};
+  S.showMask=true;
   renderResult(); prebuild(); renderFiles();
-  if(S.view==='prev'){ S.showMask=true; renderPrev(); }
   toast('완료 · 셀 '+nf(cells)+'개'+(docs.length>1?' · 파일 '+docs.length+'개 공통 코드':'')
     +(merged?' · 표기 다른 값 '+nf(merged)+'건 묶음':'')+(calcN?' · 기간 계산 '+nf(calcN):'')
     +(reused?' · 이어쓴 코드 '+nf(reused):'')+' · '+S.res.ms+'ms','ok');
@@ -176,6 +176,19 @@ $('#run').onclick=async()=>{
 let PII_FLAGS=[];
 function renderResult(){
   const r=S.res; $('#rescard').classList.remove('hide');
+  const many=S.docs.length>1;
+  $('#ctab button[data-v="res"]').disabled=false;
+  $('#rvtitle').textContent='마스킹 완료 — 파일 '+S.docs.length+'개';
+  $('#rvsub').textContent=nf(r.totalRows)+'행 · 셀 '+nf(r.cells)+'개 바뀜 · '+(r.ms/1000).toFixed(1)+'초'
+    +(r.merged?' · 표기 다른 값 '+nf(r.merged)+'건 묶음':'')+(S.book?' · 이전 매칭 파일 이어씀':'');
+  $('#rvall').querySelector('span').textContent=many?'마스킹 파일 전부 받기 (ZIP)':'마스킹 파일 받기';
+  $('#qall').textContent=many?'마스킹 파일 전부 받기 (ZIP)':'마스킹 파일 받기';
+  const hasMap=r.records.length>0||!!S.book;
+  $('#rvmap').disabled=!hasMap; $('#qmap').disabled=!hasMap;
+  $('#rsum').innerHTML='<div><b>'+nf(r.cells)+'</b><span>바뀐 셀</span></div><div><b>'+nf(r.records.length)+'</b><span>매핑 값</span></div>'
+    +'<div><b'+(r.pii.total?' style="color:var(--warn)"':'')+'>'+nf(r.pii.total)+'</b><span>형식 남음</span></div>';
+  $('#rsbd').textContent=r.pii.total?'점검 필요':'완료'; $('#rsbd').className='bd '+(r.pii.total?'w':'g');
+  setView('res');
   countUp($('#s1'),r.totalRows); countUp($('#s2'),r.cells); countUp($('#s3'),r.records.length);
   countUp($('#s4'),r.calcN); countUp($('#s5'),r.dels); countUp($('#s6'),r.reused);
   const P=r.pii, multi=S.docs.length>1; PII_FLAGS=[];
@@ -291,9 +304,11 @@ async function zipAndSave(items,name){
   saveBlob(await makeZip(files),name);
   return files.length;
 }
-$('#dlist').addEventListener('click',async e=>{
-  const b=e.target.closest('[data-dl]'); if(!b||!S.res) return;
-  const k=b.dataset.dl;
+$('#qview').onclick=()=>setView('res');
+$('#v-mask').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-dl]'); if(!b||!S.res||b.disabled) return;
+  let k=b.dataset.dl;
+  if(k==='all') k=S.docs.length>1?'zip':'f'+S.docs[0].id;
   if(k==='zip'){
     await busy('ZIP 만드는 중…','파일 '+S.docs.length+'개');
     try{ const n=await zipAndSave(await Promise.all(S.docs.map(d=>d.file)),'마스킹결과_'+stamp()+'.zip'); toast('ZIP 내려받음 · 파일 '+n+'개','ok'); }

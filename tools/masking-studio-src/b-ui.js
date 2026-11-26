@@ -63,8 +63,10 @@ function invalidate(){
   S.res=null; S.mapFile=null;
   S.docs.forEach(d=>{ d.masked=null; d.file=null; d.fail=null; });
   $('#rescard').classList.add('hide');
+  $('#ctab button[data-v="res"]').disabled=true;
+  if(S.view==='res') S.view='cols';
 }
-function changed(){ invalidate(); renderFiles(); renderTarget(); if(S.view==='cols') renderCols(); else renderPrev(); }
+function changed(){ invalidate(); renderFiles(); renderTarget(); setView(S.view); }
 
 /* ══════════ 파일 ══════════ */
 function bindDrop(dropSel,inputSel,onFiles){
@@ -136,7 +138,7 @@ function renderFiles(){
   gs.forEach((g,gi)=>{
     const allSel=g.every(d=>S.sel.has(d.id)), L=letter(gi);
     h+='<div class="fgrp" style="animation-delay:'+Math.min(gi*35,280)+'ms">';
-    if(g.length>1) h+='<div class="fgh"><span class="tag">'+L+'</span>같은 양식 '+g.length+'개 · 열 '+g[0].cols.length+'개'
+    if(g.length>1) h+='<div class="fgh" title="열 '+g[0].cols.length+'개 구성이 같은 파일들"><span class="tag">'+L+'</span>같은 양식 '+g.length+'개'
       +'<span class="sp"></span><button class="btn xs'+(allSel&&S.sel.size===g.length?' ghost':'')+'" data-g="'+gi+'">'
       +(allSel&&S.sel.size===g.length?'편집 중':'묶어서 설정')+'</button></div>';
     g.forEach(d=>{
@@ -220,13 +222,17 @@ $('#picktype').onchange=e=>{
 
 /* ── 열 설정 / 미리보기 전환 ── */
 function setView(v){
+  if(v==='res'&&!S.res) v='cols';
   S.view=v;
+  const has=S.docs.length>0;
   $$('#ctab button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  $('#colview').classList.toggle('hide',v!=='cols'||!S.docs.length);
-  $('#prevview').classList.toggle('hide',v!=='prev'||!S.docs.length);
-  if(v==='cols') renderCols(); else renderPrev();
+  $('#colview').classList.toggle('hide',v!=='cols'||!has);
+  $('#prevview').classList.toggle('hide',v!=='prev'||!has);
+  $('#resview').classList.toggle('hide',v!=='res'||!has);
+  $('#ctl').style.display=v==='res'?'none':'';
+  if(v==='cols') renderCols(); else if(v==='prev') renderPrev();
 }
-$('#ctab').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setView(b.dataset.v); });
+$('#ctab').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&!b.disabled) setView(b.dataset.v); });
 
 /* ══════════ 열 목록 (여러 파일을 이름으로 합쳐서) ══════════ */
 function entries(){
@@ -430,10 +436,6 @@ $('#prevview').addEventListener('click',e=>{
 });
 
 function renderAll(){
-  const has=S.docs.length>0;
-  $('#empty').classList.toggle('hide',has);
-  renderFiles(); renderTarget();
-  if(S.view==='cols'){ $('#colview').classList.toggle('hide',!has); $('#prevview').classList.add('hide'); renderCols(); }
-  else { $('#prevview').classList.toggle('hide',!has); $('#colview').classList.add('hide'); renderPrev(); }
-  renderCtl();
+  $('#empty').classList.toggle('hide',S.docs.length>0);
+  renderFiles(); renderTarget(); setView(S.view); renderCtl();
 }
